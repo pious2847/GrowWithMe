@@ -19,6 +19,7 @@ const reminderSchema = new mongoose.Schema(
         'pnc',
         'follow_up',
         'nutrition',
+        'custom',
         'other',
       ],
       required: true,

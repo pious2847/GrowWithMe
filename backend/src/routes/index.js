@@ -9,6 +9,7 @@ const alertController = require('../controllers/alertController');
 const facilityController = require('../controllers/facilityController');
 const uploadController = require('../controllers/uploadController');
 const dashboardController = require('../controllers/dashboardController');
+const assistantController = require('../controllers/assistantController');
 
 const router = Router();
 const upload = multer({
@@ -43,12 +44,36 @@ router.patch('/facilities/:id', requireAuth, requireRole('admin'), facilityContr
 // Uploads (Cloudinary)
 router.post('/uploads', requireAuth, upload.single('file'), uploadController.upload);
 
-// Facility dashboard
+// Nana — AI care educator (LLM proxy + natural voice)
+router.post('/assistant/chat', requireAuth, assistantController.chat);
+router.post('/assistant/speak', requireAuth, assistantController.speak);
+router.post('/assistant/checkin-questions', requireAuth, assistantController.checkinQuestions);
+router.post('/assistant/diet-plan', requireAuth, assistantController.dietPlan);
+
+// Facility dashboard + monitoring queue
 router.get(
   '/dashboard/catchment',
   requireAuth,
   requireRole('facility', 'admin'),
   dashboardController.catchment
+);
+router.get(
+  '/dashboard/signals',
+  requireAuth,
+  requireRole('facility', 'admin'),
+  dashboardController.signals
+);
+router.post(
+  '/dashboard/scan',
+  requireAuth,
+  requireRole('facility', 'admin'),
+  dashboardController.triggerScan
+);
+router.patch(
+  '/dashboard/signals/:id',
+  requireAuth,
+  requireRole('facility', 'admin'),
+  dashboardController.updateSignal
 );
 
 module.exports = router;

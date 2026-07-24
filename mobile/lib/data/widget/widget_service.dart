@@ -71,6 +71,18 @@ class WidgetService {
         name: 'ReminderWidgetProvider',
         androidName: 'ReminderWidgetProvider',
       );
+
+      // Nana widget: today's message = next visit (if any) + the daily tip.
+      final nextLine = reminders.isEmpty
+          ? ''
+          : '${whenLabel(reminders.first.dueDate)}: ${reminders.first.title}. ';
+      await HomeWidget.saveWidgetData<String>(
+          'nana_date', DateFormat('EEE d MMM').format(now));
+      await HomeWidget.saveWidgetData<String>('nana_message', '$nextLine$tip');
+      await HomeWidget.updateWidget(
+        name: 'NanaWidgetProvider',
+        androidName: 'NanaWidgetProvider',
+      );
     } catch (_) {
       // Widget refresh must never break app flows (e.g. no widget added yet).
     }

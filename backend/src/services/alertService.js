@@ -57,11 +57,34 @@ async function raiseAlert(assessment, caregiver) {
 
   let volunteer = null;
   let facility = null;
+  let placesHospital = null;
   if (coordinates && coordinates.length === 2) {
     [volunteer, facility] = await Promise.all([
       findNearestVolunteer(coordinates),
       findNearestFacility(coordinates),
     ]);
+    // Real-world fallback: nothing in our registry nearby → ask Google Places
+    // for the closest hospital and its phone number.
+    if (!facility) {
+      const { findNearestHospital } = require('./googlePlaces');
+      placesHospital = await findNearestHospital(coordinates[0], coordinates[1]);
+    }
+  }
+
+  // Clinician-facing PDF report (best-effort) — travels by SMS link so the
+  // receiving facility can see history before the patient arrives.
+  const { buildRiskReport } = require('./reportService');
+  const reportUrl = await buildRiskReport(caregiver, assessment);
+  const reportNote = reportUrl ? ` Patient report: ${reportUrl}` : '';
+
+  // The hospital where she does her checks/scans, if registered.
+  let usualHospital = null;
+  if (assessment.pregnancy) {
+    const Pregnancy = require('../models/Pregnancy');
+    const preg = await Pregnancy.findById(assessment.pregnancy).lean();
+    if (preg && preg.hospitalPhone) {
+      usualHospital = { name: preg.hospitalName, phone: preg.hospitalPhone };
+    }
   }
 
   const alert = new Alert({
@@ -71,7 +94,8 @@ async function raiseAlert(assessment, caregiver) {
     location: coordinates ? { type: 'Point', coordinates } : undefined,
     volunteer: volunteer ? volunteer._id : undefined,
     facility: facility ? facility._id : undefined,
-    status: volunteer || facility ? 'pending' : 'unassigned',
+    reportUrl: reportUrl || undefined,
+    status: volunteer || facility || placesHospital ? 'pending' : 'unassigned',
     timeline: [{ event: 'created', note: 'Urgent assessment received' }],
   });
 
@@ -90,8 +114,30 @@ async function raiseAlert(assessment, caregiver) {
   }
   if (facility && facility.phone) {
     sends.push(
-      sendSms(facility.phone, `${summary}${mapsLink} A case may be on the way to your facility.`).then((r) =>
+      sendSms(facility.phone, `${summary}${mapsLink}${reportNote} A case may be on the way to your facility.`).then((r) =>
         alert.smsResults.push({ to: facility.phone, kind: 'facility', ok: r.ok, error: r.error })
+      )
+    );
+  }
+  // Closest hospital found via Google Places (registry had nothing nearby)
+  if (placesHospital && placesHospital.phone) {
+    sends.push(
+      sendSms(
+        placesHospital.phone,
+        `${summary}${mapsLink}${reportNote} A patient near you needs urgent care and may be heading to your facility.`
+      ).then((r) =>
+        alert.smsResults.push({ to: placesHospital.phone, kind: 'facility', ok: r.ok, error: r.error })
+      )
+    );
+  }
+  // Her usual hospital gets the report for follow-up, even if it is not the closest.
+  if (usualHospital && usualHospital.phone) {
+    sends.push(
+      sendSms(
+        usualHospital.phone,
+        `GrowWithMe: your antenatal patient ${caregiver.name || caregiver.phone} had an urgent risk assessment.${reportNote}${mapsLink} Please follow up.`
+      ).then((r) =>
+        alert.smsResults.push({ to: usualHospital.phone, kind: 'usual_hospital', ok: r.ok, error: r.error })
       )
     );
   }
@@ -106,11 +152,20 @@ async function raiseAlert(assessment, caregiver) {
       alert.smsResults.push({ to: caregiver.phone, kind: 'caregiver', ok: r.ok, error: r.error })
     )
   );
+  // Care Circle: the family members who can arrange transport get told too.
+  for (const member of caregiver.careCircle || []) {
+    if (!member.phone) continue;
+    sends.push(
+      sendSms(member.phone, `${summary}${mapsLink} Please help them get to a health facility now.`).then(
+        (r) => alert.smsResults.push({ to: member.phone, kind: 'care_circle', ok: r.ok, error: r.error })
+      )
+    );
+  }
 
   await Promise.all(sends);
-  if (volunteer || facility) {
+  if (volunteer || facility || placesHospital || usualHospital) {
     alert.status = 'notified';
-    alert.timeline.push({ event: 'notified', note: 'Volunteer/facility notified by SMS' });
+    alert.timeline.push({ event: 'notified', note: 'Responders notified by SMS' });
   }
   await alert.save();
   return alert;

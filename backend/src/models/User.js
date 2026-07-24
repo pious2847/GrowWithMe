@@ -33,6 +33,16 @@ const userSchema = new mongoose.Schema(
       smsReminders: { type: Boolean, default: true },
       consentedAt: { type: Date },
     },
+    // Care Circle: trusted family members (father, grandmother...) who receive
+    // SMS copies of reminders and urgent alerts. Max 2.
+    careCircle: [
+      {
+        _id: false,
+        name: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        relation: { type: String, trim: true },
+      },
+    ],
     lastSyncedAt: { type: Date },
   },
   { timestamps: true }

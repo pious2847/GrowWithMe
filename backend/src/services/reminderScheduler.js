@@ -16,20 +16,22 @@ async function processDueReminders() {
     dueDate: { $lte: dayAhead },
     smsSentAt: null,
   })
-    .populate('owner', 'phone name consent')
+    .populate('owner', 'phone name consent careCircle')
     .limit(500);
 
   for (const reminder of due) {
     const owner = reminder.owner;
     if (!owner || !owner.phone || (owner.consent && owner.consent.smsReminders === false)) continue;
     const when = reminder.dueDate <= now ? 'today' : 'tomorrow';
-    const res = await sendSms(
-      owner.phone,
-      `Reminder: ${reminder.title} is due ${when}. Please visit your nearest CHPS compound or clinic. - GrowWithMe`
-    );
+    const message = `Reminder: ${reminder.title} is due ${when}. Please visit your nearest CHPS compound or clinic. - GrowWithMe`;
+    const res = await sendSms(owner.phone, message);
     if (res.ok) {
       reminder.smsSentAt = new Date();
       await reminder.save();
+      // Care Circle members get the same nudge so the family plans together.
+      for (const member of owner.careCircle || []) {
+        if (member.phone) await sendSms(member.phone, message);
+      }
     }
   }
 

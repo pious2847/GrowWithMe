@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_description">Daily care visits and feeding tips</string>
+    <string name="nana_widget_description">Nana\'s daily message — tap to hear your plan</string>
 </resources>

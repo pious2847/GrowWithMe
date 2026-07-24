@@ -31,6 +31,9 @@ class SyncService {
     final dirtyAssessments = await _db.dirtyAssessments();
     final dirtyReminders = await _db.dirtyReminders();
     final dirtyGrowthRecords = await _db.dirtyGrowthRecords();
+    final dirtyChatMessages = await _db.dirtyChatMessages();
+    final dirtyDietPlans = await _db.dirtyDietPlans();
+    final dirtyDietLogs = await _db.dirtyDietLogs();
 
     final res = await _api.dio.post('/sync', data: {
       'lastPulledAt': lastPulledAt,
@@ -40,6 +43,9 @@ class SyncService {
         'assessments': dirtyAssessments.map(_assessmentToJson).toList(),
         'reminders': dirtyReminders.map(_reminderToJson).toList(),
         'growthRecords': dirtyGrowthRecords.map(_growthToJson).toList(),
+        'chatMessages': dirtyChatMessages.map(_chatToJson).toList(),
+        'dietPlans': dirtyDietPlans.map(_dietPlanToJson).toList(),
+        'dietLogs': dirtyDietLogs.map(_dietLogToJson).toList(),
       },
     });
 
@@ -54,6 +60,12 @@ class SyncService {
       await _db.markSynced(_db.reminders, dirtyReminders.map((r) => r.id).toList());
       await _db.markSynced(
           _db.growthRecords, dirtyGrowthRecords.map((r) => r.id).toList());
+      await _db.markSynced(
+          _db.chatMessages, dirtyChatMessages.map((r) => r.id).toList());
+      await _db.markSynced(
+          _db.dietPlans, dirtyDietPlans.map((r) => r.id).toList());
+      await _db.markSynced(
+          _db.dietLogs, dirtyDietLogs.map((r) => r.id).toList());
 
       for (final doc in (pull['children'] as List? ?? [])) {
         await _db.into(_db.children).insertOnConflictUpdate(_childFromJson(doc));
@@ -71,6 +83,21 @@ class SyncService {
         await _db
             .into(_db.growthRecords)
             .insertOnConflictUpdate(_growthFromJson(doc));
+      }
+      for (final doc in (pull['chatMessages'] as List? ?? [])) {
+        await _db
+            .into(_db.chatMessages)
+            .insertOnConflictUpdate(_chatFromJson(doc));
+      }
+      for (final doc in (pull['dietPlans'] as List? ?? [])) {
+        await _db
+            .into(_db.dietPlans)
+            .insertOnConflictUpdate(_dietPlanFromJson(doc));
+      }
+      for (final doc in (pull['dietLogs'] as List? ?? [])) {
+        await _db
+            .into(_db.dietLogs)
+            .insertOnConflictUpdate(_dietLogFromJson(doc));
       }
       for (final doc in (pull['alerts'] as List? ?? [])) {
         await _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(doc));
@@ -105,6 +132,37 @@ class SyncService {
         'status': r.status,
         'deliveredAt': _iso(r.deliveredAt),
         'notes': r.notes,
+        'hospitalName': r.hospitalName,
+        'hospitalPhone': r.hospitalPhone,
+        'lastCheckinAt': _iso(r.lastCheckinAt),
+        'lastRiskLevel': r.lastRiskLevel,
+      };
+
+  Map<String, dynamic> _chatToJson(ChatMessageRow r) => {
+        ..._syncFields(r),
+        'role': r.role,
+        'content': r.content,
+        'sentAt': _iso(r.sentAt),
+      };
+
+  Map<String, dynamic> _dietPlanToJson(DietPlanRow r) => {
+        ..._syncFields(r),
+        'audience': r.audience,
+        'season': r.season,
+        'budget': r.budget,
+        'pantry': r.pantry,
+        'spokenText': r.spokenText,
+        'planJson': r.planJson,
+        'source': r.source,
+        'plannedFor': _iso(r.plannedFor),
+      };
+
+  Map<String, dynamic> _dietLogToJson(DietLogRow r) => {
+        ..._syncFields(r),
+        'day': r.day,
+        'groupsJson': r.groupsJson,
+        'score': r.score,
+        'eatenMealsJson': r.eatenMealsJson,
       };
 
   Map<String, dynamic> _assessmentToJson(AssessmentRow r) => {
@@ -182,6 +240,49 @@ class SyncService {
         status: Value(d['status'] as String? ?? 'active'),
         deliveredAt: Value(_date(d['deliveredAt'])),
         notes: Value(d['notes'] as String?),
+        hospitalName: Value(d['hospitalName'] as String?),
+        hospitalPhone: Value(d['hospitalPhone'] as String?),
+        lastCheckinAt: Value(_date(d['lastCheckinAt'])),
+        lastRiskLevel: Value(d['lastRiskLevel'] as String?),
+      );
+
+  ChatMessagesCompanion _chatFromJson(Map<String, dynamic> d) =>
+      ChatMessagesCompanion(
+        id: Value(d['_id'] as String),
+        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+        deleted: Value(d['deleted'] as bool? ?? false),
+        synced: const Value(true),
+        role: Value(d['role'] as String),
+        content: Value(d['content'] as String),
+        sentAt: Value(_date(d['sentAt']) ?? DateTime.now()),
+      );
+
+  DietPlansCompanion _dietPlanFromJson(Map<String, dynamic> d) =>
+      DietPlansCompanion(
+        id: Value(d['_id'] as String),
+        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+        deleted: Value(d['deleted'] as bool? ?? false),
+        synced: const Value(true),
+        audience: Value(d['audience'] as String? ?? 'general'),
+        season: Value(d['season'] as String?),
+        budget: Value(d['budget'] as String?),
+        pantry: Value(d['pantry'] as String?),
+        spokenText: Value(d['spokenText'] as String?),
+        planJson: Value(d['planJson'] as String? ?? '{}'),
+        source: Value(d['source'] as String? ?? 'offline'),
+        plannedFor: Value(_date(d['plannedFor']) ?? DateTime.now()),
+      );
+
+  DietLogsCompanion _dietLogFromJson(Map<String, dynamic> d) =>
+      DietLogsCompanion(
+        id: Value(d['_id'] as String),
+        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+        deleted: Value(d['deleted'] as bool? ?? false),
+        synced: const Value(true),
+        day: Value(d['day'] as String),
+        groupsJson: Value(d['groupsJson'] as String? ?? '[]'),
+        score: Value((d['score'] as num?)?.toInt() ?? 0),
+        eatenMealsJson: Value(d['eatenMealsJson'] as String?),
       );
 
   AssessmentsCompanion _assessmentFromJson(Map<String, dynamic> d) {

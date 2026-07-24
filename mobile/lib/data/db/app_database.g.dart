@@ -730,6 +730,51 @@ class $PregnanciesTable extends Pregnancies
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hospitalNameMeta = const VerificationMeta(
+    'hospitalName',
+  );
+  @override
+  late final GeneratedColumn<String> hospitalName = GeneratedColumn<String>(
+    'hospital_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hospitalPhoneMeta = const VerificationMeta(
+    'hospitalPhone',
+  );
+  @override
+  late final GeneratedColumn<String> hospitalPhone = GeneratedColumn<String>(
+    'hospital_phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastCheckinAtMeta = const VerificationMeta(
+    'lastCheckinAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastCheckinAt =
+      GeneratedColumn<DateTime>(
+        'last_checkin_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastRiskLevelMeta = const VerificationMeta(
+    'lastRiskLevel',
+  );
+  @override
+  late final GeneratedColumn<String> lastRiskLevel = GeneratedColumn<String>(
+    'last_risk_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -741,6 +786,10 @@ class $PregnanciesTable extends Pregnancies
     status,
     deliveredAt,
     notes,
+    hospitalName,
+    hospitalPhone,
+    lastCheckinAt,
+    lastRiskLevel,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -823,6 +872,42 @@ class $PregnanciesTable extends Pregnancies
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('hospital_name')) {
+      context.handle(
+        _hospitalNameMeta,
+        hospitalName.isAcceptableOrUnknown(
+          data['hospital_name']!,
+          _hospitalNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('hospital_phone')) {
+      context.handle(
+        _hospitalPhoneMeta,
+        hospitalPhone.isAcceptableOrUnknown(
+          data['hospital_phone']!,
+          _hospitalPhoneMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_checkin_at')) {
+      context.handle(
+        _lastCheckinAtMeta,
+        lastCheckinAt.isAcceptableOrUnknown(
+          data['last_checkin_at']!,
+          _lastCheckinAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_risk_level')) {
+      context.handle(
+        _lastRiskLevelMeta,
+        lastRiskLevel.isAcceptableOrUnknown(
+          data['last_risk_level']!,
+          _lastRiskLevelMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -868,6 +953,22 @@ class $PregnanciesTable extends Pregnancies
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      hospitalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hospital_name'],
+      ),
+      hospitalPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hospital_phone'],
+      ),
+      lastCheckinAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_checkin_at'],
+      ),
+      lastRiskLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_risk_level'],
+      ),
     );
   }
 
@@ -887,6 +988,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
   final String status;
   final DateTime? deliveredAt;
   final String? notes;
+  final String? hospitalName;
+  final String? hospitalPhone;
+  final DateTime? lastCheckinAt;
+  final String? lastRiskLevel;
   const PregnancyRow({
     required this.id,
     required this.clientUpdatedAt,
@@ -897,6 +1002,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
     required this.status,
     this.deliveredAt,
     this.notes,
+    this.hospitalName,
+    this.hospitalPhone,
+    this.lastCheckinAt,
+    this.lastRiskLevel,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -915,6 +1024,18 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || hospitalName != null) {
+      map['hospital_name'] = Variable<String>(hospitalName);
+    }
+    if (!nullToAbsent || hospitalPhone != null) {
+      map['hospital_phone'] = Variable<String>(hospitalPhone);
+    }
+    if (!nullToAbsent || lastCheckinAt != null) {
+      map['last_checkin_at'] = Variable<DateTime>(lastCheckinAt);
+    }
+    if (!nullToAbsent || lastRiskLevel != null) {
+      map['last_risk_level'] = Variable<String>(lastRiskLevel);
     }
     return map;
   }
@@ -936,6 +1057,18 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      hospitalName: hospitalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hospitalName),
+      hospitalPhone: hospitalPhone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hospitalPhone),
+      lastCheckinAt: lastCheckinAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastCheckinAt),
+      lastRiskLevel: lastRiskLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastRiskLevel),
     );
   }
 
@@ -956,6 +1089,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
       status: serializer.fromJson<String>(json['status']),
       deliveredAt: serializer.fromJson<DateTime?>(json['deliveredAt']),
       notes: serializer.fromJson<String?>(json['notes']),
+      hospitalName: serializer.fromJson<String?>(json['hospitalName']),
+      hospitalPhone: serializer.fromJson<String?>(json['hospitalPhone']),
+      lastCheckinAt: serializer.fromJson<DateTime?>(json['lastCheckinAt']),
+      lastRiskLevel: serializer.fromJson<String?>(json['lastRiskLevel']),
     );
   }
   @override
@@ -971,6 +1108,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
       'status': serializer.toJson<String>(status),
       'deliveredAt': serializer.toJson<DateTime?>(deliveredAt),
       'notes': serializer.toJson<String?>(notes),
+      'hospitalName': serializer.toJson<String?>(hospitalName),
+      'hospitalPhone': serializer.toJson<String?>(hospitalPhone),
+      'lastCheckinAt': serializer.toJson<DateTime?>(lastCheckinAt),
+      'lastRiskLevel': serializer.toJson<String?>(lastRiskLevel),
     };
   }
 
@@ -984,6 +1125,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
     String? status,
     Value<DateTime?> deliveredAt = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> hospitalName = const Value.absent(),
+    Value<String?> hospitalPhone = const Value.absent(),
+    Value<DateTime?> lastCheckinAt = const Value.absent(),
+    Value<String?> lastRiskLevel = const Value.absent(),
   }) => PregnancyRow(
     id: id ?? this.id,
     clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
@@ -996,6 +1141,16 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
     status: status ?? this.status,
     deliveredAt: deliveredAt.present ? deliveredAt.value : this.deliveredAt,
     notes: notes.present ? notes.value : this.notes,
+    hospitalName: hospitalName.present ? hospitalName.value : this.hospitalName,
+    hospitalPhone: hospitalPhone.present
+        ? hospitalPhone.value
+        : this.hospitalPhone,
+    lastCheckinAt: lastCheckinAt.present
+        ? lastCheckinAt.value
+        : this.lastCheckinAt,
+    lastRiskLevel: lastRiskLevel.present
+        ? lastRiskLevel.value
+        : this.lastRiskLevel,
   );
   PregnancyRow copyWithCompanion(PregnanciesCompanion data) {
     return PregnancyRow(
@@ -1016,6 +1171,18 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
           ? data.deliveredAt.value
           : this.deliveredAt,
       notes: data.notes.present ? data.notes.value : this.notes,
+      hospitalName: data.hospitalName.present
+          ? data.hospitalName.value
+          : this.hospitalName,
+      hospitalPhone: data.hospitalPhone.present
+          ? data.hospitalPhone.value
+          : this.hospitalPhone,
+      lastCheckinAt: data.lastCheckinAt.present
+          ? data.lastCheckinAt.value
+          : this.lastCheckinAt,
+      lastRiskLevel: data.lastRiskLevel.present
+          ? data.lastRiskLevel.value
+          : this.lastRiskLevel,
     );
   }
 
@@ -1030,7 +1197,11 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
           ..write('expectedDueDate: $expectedDueDate, ')
           ..write('status: $status, ')
           ..write('deliveredAt: $deliveredAt, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('hospitalName: $hospitalName, ')
+          ..write('hospitalPhone: $hospitalPhone, ')
+          ..write('lastCheckinAt: $lastCheckinAt, ')
+          ..write('lastRiskLevel: $lastRiskLevel')
           ..write(')'))
         .toString();
   }
@@ -1046,6 +1217,10 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
     status,
     deliveredAt,
     notes,
+    hospitalName,
+    hospitalPhone,
+    lastCheckinAt,
+    lastRiskLevel,
   );
   @override
   bool operator ==(Object other) =>
@@ -1059,7 +1234,11 @@ class PregnancyRow extends DataClass implements Insertable<PregnancyRow> {
           other.expectedDueDate == this.expectedDueDate &&
           other.status == this.status &&
           other.deliveredAt == this.deliveredAt &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.hospitalName == this.hospitalName &&
+          other.hospitalPhone == this.hospitalPhone &&
+          other.lastCheckinAt == this.lastCheckinAt &&
+          other.lastRiskLevel == this.lastRiskLevel);
 }
 
 class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
@@ -1072,6 +1251,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
   final Value<String> status;
   final Value<DateTime?> deliveredAt;
   final Value<String?> notes;
+  final Value<String?> hospitalName;
+  final Value<String?> hospitalPhone;
+  final Value<DateTime?> lastCheckinAt;
+  final Value<String?> lastRiskLevel;
   final Value<int> rowid;
   const PregnanciesCompanion({
     this.id = const Value.absent(),
@@ -1083,6 +1266,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
     this.status = const Value.absent(),
     this.deliveredAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.hospitalName = const Value.absent(),
+    this.hospitalPhone = const Value.absent(),
+    this.lastCheckinAt = const Value.absent(),
+    this.lastRiskLevel = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PregnanciesCompanion.insert({
@@ -1095,6 +1282,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
     this.status = const Value.absent(),
     this.deliveredAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.hospitalName = const Value.absent(),
+    this.hospitalPhone = const Value.absent(),
+    this.lastCheckinAt = const Value.absent(),
+    this.lastRiskLevel = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        clientUpdatedAt = Value(clientUpdatedAt),
@@ -1109,6 +1300,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
     Expression<String>? status,
     Expression<DateTime>? deliveredAt,
     Expression<String>? notes,
+    Expression<String>? hospitalName,
+    Expression<String>? hospitalPhone,
+    Expression<DateTime>? lastCheckinAt,
+    Expression<String>? lastRiskLevel,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1122,6 +1317,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
       if (status != null) 'status': status,
       if (deliveredAt != null) 'delivered_at': deliveredAt,
       if (notes != null) 'notes': notes,
+      if (hospitalName != null) 'hospital_name': hospitalName,
+      if (hospitalPhone != null) 'hospital_phone': hospitalPhone,
+      if (lastCheckinAt != null) 'last_checkin_at': lastCheckinAt,
+      if (lastRiskLevel != null) 'last_risk_level': lastRiskLevel,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1136,6 +1335,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
     Value<String>? status,
     Value<DateTime?>? deliveredAt,
     Value<String?>? notes,
+    Value<String?>? hospitalName,
+    Value<String?>? hospitalPhone,
+    Value<DateTime?>? lastCheckinAt,
+    Value<String?>? lastRiskLevel,
     Value<int>? rowid,
   }) {
     return PregnanciesCompanion(
@@ -1148,6 +1351,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
       status: status ?? this.status,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       notes: notes ?? this.notes,
+      hospitalName: hospitalName ?? this.hospitalName,
+      hospitalPhone: hospitalPhone ?? this.hospitalPhone,
+      lastCheckinAt: lastCheckinAt ?? this.lastCheckinAt,
+      lastRiskLevel: lastRiskLevel ?? this.lastRiskLevel,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1184,6 +1391,18 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (hospitalName.present) {
+      map['hospital_name'] = Variable<String>(hospitalName.value);
+    }
+    if (hospitalPhone.present) {
+      map['hospital_phone'] = Variable<String>(hospitalPhone.value);
+    }
+    if (lastCheckinAt.present) {
+      map['last_checkin_at'] = Variable<DateTime>(lastCheckinAt.value);
+    }
+    if (lastRiskLevel.present) {
+      map['last_risk_level'] = Variable<String>(lastRiskLevel.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1202,6 +1421,10 @@ class PregnanciesCompanion extends UpdateCompanion<PregnancyRow> {
           ..write('status: $status, ')
           ..write('deliveredAt: $deliveredAt, ')
           ..write('notes: $notes, ')
+          ..write('hospitalName: $hospitalName, ')
+          ..write('hospitalPhone: $hospitalPhone, ')
+          ..write('lastCheckinAt: $lastCheckinAt, ')
+          ..write('lastRiskLevel: $lastRiskLevel, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3325,6 +3548,1694 @@ class GrowthRecordsCompanion extends UpdateCompanion<GrowthRecordRow> {
   }
 }
 
+class $ChatMessagesTable extends ChatMessages
+    with TableInfo<$ChatMessagesTable, ChatMessageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientUpdatedAtMeta = const VerificationMeta(
+    'clientUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> clientUpdatedAt = GeneratedColumn<int>(
+    'client_updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
+  @override
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
+  @override
+  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
+    'sent_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    role,
+    content,
+    sentAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatMessageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_updated_at')) {
+      context.handle(
+        _clientUpdatedAtMeta,
+        clientUpdatedAt.isAcceptableOrUnknown(
+          data['client_updated_at']!,
+          _clientUpdatedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('synced')) {
+      context.handle(
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
+      );
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('sent_at')) {
+      context.handle(
+        _sentAtMeta,
+        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sentAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatMessageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMessageRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      sentAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sent_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatMessagesTable createAlias(String alias) {
+    return $ChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
+  final String id;
+  final int clientUpdatedAt;
+  final bool deleted;
+  final bool synced;
+  final String role;
+  final String content;
+  final DateTime sentAt;
+  const ChatMessageRow({
+    required this.id,
+    required this.clientUpdatedAt,
+    required this.deleted,
+    required this.synced,
+    required this.role,
+    required this.content,
+    required this.sentAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_updated_at'] = Variable<int>(clientUpdatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['synced'] = Variable<bool>(synced);
+    map['role'] = Variable<String>(role);
+    map['content'] = Variable<String>(content);
+    map['sent_at'] = Variable<DateTime>(sentAt);
+    return map;
+  }
+
+  ChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessagesCompanion(
+      id: Value(id),
+      clientUpdatedAt: Value(clientUpdatedAt),
+      deleted: Value(deleted),
+      synced: Value(synced),
+      role: Value(role),
+      content: Value(content),
+      sentAt: Value(sentAt),
+    );
+  }
+
+  factory ChatMessageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMessageRow(
+      id: serializer.fromJson<String>(json['id']),
+      clientUpdatedAt: serializer.fromJson<int>(json['clientUpdatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      synced: serializer.fromJson<bool>(json['synced']),
+      role: serializer.fromJson<String>(json['role']),
+      content: serializer.fromJson<String>(json['content']),
+      sentAt: serializer.fromJson<DateTime>(json['sentAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientUpdatedAt': serializer.toJson<int>(clientUpdatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'synced': serializer.toJson<bool>(synced),
+      'role': serializer.toJson<String>(role),
+      'content': serializer.toJson<String>(content),
+      'sentAt': serializer.toJson<DateTime>(sentAt),
+    };
+  }
+
+  ChatMessageRow copyWith({
+    String? id,
+    int? clientUpdatedAt,
+    bool? deleted,
+    bool? synced,
+    String? role,
+    String? content,
+    DateTime? sentAt,
+  }) => ChatMessageRow(
+    id: id ?? this.id,
+    clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+    deleted: deleted ?? this.deleted,
+    synced: synced ?? this.synced,
+    role: role ?? this.role,
+    content: content ?? this.content,
+    sentAt: sentAt ?? this.sentAt,
+  );
+  ChatMessageRow copyWithCompanion(ChatMessagesCompanion data) {
+    return ChatMessageRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientUpdatedAt: data.clientUpdatedAt.present
+          ? data.clientUpdatedAt.value
+          : this.clientUpdatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      synced: data.synced.present ? data.synced.value : this.synced,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessageRow(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('sentAt: $sentAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, clientUpdatedAt, deleted, synced, role, content, sentAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMessageRow &&
+          other.id == this.id &&
+          other.clientUpdatedAt == this.clientUpdatedAt &&
+          other.deleted == this.deleted &&
+          other.synced == this.synced &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.sentAt == this.sentAt);
+}
+
+class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
+  final Value<String> id;
+  final Value<int> clientUpdatedAt;
+  final Value<bool> deleted;
+  final Value<bool> synced;
+  final Value<String> role;
+  final Value<String> content;
+  final Value<DateTime> sentAt;
+  final Value<int> rowid;
+  const ChatMessagesCompanion({
+    this.id = const Value.absent(),
+    this.clientUpdatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.sentAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatMessagesCompanion.insert({
+    required String id,
+    required int clientUpdatedAt,
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    required String role,
+    required String content,
+    required DateTime sentAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientUpdatedAt = Value(clientUpdatedAt),
+       role = Value(role),
+       content = Value(content),
+       sentAt = Value(sentAt);
+  static Insertable<ChatMessageRow> custom({
+    Expression<String>? id,
+    Expression<int>? clientUpdatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? synced,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<DateTime>? sentAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientUpdatedAt != null) 'client_updated_at': clientUpdatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (synced != null) 'synced': synced,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (sentAt != null) 'sent_at': sentAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatMessagesCompanion copyWith({
+    Value<String>? id,
+    Value<int>? clientUpdatedAt,
+    Value<bool>? deleted,
+    Value<bool>? synced,
+    Value<String>? role,
+    Value<String>? content,
+    Value<DateTime>? sentAt,
+    Value<int>? rowid,
+  }) {
+    return ChatMessagesCompanion(
+      id: id ?? this.id,
+      clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+      deleted: deleted ?? this.deleted,
+      synced: synced ?? this.synced,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      sentAt: sentAt ?? this.sentAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientUpdatedAt.present) {
+      map['client_updated_at'] = Variable<int>(clientUpdatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (sentAt.present) {
+      map['sent_at'] = Variable<DateTime>(sentAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('sentAt: $sentAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DietPlansTable extends DietPlans
+    with TableInfo<$DietPlansTable, DietPlanRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DietPlansTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientUpdatedAtMeta = const VerificationMeta(
+    'clientUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> clientUpdatedAt = GeneratedColumn<int>(
+    'client_updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
+  @override
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _audienceMeta = const VerificationMeta(
+    'audience',
+  );
+  @override
+  late final GeneratedColumn<String> audience = GeneratedColumn<String>(
+    'audience',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _seasonMeta = const VerificationMeta('season');
+  @override
+  late final GeneratedColumn<String> season = GeneratedColumn<String>(
+    'season',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _budgetMeta = const VerificationMeta('budget');
+  @override
+  late final GeneratedColumn<String> budget = GeneratedColumn<String>(
+    'budget',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pantryMeta = const VerificationMeta('pantry');
+  @override
+  late final GeneratedColumn<String> pantry = GeneratedColumn<String>(
+    'pantry',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _spokenTextMeta = const VerificationMeta(
+    'spokenText',
+  );
+  @override
+  late final GeneratedColumn<String> spokenText = GeneratedColumn<String>(
+    'spoken_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _planJsonMeta = const VerificationMeta(
+    'planJson',
+  );
+  @override
+  late final GeneratedColumn<String> planJson = GeneratedColumn<String>(
+    'plan_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('offline'),
+  );
+  static const VerificationMeta _plannedForMeta = const VerificationMeta(
+    'plannedFor',
+  );
+  @override
+  late final GeneratedColumn<DateTime> plannedFor = GeneratedColumn<DateTime>(
+    'planned_for',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    audience,
+    season,
+    budget,
+    pantry,
+    spokenText,
+    planJson,
+    source,
+    plannedFor,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'diet_plans';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DietPlanRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_updated_at')) {
+      context.handle(
+        _clientUpdatedAtMeta,
+        clientUpdatedAt.isAcceptableOrUnknown(
+          data['client_updated_at']!,
+          _clientUpdatedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('synced')) {
+      context.handle(
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
+      );
+    }
+    if (data.containsKey('audience')) {
+      context.handle(
+        _audienceMeta,
+        audience.isAcceptableOrUnknown(data['audience']!, _audienceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_audienceMeta);
+    }
+    if (data.containsKey('season')) {
+      context.handle(
+        _seasonMeta,
+        season.isAcceptableOrUnknown(data['season']!, _seasonMeta),
+      );
+    }
+    if (data.containsKey('budget')) {
+      context.handle(
+        _budgetMeta,
+        budget.isAcceptableOrUnknown(data['budget']!, _budgetMeta),
+      );
+    }
+    if (data.containsKey('pantry')) {
+      context.handle(
+        _pantryMeta,
+        pantry.isAcceptableOrUnknown(data['pantry']!, _pantryMeta),
+      );
+    }
+    if (data.containsKey('spoken_text')) {
+      context.handle(
+        _spokenTextMeta,
+        spokenText.isAcceptableOrUnknown(data['spoken_text']!, _spokenTextMeta),
+      );
+    }
+    if (data.containsKey('plan_json')) {
+      context.handle(
+        _planJsonMeta,
+        planJson.isAcceptableOrUnknown(data['plan_json']!, _planJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_planJsonMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('planned_for')) {
+      context.handle(
+        _plannedForMeta,
+        plannedFor.isAcceptableOrUnknown(data['planned_for']!, _plannedForMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_plannedForMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DietPlanRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DietPlanRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
+      audience: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}audience'],
+      )!,
+      season: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}season'],
+      ),
+      budget: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}budget'],
+      ),
+      pantry: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pantry'],
+      ),
+      spokenText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}spoken_text'],
+      ),
+      planJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_json'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      plannedFor: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}planned_for'],
+      )!,
+    );
+  }
+
+  @override
+  $DietPlansTable createAlias(String alias) {
+    return $DietPlansTable(attachedDatabase, alias);
+  }
+}
+
+class DietPlanRow extends DataClass implements Insertable<DietPlanRow> {
+  final String id;
+  final int clientUpdatedAt;
+  final bool deleted;
+  final bool synced;
+  final String audience;
+  final String? season;
+  final String? budget;
+  final String? pantry;
+  final String? spokenText;
+  final String planJson;
+  final String source;
+  final DateTime plannedFor;
+  const DietPlanRow({
+    required this.id,
+    required this.clientUpdatedAt,
+    required this.deleted,
+    required this.synced,
+    required this.audience,
+    this.season,
+    this.budget,
+    this.pantry,
+    this.spokenText,
+    required this.planJson,
+    required this.source,
+    required this.plannedFor,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_updated_at'] = Variable<int>(clientUpdatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['synced'] = Variable<bool>(synced);
+    map['audience'] = Variable<String>(audience);
+    if (!nullToAbsent || season != null) {
+      map['season'] = Variable<String>(season);
+    }
+    if (!nullToAbsent || budget != null) {
+      map['budget'] = Variable<String>(budget);
+    }
+    if (!nullToAbsent || pantry != null) {
+      map['pantry'] = Variable<String>(pantry);
+    }
+    if (!nullToAbsent || spokenText != null) {
+      map['spoken_text'] = Variable<String>(spokenText);
+    }
+    map['plan_json'] = Variable<String>(planJson);
+    map['source'] = Variable<String>(source);
+    map['planned_for'] = Variable<DateTime>(plannedFor);
+    return map;
+  }
+
+  DietPlansCompanion toCompanion(bool nullToAbsent) {
+    return DietPlansCompanion(
+      id: Value(id),
+      clientUpdatedAt: Value(clientUpdatedAt),
+      deleted: Value(deleted),
+      synced: Value(synced),
+      audience: Value(audience),
+      season: season == null && nullToAbsent
+          ? const Value.absent()
+          : Value(season),
+      budget: budget == null && nullToAbsent
+          ? const Value.absent()
+          : Value(budget),
+      pantry: pantry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pantry),
+      spokenText: spokenText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(spokenText),
+      planJson: Value(planJson),
+      source: Value(source),
+      plannedFor: Value(plannedFor),
+    );
+  }
+
+  factory DietPlanRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DietPlanRow(
+      id: serializer.fromJson<String>(json['id']),
+      clientUpdatedAt: serializer.fromJson<int>(json['clientUpdatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      synced: serializer.fromJson<bool>(json['synced']),
+      audience: serializer.fromJson<String>(json['audience']),
+      season: serializer.fromJson<String?>(json['season']),
+      budget: serializer.fromJson<String?>(json['budget']),
+      pantry: serializer.fromJson<String?>(json['pantry']),
+      spokenText: serializer.fromJson<String?>(json['spokenText']),
+      planJson: serializer.fromJson<String>(json['planJson']),
+      source: serializer.fromJson<String>(json['source']),
+      plannedFor: serializer.fromJson<DateTime>(json['plannedFor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientUpdatedAt': serializer.toJson<int>(clientUpdatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'synced': serializer.toJson<bool>(synced),
+      'audience': serializer.toJson<String>(audience),
+      'season': serializer.toJson<String?>(season),
+      'budget': serializer.toJson<String?>(budget),
+      'pantry': serializer.toJson<String?>(pantry),
+      'spokenText': serializer.toJson<String?>(spokenText),
+      'planJson': serializer.toJson<String>(planJson),
+      'source': serializer.toJson<String>(source),
+      'plannedFor': serializer.toJson<DateTime>(plannedFor),
+    };
+  }
+
+  DietPlanRow copyWith({
+    String? id,
+    int? clientUpdatedAt,
+    bool? deleted,
+    bool? synced,
+    String? audience,
+    Value<String?> season = const Value.absent(),
+    Value<String?> budget = const Value.absent(),
+    Value<String?> pantry = const Value.absent(),
+    Value<String?> spokenText = const Value.absent(),
+    String? planJson,
+    String? source,
+    DateTime? plannedFor,
+  }) => DietPlanRow(
+    id: id ?? this.id,
+    clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+    deleted: deleted ?? this.deleted,
+    synced: synced ?? this.synced,
+    audience: audience ?? this.audience,
+    season: season.present ? season.value : this.season,
+    budget: budget.present ? budget.value : this.budget,
+    pantry: pantry.present ? pantry.value : this.pantry,
+    spokenText: spokenText.present ? spokenText.value : this.spokenText,
+    planJson: planJson ?? this.planJson,
+    source: source ?? this.source,
+    plannedFor: plannedFor ?? this.plannedFor,
+  );
+  DietPlanRow copyWithCompanion(DietPlansCompanion data) {
+    return DietPlanRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientUpdatedAt: data.clientUpdatedAt.present
+          ? data.clientUpdatedAt.value
+          : this.clientUpdatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      synced: data.synced.present ? data.synced.value : this.synced,
+      audience: data.audience.present ? data.audience.value : this.audience,
+      season: data.season.present ? data.season.value : this.season,
+      budget: data.budget.present ? data.budget.value : this.budget,
+      pantry: data.pantry.present ? data.pantry.value : this.pantry,
+      spokenText: data.spokenText.present
+          ? data.spokenText.value
+          : this.spokenText,
+      planJson: data.planJson.present ? data.planJson.value : this.planJson,
+      source: data.source.present ? data.source.value : this.source,
+      plannedFor: data.plannedFor.present
+          ? data.plannedFor.value
+          : this.plannedFor,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DietPlanRow(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('audience: $audience, ')
+          ..write('season: $season, ')
+          ..write('budget: $budget, ')
+          ..write('pantry: $pantry, ')
+          ..write('spokenText: $spokenText, ')
+          ..write('planJson: $planJson, ')
+          ..write('source: $source, ')
+          ..write('plannedFor: $plannedFor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    audience,
+    season,
+    budget,
+    pantry,
+    spokenText,
+    planJson,
+    source,
+    plannedFor,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DietPlanRow &&
+          other.id == this.id &&
+          other.clientUpdatedAt == this.clientUpdatedAt &&
+          other.deleted == this.deleted &&
+          other.synced == this.synced &&
+          other.audience == this.audience &&
+          other.season == this.season &&
+          other.budget == this.budget &&
+          other.pantry == this.pantry &&
+          other.spokenText == this.spokenText &&
+          other.planJson == this.planJson &&
+          other.source == this.source &&
+          other.plannedFor == this.plannedFor);
+}
+
+class DietPlansCompanion extends UpdateCompanion<DietPlanRow> {
+  final Value<String> id;
+  final Value<int> clientUpdatedAt;
+  final Value<bool> deleted;
+  final Value<bool> synced;
+  final Value<String> audience;
+  final Value<String?> season;
+  final Value<String?> budget;
+  final Value<String?> pantry;
+  final Value<String?> spokenText;
+  final Value<String> planJson;
+  final Value<String> source;
+  final Value<DateTime> plannedFor;
+  final Value<int> rowid;
+  const DietPlansCompanion({
+    this.id = const Value.absent(),
+    this.clientUpdatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    this.audience = const Value.absent(),
+    this.season = const Value.absent(),
+    this.budget = const Value.absent(),
+    this.pantry = const Value.absent(),
+    this.spokenText = const Value.absent(),
+    this.planJson = const Value.absent(),
+    this.source = const Value.absent(),
+    this.plannedFor = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DietPlansCompanion.insert({
+    required String id,
+    required int clientUpdatedAt,
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    required String audience,
+    this.season = const Value.absent(),
+    this.budget = const Value.absent(),
+    this.pantry = const Value.absent(),
+    this.spokenText = const Value.absent(),
+    required String planJson,
+    this.source = const Value.absent(),
+    required DateTime plannedFor,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientUpdatedAt = Value(clientUpdatedAt),
+       audience = Value(audience),
+       planJson = Value(planJson),
+       plannedFor = Value(plannedFor);
+  static Insertable<DietPlanRow> custom({
+    Expression<String>? id,
+    Expression<int>? clientUpdatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? synced,
+    Expression<String>? audience,
+    Expression<String>? season,
+    Expression<String>? budget,
+    Expression<String>? pantry,
+    Expression<String>? spokenText,
+    Expression<String>? planJson,
+    Expression<String>? source,
+    Expression<DateTime>? plannedFor,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientUpdatedAt != null) 'client_updated_at': clientUpdatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (synced != null) 'synced': synced,
+      if (audience != null) 'audience': audience,
+      if (season != null) 'season': season,
+      if (budget != null) 'budget': budget,
+      if (pantry != null) 'pantry': pantry,
+      if (spokenText != null) 'spoken_text': spokenText,
+      if (planJson != null) 'plan_json': planJson,
+      if (source != null) 'source': source,
+      if (plannedFor != null) 'planned_for': plannedFor,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DietPlansCompanion copyWith({
+    Value<String>? id,
+    Value<int>? clientUpdatedAt,
+    Value<bool>? deleted,
+    Value<bool>? synced,
+    Value<String>? audience,
+    Value<String?>? season,
+    Value<String?>? budget,
+    Value<String?>? pantry,
+    Value<String?>? spokenText,
+    Value<String>? planJson,
+    Value<String>? source,
+    Value<DateTime>? plannedFor,
+    Value<int>? rowid,
+  }) {
+    return DietPlansCompanion(
+      id: id ?? this.id,
+      clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+      deleted: deleted ?? this.deleted,
+      synced: synced ?? this.synced,
+      audience: audience ?? this.audience,
+      season: season ?? this.season,
+      budget: budget ?? this.budget,
+      pantry: pantry ?? this.pantry,
+      spokenText: spokenText ?? this.spokenText,
+      planJson: planJson ?? this.planJson,
+      source: source ?? this.source,
+      plannedFor: plannedFor ?? this.plannedFor,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientUpdatedAt.present) {
+      map['client_updated_at'] = Variable<int>(clientUpdatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
+    }
+    if (audience.present) {
+      map['audience'] = Variable<String>(audience.value);
+    }
+    if (season.present) {
+      map['season'] = Variable<String>(season.value);
+    }
+    if (budget.present) {
+      map['budget'] = Variable<String>(budget.value);
+    }
+    if (pantry.present) {
+      map['pantry'] = Variable<String>(pantry.value);
+    }
+    if (spokenText.present) {
+      map['spoken_text'] = Variable<String>(spokenText.value);
+    }
+    if (planJson.present) {
+      map['plan_json'] = Variable<String>(planJson.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (plannedFor.present) {
+      map['planned_for'] = Variable<DateTime>(plannedFor.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DietPlansCompanion(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('audience: $audience, ')
+          ..write('season: $season, ')
+          ..write('budget: $budget, ')
+          ..write('pantry: $pantry, ')
+          ..write('spokenText: $spokenText, ')
+          ..write('planJson: $planJson, ')
+          ..write('source: $source, ')
+          ..write('plannedFor: $plannedFor, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DietLogsTable extends DietLogs
+    with TableInfo<$DietLogsTable, DietLogRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DietLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientUpdatedAtMeta = const VerificationMeta(
+    'clientUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> clientUpdatedAt = GeneratedColumn<int>(
+    'client_updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
+  @override
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupsJsonMeta = const VerificationMeta(
+    'groupsJson',
+  );
+  @override
+  late final GeneratedColumn<String> groupsJson = GeneratedColumn<String>(
+    'groups_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eatenMealsJsonMeta = const VerificationMeta(
+    'eatenMealsJson',
+  );
+  @override
+  late final GeneratedColumn<String> eatenMealsJson = GeneratedColumn<String>(
+    'eaten_meals_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    day,
+    groupsJson,
+    score,
+    eatenMealsJson,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'diet_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DietLogRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_updated_at')) {
+      context.handle(
+        _clientUpdatedAtMeta,
+        clientUpdatedAt.isAcceptableOrUnknown(
+          data['client_updated_at']!,
+          _clientUpdatedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('synced')) {
+      context.handle(
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
+      );
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('groups_json')) {
+      context.handle(
+        _groupsJsonMeta,
+        groupsJson.isAcceptableOrUnknown(data['groups_json']!, _groupsJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupsJsonMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scoreMeta);
+    }
+    if (data.containsKey('eaten_meals_json')) {
+      context.handle(
+        _eatenMealsJsonMeta,
+        eatenMealsJson.isAcceptableOrUnknown(
+          data['eaten_meals_json']!,
+          _eatenMealsJsonMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DietLogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DietLogRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      groupsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}groups_json'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      )!,
+      eatenMealsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}eaten_meals_json'],
+      ),
+    );
+  }
+
+  @override
+  $DietLogsTable createAlias(String alias) {
+    return $DietLogsTable(attachedDatabase, alias);
+  }
+}
+
+class DietLogRow extends DataClass implements Insertable<DietLogRow> {
+  final String id;
+  final int clientUpdatedAt;
+  final bool deleted;
+  final bool synced;
+  final String day;
+  final String groupsJson;
+  final int score;
+  final String? eatenMealsJson;
+  const DietLogRow({
+    required this.id,
+    required this.clientUpdatedAt,
+    required this.deleted,
+    required this.synced,
+    required this.day,
+    required this.groupsJson,
+    required this.score,
+    this.eatenMealsJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_updated_at'] = Variable<int>(clientUpdatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['synced'] = Variable<bool>(synced);
+    map['day'] = Variable<String>(day);
+    map['groups_json'] = Variable<String>(groupsJson);
+    map['score'] = Variable<int>(score);
+    if (!nullToAbsent || eatenMealsJson != null) {
+      map['eaten_meals_json'] = Variable<String>(eatenMealsJson);
+    }
+    return map;
+  }
+
+  DietLogsCompanion toCompanion(bool nullToAbsent) {
+    return DietLogsCompanion(
+      id: Value(id),
+      clientUpdatedAt: Value(clientUpdatedAt),
+      deleted: Value(deleted),
+      synced: Value(synced),
+      day: Value(day),
+      groupsJson: Value(groupsJson),
+      score: Value(score),
+      eatenMealsJson: eatenMealsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eatenMealsJson),
+    );
+  }
+
+  factory DietLogRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DietLogRow(
+      id: serializer.fromJson<String>(json['id']),
+      clientUpdatedAt: serializer.fromJson<int>(json['clientUpdatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      synced: serializer.fromJson<bool>(json['synced']),
+      day: serializer.fromJson<String>(json['day']),
+      groupsJson: serializer.fromJson<String>(json['groupsJson']),
+      score: serializer.fromJson<int>(json['score']),
+      eatenMealsJson: serializer.fromJson<String?>(json['eatenMealsJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientUpdatedAt': serializer.toJson<int>(clientUpdatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'synced': serializer.toJson<bool>(synced),
+      'day': serializer.toJson<String>(day),
+      'groupsJson': serializer.toJson<String>(groupsJson),
+      'score': serializer.toJson<int>(score),
+      'eatenMealsJson': serializer.toJson<String?>(eatenMealsJson),
+    };
+  }
+
+  DietLogRow copyWith({
+    String? id,
+    int? clientUpdatedAt,
+    bool? deleted,
+    bool? synced,
+    String? day,
+    String? groupsJson,
+    int? score,
+    Value<String?> eatenMealsJson = const Value.absent(),
+  }) => DietLogRow(
+    id: id ?? this.id,
+    clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+    deleted: deleted ?? this.deleted,
+    synced: synced ?? this.synced,
+    day: day ?? this.day,
+    groupsJson: groupsJson ?? this.groupsJson,
+    score: score ?? this.score,
+    eatenMealsJson: eatenMealsJson.present
+        ? eatenMealsJson.value
+        : this.eatenMealsJson,
+  );
+  DietLogRow copyWithCompanion(DietLogsCompanion data) {
+    return DietLogRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientUpdatedAt: data.clientUpdatedAt.present
+          ? data.clientUpdatedAt.value
+          : this.clientUpdatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      synced: data.synced.present ? data.synced.value : this.synced,
+      day: data.day.present ? data.day.value : this.day,
+      groupsJson: data.groupsJson.present
+          ? data.groupsJson.value
+          : this.groupsJson,
+      score: data.score.present ? data.score.value : this.score,
+      eatenMealsJson: data.eatenMealsJson.present
+          ? data.eatenMealsJson.value
+          : this.eatenMealsJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DietLogRow(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('day: $day, ')
+          ..write('groupsJson: $groupsJson, ')
+          ..write('score: $score, ')
+          ..write('eatenMealsJson: $eatenMealsJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    day,
+    groupsJson,
+    score,
+    eatenMealsJson,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DietLogRow &&
+          other.id == this.id &&
+          other.clientUpdatedAt == this.clientUpdatedAt &&
+          other.deleted == this.deleted &&
+          other.synced == this.synced &&
+          other.day == this.day &&
+          other.groupsJson == this.groupsJson &&
+          other.score == this.score &&
+          other.eatenMealsJson == this.eatenMealsJson);
+}
+
+class DietLogsCompanion extends UpdateCompanion<DietLogRow> {
+  final Value<String> id;
+  final Value<int> clientUpdatedAt;
+  final Value<bool> deleted;
+  final Value<bool> synced;
+  final Value<String> day;
+  final Value<String> groupsJson;
+  final Value<int> score;
+  final Value<String?> eatenMealsJson;
+  final Value<int> rowid;
+  const DietLogsCompanion({
+    this.id = const Value.absent(),
+    this.clientUpdatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    this.day = const Value.absent(),
+    this.groupsJson = const Value.absent(),
+    this.score = const Value.absent(),
+    this.eatenMealsJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DietLogsCompanion.insert({
+    required String id,
+    required int clientUpdatedAt,
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    required String day,
+    required String groupsJson,
+    required int score,
+    this.eatenMealsJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientUpdatedAt = Value(clientUpdatedAt),
+       day = Value(day),
+       groupsJson = Value(groupsJson),
+       score = Value(score);
+  static Insertable<DietLogRow> custom({
+    Expression<String>? id,
+    Expression<int>? clientUpdatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? synced,
+    Expression<String>? day,
+    Expression<String>? groupsJson,
+    Expression<int>? score,
+    Expression<String>? eatenMealsJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientUpdatedAt != null) 'client_updated_at': clientUpdatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (synced != null) 'synced': synced,
+      if (day != null) 'day': day,
+      if (groupsJson != null) 'groups_json': groupsJson,
+      if (score != null) 'score': score,
+      if (eatenMealsJson != null) 'eaten_meals_json': eatenMealsJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DietLogsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? clientUpdatedAt,
+    Value<bool>? deleted,
+    Value<bool>? synced,
+    Value<String>? day,
+    Value<String>? groupsJson,
+    Value<int>? score,
+    Value<String?>? eatenMealsJson,
+    Value<int>? rowid,
+  }) {
+    return DietLogsCompanion(
+      id: id ?? this.id,
+      clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+      deleted: deleted ?? this.deleted,
+      synced: synced ?? this.synced,
+      day: day ?? this.day,
+      groupsJson: groupsJson ?? this.groupsJson,
+      score: score ?? this.score,
+      eatenMealsJson: eatenMealsJson ?? this.eatenMealsJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientUpdatedAt.present) {
+      map['client_updated_at'] = Variable<int>(clientUpdatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (groupsJson.present) {
+      map['groups_json'] = Variable<String>(groupsJson.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
+    if (eatenMealsJson.present) {
+      map['eaten_meals_json'] = Variable<String>(eatenMealsJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DietLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('day: $day, ')
+          ..write('groupsJson: $groupsJson, ')
+          ..write('score: $score, ')
+          ..write('eatenMealsJson: $eatenMealsJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AlertsCacheTable extends AlertsCache
     with TableInfo<$AlertsCacheTable, AlertRow> {
   @override
@@ -3928,6 +5839,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AssessmentsTable assessments = $AssessmentsTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
   late final $GrowthRecordsTable growthRecords = $GrowthRecordsTable(this);
+  late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $DietPlansTable dietPlans = $DietPlansTable(this);
+  late final $DietLogsTable dietLogs = $DietLogsTable(this);
   late final $AlertsCacheTable alertsCache = $AlertsCacheTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -3939,6 +5853,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     assessments,
     reminders,
     growthRecords,
+    chatMessages,
+    dietPlans,
+    dietLogs,
     alertsCache,
   ];
 }
@@ -4249,6 +6166,10 @@ typedef $$PregnanciesTableCreateCompanionBuilder =
       Value<String> status,
       Value<DateTime?> deliveredAt,
       Value<String?> notes,
+      Value<String?> hospitalName,
+      Value<String?> hospitalPhone,
+      Value<DateTime?> lastCheckinAt,
+      Value<String?> lastRiskLevel,
       Value<int> rowid,
     });
 typedef $$PregnanciesTableUpdateCompanionBuilder =
@@ -4262,6 +6183,10 @@ typedef $$PregnanciesTableUpdateCompanionBuilder =
       Value<String> status,
       Value<DateTime?> deliveredAt,
       Value<String?> notes,
+      Value<String?> hospitalName,
+      Value<String?> hospitalPhone,
+      Value<DateTime?> lastCheckinAt,
+      Value<String?> lastRiskLevel,
       Value<int> rowid,
     });
 
@@ -4316,6 +6241,26 @@ class $$PregnanciesTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hospitalName => $composableBuilder(
+    column: $table.hospitalName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hospitalPhone => $composableBuilder(
+    column: $table.hospitalPhone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastCheckinAt => $composableBuilder(
+    column: $table.lastCheckinAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastRiskLevel => $composableBuilder(
+    column: $table.lastRiskLevel,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4373,6 +6318,26 @@ class $$PregnanciesTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get hospitalName => $composableBuilder(
+    column: $table.hospitalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hospitalPhone => $composableBuilder(
+    column: $table.hospitalPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastCheckinAt => $composableBuilder(
+    column: $table.lastCheckinAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastRiskLevel => $composableBuilder(
+    column: $table.lastRiskLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PregnanciesTableAnnotationComposer
@@ -4418,6 +6383,26 @@ class $$PregnanciesTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get hospitalName => $composableBuilder(
+    column: $table.hospitalName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get hospitalPhone => $composableBuilder(
+    column: $table.hospitalPhone,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastCheckinAt => $composableBuilder(
+    column: $table.lastCheckinAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastRiskLevel => $composableBuilder(
+    column: $table.lastRiskLevel,
+    builder: (column) => column,
+  );
 }
 
 class $$PregnanciesTableTableManager
@@ -4460,6 +6445,10 @@ class $$PregnanciesTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> hospitalName = const Value.absent(),
+                Value<String?> hospitalPhone = const Value.absent(),
+                Value<DateTime?> lastCheckinAt = const Value.absent(),
+                Value<String?> lastRiskLevel = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PregnanciesCompanion(
                 id: id,
@@ -4471,6 +6460,10 @@ class $$PregnanciesTableTableManager
                 status: status,
                 deliveredAt: deliveredAt,
                 notes: notes,
+                hospitalName: hospitalName,
+                hospitalPhone: hospitalPhone,
+                lastCheckinAt: lastCheckinAt,
+                lastRiskLevel: lastRiskLevel,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -4484,6 +6477,10 @@ class $$PregnanciesTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> deliveredAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> hospitalName = const Value.absent(),
+                Value<String?> hospitalPhone = const Value.absent(),
+                Value<DateTime?> lastCheckinAt = const Value.absent(),
+                Value<String?> lastRiskLevel = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PregnanciesCompanion.insert(
                 id: id,
@@ -4495,6 +6492,10 @@ class $$PregnanciesTableTableManager
                 status: status,
                 deliveredAt: deliveredAt,
                 notes: notes,
+                hospitalName: hospitalName,
+                hospitalPhone: hospitalPhone,
+                lastCheckinAt: lastCheckinAt,
+                lastRiskLevel: lastRiskLevel,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -5528,6 +7529,845 @@ typedef $$GrowthRecordsTableProcessedTableManager =
       GrowthRecordRow,
       PrefetchHooks Function()
     >;
+typedef $$ChatMessagesTableCreateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      required String id,
+      required int clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      required String role,
+      required String content,
+      required DateTime sentAt,
+      Value<int> rowid,
+    });
+typedef $$ChatMessagesTableUpdateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      Value<String> id,
+      Value<int> clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      Value<String> role,
+      Value<String> content,
+      Value<DateTime> sentAt,
+      Value<int> rowid,
+    });
+
+class $$ChatMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get sentAt =>
+      $composableBuilder(column: $table.sentAt, builder: (column) => column);
+}
+
+class $$ChatMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatMessagesTable,
+          ChatMessageRow,
+          $$ChatMessagesTableFilterComposer,
+          $$ChatMessagesTableOrderingComposer,
+          $$ChatMessagesTableAnnotationComposer,
+          $$ChatMessagesTableCreateCompanionBuilder,
+          $$ChatMessagesTableUpdateCompanionBuilder,
+          (
+            ChatMessageRow,
+            BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessageRow>,
+          ),
+          ChatMessageRow,
+          PrefetchHooks Function()
+        > {
+  $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> clientUpdatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<DateTime> sentAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessagesCompanion(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                role: role,
+                content: content,
+                sentAt: sentAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int clientUpdatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                required String role,
+                required String content,
+                required DateTime sentAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessagesCompanion.insert(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                role: role,
+                content: content,
+                sentAt: sentAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatMessagesTable,
+      ChatMessageRow,
+      $$ChatMessagesTableFilterComposer,
+      $$ChatMessagesTableOrderingComposer,
+      $$ChatMessagesTableAnnotationComposer,
+      $$ChatMessagesTableCreateCompanionBuilder,
+      $$ChatMessagesTableUpdateCompanionBuilder,
+      (
+        ChatMessageRow,
+        BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessageRow>,
+      ),
+      ChatMessageRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DietPlansTableCreateCompanionBuilder =
+    DietPlansCompanion Function({
+      required String id,
+      required int clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      required String audience,
+      Value<String?> season,
+      Value<String?> budget,
+      Value<String?> pantry,
+      Value<String?> spokenText,
+      required String planJson,
+      Value<String> source,
+      required DateTime plannedFor,
+      Value<int> rowid,
+    });
+typedef $$DietPlansTableUpdateCompanionBuilder =
+    DietPlansCompanion Function({
+      Value<String> id,
+      Value<int> clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      Value<String> audience,
+      Value<String?> season,
+      Value<String?> budget,
+      Value<String?> pantry,
+      Value<String?> spokenText,
+      Value<String> planJson,
+      Value<String> source,
+      Value<DateTime> plannedFor,
+      Value<int> rowid,
+    });
+
+class $$DietPlansTableFilterComposer
+    extends Composer<_$AppDatabase, $DietPlansTable> {
+  $$DietPlansTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get audience => $composableBuilder(
+    column: $table.audience,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get season => $composableBuilder(
+    column: $table.season,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get budget => $composableBuilder(
+    column: $table.budget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pantry => $composableBuilder(
+    column: $table.pantry,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get spokenText => $composableBuilder(
+    column: $table.spokenText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get planJson => $composableBuilder(
+    column: $table.planJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get plannedFor => $composableBuilder(
+    column: $table.plannedFor,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DietPlansTableOrderingComposer
+    extends Composer<_$AppDatabase, $DietPlansTable> {
+  $$DietPlansTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get audience => $composableBuilder(
+    column: $table.audience,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get season => $composableBuilder(
+    column: $table.season,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get budget => $composableBuilder(
+    column: $table.budget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pantry => $composableBuilder(
+    column: $table.pantry,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get spokenText => $composableBuilder(
+    column: $table.spokenText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get planJson => $composableBuilder(
+    column: $table.planJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get plannedFor => $composableBuilder(
+    column: $table.plannedFor,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DietPlansTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DietPlansTable> {
+  $$DietPlansTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
+
+  GeneratedColumn<String> get audience =>
+      $composableBuilder(column: $table.audience, builder: (column) => column);
+
+  GeneratedColumn<String> get season =>
+      $composableBuilder(column: $table.season, builder: (column) => column);
+
+  GeneratedColumn<String> get budget =>
+      $composableBuilder(column: $table.budget, builder: (column) => column);
+
+  GeneratedColumn<String> get pantry =>
+      $composableBuilder(column: $table.pantry, builder: (column) => column);
+
+  GeneratedColumn<String> get spokenText => $composableBuilder(
+    column: $table.spokenText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get planJson =>
+      $composableBuilder(column: $table.planJson, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get plannedFor => $composableBuilder(
+    column: $table.plannedFor,
+    builder: (column) => column,
+  );
+}
+
+class $$DietPlansTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DietPlansTable,
+          DietPlanRow,
+          $$DietPlansTableFilterComposer,
+          $$DietPlansTableOrderingComposer,
+          $$DietPlansTableAnnotationComposer,
+          $$DietPlansTableCreateCompanionBuilder,
+          $$DietPlansTableUpdateCompanionBuilder,
+          (
+            DietPlanRow,
+            BaseReferences<_$AppDatabase, $DietPlansTable, DietPlanRow>,
+          ),
+          DietPlanRow,
+          PrefetchHooks Function()
+        > {
+  $$DietPlansTableTableManager(_$AppDatabase db, $DietPlansTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DietPlansTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DietPlansTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DietPlansTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> clientUpdatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                Value<String> audience = const Value.absent(),
+                Value<String?> season = const Value.absent(),
+                Value<String?> budget = const Value.absent(),
+                Value<String?> pantry = const Value.absent(),
+                Value<String?> spokenText = const Value.absent(),
+                Value<String> planJson = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> plannedFor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DietPlansCompanion(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                audience: audience,
+                season: season,
+                budget: budget,
+                pantry: pantry,
+                spokenText: spokenText,
+                planJson: planJson,
+                source: source,
+                plannedFor: plannedFor,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int clientUpdatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                required String audience,
+                Value<String?> season = const Value.absent(),
+                Value<String?> budget = const Value.absent(),
+                Value<String?> pantry = const Value.absent(),
+                Value<String?> spokenText = const Value.absent(),
+                required String planJson,
+                Value<String> source = const Value.absent(),
+                required DateTime plannedFor,
+                Value<int> rowid = const Value.absent(),
+              }) => DietPlansCompanion.insert(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                audience: audience,
+                season: season,
+                budget: budget,
+                pantry: pantry,
+                spokenText: spokenText,
+                planJson: planJson,
+                source: source,
+                plannedFor: plannedFor,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DietPlansTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DietPlansTable,
+      DietPlanRow,
+      $$DietPlansTableFilterComposer,
+      $$DietPlansTableOrderingComposer,
+      $$DietPlansTableAnnotationComposer,
+      $$DietPlansTableCreateCompanionBuilder,
+      $$DietPlansTableUpdateCompanionBuilder,
+      (
+        DietPlanRow,
+        BaseReferences<_$AppDatabase, $DietPlansTable, DietPlanRow>,
+      ),
+      DietPlanRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DietLogsTableCreateCompanionBuilder =
+    DietLogsCompanion Function({
+      required String id,
+      required int clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      required String day,
+      required String groupsJson,
+      required int score,
+      Value<String?> eatenMealsJson,
+      Value<int> rowid,
+    });
+typedef $$DietLogsTableUpdateCompanionBuilder =
+    DietLogsCompanion Function({
+      Value<String> id,
+      Value<int> clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      Value<String> day,
+      Value<String> groupsJson,
+      Value<int> score,
+      Value<String?> eatenMealsJson,
+      Value<int> rowid,
+    });
+
+class $$DietLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $DietLogsTable> {
+  $$DietLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupsJson => $composableBuilder(
+    column: $table.groupsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eatenMealsJson => $composableBuilder(
+    column: $table.eatenMealsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DietLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DietLogsTable> {
+  $$DietLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupsJson => $composableBuilder(
+    column: $table.groupsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eatenMealsJson => $composableBuilder(
+    column: $table.eatenMealsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DietLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DietLogsTable> {
+  $$DietLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
+
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<String> get groupsJson => $composableBuilder(
+    column: $table.groupsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get eatenMealsJson => $composableBuilder(
+    column: $table.eatenMealsJson,
+    builder: (column) => column,
+  );
+}
+
+class $$DietLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DietLogsTable,
+          DietLogRow,
+          $$DietLogsTableFilterComposer,
+          $$DietLogsTableOrderingComposer,
+          $$DietLogsTableAnnotationComposer,
+          $$DietLogsTableCreateCompanionBuilder,
+          $$DietLogsTableUpdateCompanionBuilder,
+          (
+            DietLogRow,
+            BaseReferences<_$AppDatabase, $DietLogsTable, DietLogRow>,
+          ),
+          DietLogRow,
+          PrefetchHooks Function()
+        > {
+  $$DietLogsTableTableManager(_$AppDatabase db, $DietLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DietLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DietLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DietLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> clientUpdatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                Value<String> day = const Value.absent(),
+                Value<String> groupsJson = const Value.absent(),
+                Value<int> score = const Value.absent(),
+                Value<String?> eatenMealsJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DietLogsCompanion(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                day: day,
+                groupsJson: groupsJson,
+                score: score,
+                eatenMealsJson: eatenMealsJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int clientUpdatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                required String day,
+                required String groupsJson,
+                required int score,
+                Value<String?> eatenMealsJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DietLogsCompanion.insert(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                day: day,
+                groupsJson: groupsJson,
+                score: score,
+                eatenMealsJson: eatenMealsJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DietLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DietLogsTable,
+      DietLogRow,
+      $$DietLogsTableFilterComposer,
+      $$DietLogsTableOrderingComposer,
+      $$DietLogsTableAnnotationComposer,
+      $$DietLogsTableCreateCompanionBuilder,
+      $$DietLogsTableUpdateCompanionBuilder,
+      (DietLogRow, BaseReferences<_$AppDatabase, $DietLogsTable, DietLogRow>),
+      DietLogRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AlertsCacheTableCreateCompanionBuilder =
     AlertsCacheCompanion Function({
       required String id,
@@ -5825,6 +8665,12 @@ class $AppDatabaseManager {
       $$RemindersTableTableManager(_db, _db.reminders);
   $$GrowthRecordsTableTableManager get growthRecords =>
       $$GrowthRecordsTableTableManager(_db, _db.growthRecords);
+  $$ChatMessagesTableTableManager get chatMessages =>
+      $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$DietPlansTableTableManager get dietPlans =>
+      $$DietPlansTableTableManager(_db, _db.dietPlans);
+  $$DietLogsTableTableManager get dietLogs =>
+      $$DietLogsTableTableManager(_db, _db.dietLogs);
   $$AlertsCacheTableTableManager get alertsCache =>
       $$AlertsCacheTableTableManager(_db, _db.alertsCache);
 }

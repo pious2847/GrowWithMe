@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../domain/diet_guide.dart';
 import '../../domain/nutrition_tips.dart';
+import '../diet/diet_screen.dart';
 
 /// Daily, age-appropriate feeding guidance using foods from Northern Ghana
 /// markets — fully offline. Shows today's tip per child (and pregnancy), plus
@@ -36,6 +38,21 @@ class TipsTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
       children: [
+        // Nana's Kitchen: meal plans + the Daily Plate tracker
+        Card(
+          color: Colors.orange.shade50,
+          child: ListTile(
+            leading: const Text('🍲', style: TextStyle(fontSize: 28)),
+            title: const Text('Nana\'s Kitchen',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(
+                'Meal plans for your budget · ${seasonLabel(currentSeason())}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const DietScreen())),
+          ),
+        ),
+        const SizedBox(height: 8),
         if (pregnancies.isNotEmpty) ...[
           _TodayCard(
             icon: Icons.pregnant_woman,

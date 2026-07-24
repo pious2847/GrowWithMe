@@ -5,6 +5,9 @@ const Pregnancy = require('../models/Pregnancy');
 const Assessment = require('../models/Assessment');
 const Reminder = require('../models/Reminder');
 const GrowthRecord = require('../models/GrowthRecord');
+const ChatMessage = require('../models/ChatMessage');
+const DietPlan = require('../models/DietPlan');
+const DietLog = require('../models/DietLog');
 const Alert = require('../models/Alert');
 const { raiseAlert } = require('../services/alertService');
 const logger = require('../utils/logger');
@@ -16,6 +19,9 @@ const SYNCABLE = [
   { key: 'assessments', model: Assessment },
   { key: 'reminders', model: Reminder },
   { key: 'growthRecords', model: GrowthRecord },
+  { key: 'chatMessages', model: ChatMessage },
+  { key: 'dietPlans', model: DietPlan },
+  { key: 'dietLogs', model: DietLog },
 ];
 
 const PROTECTED_FIELDS = ['owner', 'createdAt', 'updatedAt', '__v', 'alert'];

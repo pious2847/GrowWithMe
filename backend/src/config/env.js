@@ -19,6 +19,14 @@ const env = {
     apiKey: process.env.CLOUDINARY_API_KEY || '',
     apiSecret: process.env.CLOUDINARY_API_SECRET || '',
   },
+  nvidia: {
+    apiKey: process.env.NVIDIA_API_KEY || '',
+    model: process.env.NVIDIA_MODEL || 'meta/llama-3.1-70b-instruct',
+  },
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY || '',
+    voiceId: process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
+  },
   otpTtlMinutes: parseInt(process.env.OTP_TTL_MINUTES || '10', 10),
   isProd: (process.env.NODE_ENV || 'development') === 'production',
 };

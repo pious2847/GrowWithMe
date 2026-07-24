@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../core/providers.dart';
+import '../../domain/first_aid.dart';
 import '../../domain/triage/triage_engine.dart';
 
-class ResultScreen extends ConsumerWidget {
+class ResultScreen extends ConsumerStatefulWidget {
   const ResultScreen({
     super.key,
     required this.result,
@@ -16,6 +17,28 @@ class ResultScreen extends ConsumerWidget {
   final TriageResult result;
   final String assessmentId;
   final bool synced;
+
+  @override
+  ConsumerState<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends ConsumerState<ResultScreen> {
+  TriageResult get result => widget.result;
+  String get assessmentId => widget.assessmentId;
+  bool get synced => widget.synced;
+
+  @override
+  void initState() {
+    super.initState();
+    // Urgent guidance is ALWAYS spoken — a caregiver who cannot read must
+    // still hear what to do. Other levels speak only in voice mode.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final autoVoice = ref.read(autoVoiceProvider).value ?? false;
+      if (result.riskLevel == 'urgent' || autoVoice) {
+        ref.read(ttsProvider).speak('${_title()}. ${result.guidance}');
+      }
+    });
+  }
 
   Color _color(BuildContext context) => switch (result.riskLevel) {
         'urgent' => Colors.red.shade700,
@@ -30,7 +53,7 @@ class ResultScreen extends ConsumerWidget {
       };
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final alerts = ref.watch(alertsProvider).value ?? const [];
     final alert =
         alerts.where((a) => a.assessmentId == assessmentId).firstOrNull;
@@ -90,6 +113,56 @@ class ResultScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(result.guidance, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 24),
+          if (result.riskLevel == 'urgent') ...[
+            Card(
+              color: Colors.amber.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.healing, color: Colors.brown),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text('While help comes — do this now',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                        ),
+                        IconButton(
+                          tooltip: 'Read aloud',
+                          icon: const Icon(Icons.volume_up),
+                          onPressed: () => ref
+                              .read(ttsProvider)
+                              .speak(firstAidSpeech(result.dangerSigns)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    for (final step in firstAidFor(result.dangerSigns))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(step.emoji,
+                                style: const TextStyle(fontSize: 22)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: Text(step.text,
+                                    style: const TextStyle(height: 1.3))),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (result.riskLevel == 'urgent')
             Card(
               child: Padding(

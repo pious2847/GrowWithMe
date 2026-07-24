@@ -24,6 +24,12 @@ const updateMe = asyncHandler(async (req, res) => {
   if (req.body.location && Array.isArray(req.body.location.coordinates)) {
     req.user.location = { type: 'Point', coordinates: req.body.location.coordinates };
   }
+  if (Array.isArray(req.body.careCircle)) {
+    req.user.careCircle = req.body.careCircle
+      .filter((m) => m && m.phone)
+      .slice(0, 2)
+      .map((m) => ({ name: m.name, phone: m.phone, relation: m.relation }));
+  }
   if (req.body.consent) {
     const { dataProcessing, locationOnUrgent, smsReminders } = req.body.consent;
     if (dataProcessing !== undefined) req.user.consent.dataProcessing = dataProcessing;

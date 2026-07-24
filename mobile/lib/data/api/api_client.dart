@@ -3,13 +3,23 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/constants.dart';
 
-/// Dio wrapper that attaches the access token and transparently refreshes it
-/// once on a 401 before failing.
+/// Dio wrapper with:
+/// - self-healing base URL: probes the candidate servers (USB bridge, Wi-Fi
+///   LAN, build-time override) and locks onto whichever answers /health,
+///   re-probing after connection failures — so the app finds the backend
+///   whether or not the USB cable is attached;
+/// - access-token attach + one transparent refresh on 401.
 class ApiClient {
-  ApiClient(this._storage) : dio = Dio(BaseOptions(baseUrl: kApiBaseUrl)) {
+  ApiClient(this._storage)
+      : dio = Dio(BaseOptions(
+          baseUrl: kApiBaseCandidates.firstWhere((c) => c.isNotEmpty),
+          connectTimeout: const Duration(seconds: 8),
+        )) {
     dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
+          await _ensureBaseUrl();
+          options.baseUrl = dio.options.baseUrl;
           final token = await _storage.read(key: kAccessTokenKey);
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -17,8 +27,12 @@ class ApiClient {
           handler.next(options);
         },
         onError: (error, handler) async {
-          final isAuthRoute =
-              error.requestOptions.path.contains('/auth/');
+          // Server unreachable on the current route — re-probe next time.
+          if (error.type == DioExceptionType.connectionError ||
+              error.type == DioExceptionType.connectionTimeout) {
+            _resolved = false;
+          }
+          final isAuthRoute = error.requestOptions.path.contains('/auth/');
           if (error.response?.statusCode == 401 && !isAuthRoute) {
             final refreshed = await _tryRefresh();
             if (refreshed) {
@@ -38,13 +52,42 @@ class ApiClient {
 
   final Dio dio;
   final FlutterSecureStorage _storage;
+  bool _resolved = false;
+
+  /// Marks the base URL as stale so the next request re-probes (call on
+  /// connectivity changes).
+  void invalidateBaseUrl() => _resolved = false;
+
+  Future<void> _ensureBaseUrl() async {
+    if (_resolved) return;
+    final probe = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 2),
+      receiveTimeout: const Duration(seconds: 2),
+    ));
+    for (final base in kApiBaseCandidates.where((c) => c.isNotEmpty)) {
+      final healthUrl =
+          '${base.replaceFirst(RegExp(r'/api/v1/?$'), '')}/health';
+      try {
+        final res = await probe.get<dynamic>(healthUrl);
+        if (res.statusCode == 200) {
+          dio.options.baseUrl = base;
+          _resolved = true;
+          return;
+        }
+      } catch (_) {
+        // try the next candidate
+      }
+    }
+    // Nothing reachable — keep the current base; callers' offline fallbacks
+    // (local intents, device TTS, queued sync) take over.
+  }
 
   Future<bool> _tryRefresh() async {
     final refreshToken = await _storage.read(key: kRefreshTokenKey);
     if (refreshToken == null) return false;
     try {
       // Bare client: the interceptor above must not run for the refresh call.
-      final res = await Dio(BaseOptions(baseUrl: kApiBaseUrl))
+      final res = await Dio(BaseOptions(baseUrl: dio.options.baseUrl))
           .post('/auth/refresh', data: {'refreshToken': refreshToken});
       final tokens = res.data['tokens'] as Map<String, dynamic>;
       await saveTokens(tokens);

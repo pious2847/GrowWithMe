@@ -25,6 +25,19 @@ class AssessmentScreen extends ConsumerStatefulWidget {
   ConsumerState<AssessmentScreen> createState() => _AssessmentScreenState();
 }
 
+/// Language-neutral visual cues so non-readers can recognize each option.
+const Map<String, String> kOptionEmoji = {
+  'Convulsions or fits': '⚡',
+  'Unconscious or very sleepy': '😴',
+  'Unable to drink or breastfeed': '🍼',
+  'Vomits everything': '🤮',
+  'Vaginal bleeding': '🩸',
+  'Severe headache with blurred vision': '🤕',
+  'Severe abdominal pain': '😖',
+  'Water has broken before time': '💧',
+  'None of these': '✅',
+};
+
 class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
   final Map<String, dynamic> _answers = {};
   final DateTime _startedAt = DateTime.now();
@@ -36,6 +49,22 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
       TriageEngine.questionsFor(widget.subjectType)
           .where((q) => q.isVisible(_answers))
           .toList();
+
+  @override
+  void initState() {
+    super.initState();
+    // Voice mode: read the first question as soon as the screen opens.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeSpeakQuestion());
+  }
+
+  void _maybeSpeakQuestion() {
+    if (ref.read(autoVoiceProvider).value ?? false) {
+      final questions = _visible;
+      if (_index < questions.length) {
+        ref.read(ttsProvider).speak(questions[_index].text);
+      }
+    }
+  }
 
   void _answer(dynamic value) {
     final questions = _visible;
@@ -52,6 +81,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
         _finish();
       }
     });
+    _maybeSpeakQuestion();
   }
 
   Future<void> _finish() async {
@@ -131,6 +161,21 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
             icon: const Icon(Icons.volume_up),
             onPressed: () => ref.read(ttsProvider).speak(q.text),
           ),
+          IconButton(
+            tooltip: 'Voice mode: read every question automatically',
+            icon: Icon(
+              (ref.watch(autoVoiceProvider).value ?? false)
+                  ? Icons.record_voice_over
+                  : Icons.voice_over_off,
+              color: (ref.watch(autoVoiceProvider).value ?? false)
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            onPressed: () async {
+              await ref.read(autoVoiceProvider.notifier).toggle();
+              _maybeSpeakQuestion();
+            },
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
@@ -155,18 +200,37 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
   Widget _buildInput(TriageQuestion q) {
     switch (q.type) {
       case QuestionType.yesNo:
+        // Big, color + icon coded buttons — readable without reading.
         return Column(
           children: [
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                  onPressed: () => _answer(true), child: const Text('Yes')),
+              height: 72,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFD32F2F),
+                  textStyle: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _answer(true),
+                icon: const Icon(Icons.check_circle, size: 30),
+                label: const Text('Yes'),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(
-                  onPressed: () => _answer(false), child: const Text('No')),
+              height: 72,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  textStyle: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _answer(false),
+                icon: const Icon(Icons.cancel, size: 30),
+                label: const Text('No'),
+              ),
             ),
           ],
         );
@@ -220,7 +284,10 @@ class _MultiSelectState extends State<_MultiSelect> {
               for (final option in widget.options)
                 CheckboxListTile(
                   value: _selected.contains(option),
-                  title: Text(option),
+                  title: Text(
+                    '${kOptionEmoji[option] ?? '•'}  $option',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (v) => setState(() {
                     if (v == true) {

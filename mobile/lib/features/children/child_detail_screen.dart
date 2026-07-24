@@ -75,10 +75,7 @@ class ChildDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final records = ref
-            .watch(StreamProvider.autoDispose((r) =>
-                r.watch(dbProvider).watchGrowthRecords(child.id)))
-            .value ??
+    final records = ref.watch(growthRecordsProvider(child.id)).value ??
         const <GrowthRecordRow>[];
     final ageMonths = _ageMonthsAt(DateTime.now());
     final latest = records.isNotEmpty ? records.last : null;

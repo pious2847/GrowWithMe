@@ -15,6 +15,7 @@ const alertSchema = new mongoose.Schema(
     },
     volunteer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     facility: { type: mongoose.Schema.Types.ObjectId, ref: 'Facility' },
+    reportUrl: { type: String },
     status: {
       type: String,
       enum: ['pending', 'notified', 'acknowledged', 'en_route', 'at_facility', 'closed', 'unassigned'],

@@ -5,7 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/api/api_client.dart';
 import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
+import '../data/assistant/nana_assistant.dart';
+import '../data/diet/diet_planner.dart';
+import '../data/notifications/notification_service.dart';
+import '../data/repositories/care_actions.dart';
 import '../data/sync/sync_service.dart';
+import '../data/voice/nana_voice.dart';
 import '../data/voice/tts_service.dart';
 import '../data/widget/widget_service.dart';
 import 'constants.dart';
@@ -32,6 +37,55 @@ final widgetServiceProvider =
     Provider<WidgetService>((ref) => WidgetService(ref.watch(dbProvider)));
 
 final ttsProvider = Provider<TtsService>((ref) => TtsService());
+
+final nanaVoiceProvider = Provider<NanaVoice>(
+    (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider)));
+
+final careActionsProvider =
+    Provider<CareActions>((ref) => CareActions(ref.watch(dbProvider)));
+
+final notificationServiceProvider =
+    Provider<NotificationService>((ref) => NotificationService.instance);
+
+final nanaAssistantProvider = Provider<NanaAssistant>(
+    (ref) => NanaAssistant(ref.watch(dbProvider), ref.watch(apiClientProvider)));
+
+final dietPlannerProvider = Provider<DietPlanner>((ref) => DietPlanner(
+    ref.watch(dbProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(nanaAssistantProvider)));
+
+final latestDietPlanProvider =
+    StreamProvider((ref) => ref.watch(dbProvider).watchLatestDietPlan());
+
+final recentDietLogsProvider =
+    StreamProvider((ref) => ref.watch(dbProvider).watchRecentDietLogs(7));
+
+final pregnancyAssessmentsProvider = StreamProvider(
+    (ref) => ref.watch(dbProvider).watchPregnancyAssessments());
+
+final growthRecordsProvider = StreamProvider.family(
+    (ref, String childId) => ref.watch(dbProvider).watchGrowthRecords(childId));
+
+/// Voice mode for non-literate users: when on, the app automatically reads
+/// each triage question and result aloud.
+class AutoVoiceController extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('autoVoice') ?? false;
+  }
+
+  Future<void> toggle() async {
+    final current = state.value ?? false;
+    state = AsyncData(!current);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('autoVoice', !current);
+  }
+}
+
+final autoVoiceProvider =
+    AsyncNotifierProvider<AutoVoiceController, bool>(AutoVoiceController.new);
 
 /// Display name saved at login/onboarding for the home-screen greeting.
 final userNameProvider = FutureProvider<String?>((ref) async {
