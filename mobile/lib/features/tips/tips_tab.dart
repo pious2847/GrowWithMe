@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/providers.dart';
+import '../../data/db/app_database.dart';
 import '../../domain/diet_guide.dart';
 import '../../domain/nutrition_tips.dart';
 import '../diet/diet_screen.dart';
@@ -53,13 +55,46 @@ class TipsTab extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        if (pregnancies.isNotEmpty) ...[
-          _TodayCard(
-            icon: Icons.pregnant_woman,
-            heading: 'For you, mother',
-            tip: dailyPregnancyTip(),
-          ),
-          const SizedBox(height: 8),
+
+        // ---- Today's tips: fresh from Nana's AI when available, library
+        // otherwise, with every past day kept below. ----
+        Builder(builder: (context) {
+          final allTips = ref.watch(dailyTipsProvider).value ?? const [];
+          final todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+          final todayTips =
+              allTips.where((t) => t.forDay == todayKey).toList();
+          if (todayTips.isEmpty) return const SizedBox.shrink();
+          return Column(
+            children: [
+              for (final tip in todayTips) ...[
+                _TodayCard(
+                  icon: switch (tip.audience) {
+                    'pregnancy' => Icons.pregnant_woman,
+                    'lactating' => Icons.child_friendly,
+                    _ => Icons.child_care,
+                  },
+                  heading: tip.source == 'ai'
+                      ? 'Fresh from Nana today'
+                      : 'Today\'s tip',
+                  tip: NutritionTip(tip.title, tip.body),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ],
+          );
+        }),
+        if ((ref.watch(dailyTipsProvider).value ?? const [])
+            .where((t) =>
+                t.forDay == DateFormat('yyyy-MM-dd').format(DateTime.now()))
+            .isEmpty) ...[
+          if (pregnancies.isNotEmpty) ...[
+            _TodayCard(
+              icon: Icons.pregnant_woman,
+              heading: 'For you, mother',
+              tip: dailyPregnancyTip(),
+            ),
+            const SizedBox(height: 8),
+          ],
         ],
         for (final child in children) ...[
           _TodayCard(
@@ -97,6 +132,41 @@ class TipsTab extends ConsumerWidget {
                 ),
             ],
           ),
+
+        // ---- Past tips: every day's tip stays accessible ----
+        Builder(builder: (context) {
+          final allTips = ref.watch(dailyTipsProvider).value ?? const [];
+          final todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+          final past = allTips.where((t) => t.forDay != todayKey).toList();
+          if (past.isEmpty) return const SizedBox.shrink();
+          return ExpansionTile(
+            leading: const Icon(Icons.history),
+            title: Text('Past tips (${past.length})'),
+            tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+            children: [
+              for (final DailyTipRow tip in past.take(30))
+                ListTile(
+                  leading: Text(
+                    switch (tip.audience) {
+                      'pregnancy' => '🤰',
+                      'lactating' => '🤱',
+                      _ => '👶',
+                    },
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  title: Text(tip.title),
+                  subtitle: Text(
+                      '${DateFormat('EEE d MMM').format(DateTime.parse(tip.forDay))} · ${tip.body}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.volume_up, size: 20),
+                    onPressed: () => ref
+                        .read(ttsProvider)
+                        .speak('${tip.title}. ${tip.body}'),
+                  ),
+                ),
+            ],
+          );
+        }),
       ],
     );
   }

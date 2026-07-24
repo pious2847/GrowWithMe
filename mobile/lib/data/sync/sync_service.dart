@@ -34,6 +34,7 @@ class SyncService {
     final dirtyChatMessages = await _db.dirtyChatMessages();
     final dirtyDietPlans = await _db.dirtyDietPlans();
     final dirtyDietLogs = await _db.dirtyDietLogs();
+    final dirtyDailyTips = await _db.dirtyDailyTips();
 
     final res = await _api.dio.post('/sync', data: {
       'lastPulledAt': lastPulledAt,
@@ -46,6 +47,7 @@ class SyncService {
         'chatMessages': dirtyChatMessages.map(_chatToJson).toList(),
         'dietPlans': dirtyDietPlans.map(_dietPlanToJson).toList(),
         'dietLogs': dirtyDietLogs.map(_dietLogToJson).toList(),
+        'dailyTips': dirtyDailyTips.map(_dailyTipToJson).toList(),
       },
     });
 
@@ -66,6 +68,8 @@ class SyncService {
           _db.dietPlans, dirtyDietPlans.map((r) => r.id).toList());
       await _db.markSynced(
           _db.dietLogs, dirtyDietLogs.map((r) => r.id).toList());
+      await _db.markSynced(
+          _db.dailyTips, dirtyDailyTips.map((r) => r.id).toList());
 
       for (final doc in (pull['children'] as List? ?? [])) {
         await _db.into(_db.children).insertOnConflictUpdate(_childFromJson(doc));
@@ -98,6 +102,11 @@ class SyncService {
         await _db
             .into(_db.dietLogs)
             .insertOnConflictUpdate(_dietLogFromJson(doc));
+      }
+      for (final doc in (pull['dailyTips'] as List? ?? [])) {
+        await _db
+            .into(_db.dailyTips)
+            .insertOnConflictUpdate(_dailyTipFromJson(doc));
       }
       for (final doc in (pull['alerts'] as List? ?? [])) {
         await _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(doc));
@@ -156,6 +165,28 @@ class SyncService {
         'source': r.source,
         'plannedFor': _iso(r.plannedFor),
       };
+
+  Map<String, dynamic> _dailyTipToJson(DailyTipRow r) => {
+        ..._syncFields(r),
+        'audience': r.audience,
+        'title': r.title,
+        'body': r.body,
+        'forDay': r.forDay,
+        'source': r.source,
+      };
+
+  DailyTipsCompanion _dailyTipFromJson(Map<String, dynamic> d) =>
+      DailyTipsCompanion(
+        id: Value(d['_id'] as String),
+        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+        deleted: Value(d['deleted'] as bool? ?? false),
+        synced: const Value(true),
+        audience: Value(d['audience'] as String? ?? 'general'),
+        title: Value(d['title'] as String? ?? ''),
+        body: Value(d['body'] as String? ?? ''),
+        forDay: Value(d['forDay'] as String? ?? ''),
+        source: Value(d['source'] as String? ?? 'offline'),
+      );
 
   Map<String, dynamic> _dietLogToJson(DietLogRow r) => {
         ..._syncFields(r),

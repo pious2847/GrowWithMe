@@ -5236,6 +5236,561 @@ class DietLogsCompanion extends UpdateCompanion<DietLogRow> {
   }
 }
 
+class $DailyTipsTable extends DailyTips
+    with TableInfo<$DailyTipsTable, DailyTipRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyTipsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientUpdatedAtMeta = const VerificationMeta(
+    'clientUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> clientUpdatedAt = GeneratedColumn<int>(
+    'client_updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
+  @override
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _audienceMeta = const VerificationMeta(
+    'audience',
+  );
+  @override
+  late final GeneratedColumn<String> audience = GeneratedColumn<String>(
+    'audience',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _forDayMeta = const VerificationMeta('forDay');
+  @override
+  late final GeneratedColumn<String> forDay = GeneratedColumn<String>(
+    'for_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('offline'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    audience,
+    title,
+    body,
+    forDay,
+    source,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_tips';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyTipRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_updated_at')) {
+      context.handle(
+        _clientUpdatedAtMeta,
+        clientUpdatedAt.isAcceptableOrUnknown(
+          data['client_updated_at']!,
+          _clientUpdatedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('synced')) {
+      context.handle(
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
+      );
+    }
+    if (data.containsKey('audience')) {
+      context.handle(
+        _audienceMeta,
+        audience.isAcceptableOrUnknown(data['audience']!, _audienceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_audienceMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('for_day')) {
+      context.handle(
+        _forDayMeta,
+        forDay.isAcceptableOrUnknown(data['for_day']!, _forDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_forDayMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DailyTipRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyTipRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
+      audience: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}audience'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      forDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}for_day'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyTipsTable createAlias(String alias) {
+    return $DailyTipsTable(attachedDatabase, alias);
+  }
+}
+
+class DailyTipRow extends DataClass implements Insertable<DailyTipRow> {
+  final String id;
+  final int clientUpdatedAt;
+  final bool deleted;
+  final bool synced;
+  final String audience;
+  final String title;
+  final String body;
+  final String forDay;
+  final String source;
+  const DailyTipRow({
+    required this.id,
+    required this.clientUpdatedAt,
+    required this.deleted,
+    required this.synced,
+    required this.audience,
+    required this.title,
+    required this.body,
+    required this.forDay,
+    required this.source,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_updated_at'] = Variable<int>(clientUpdatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['synced'] = Variable<bool>(synced);
+    map['audience'] = Variable<String>(audience);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    map['for_day'] = Variable<String>(forDay);
+    map['source'] = Variable<String>(source);
+    return map;
+  }
+
+  DailyTipsCompanion toCompanion(bool nullToAbsent) {
+    return DailyTipsCompanion(
+      id: Value(id),
+      clientUpdatedAt: Value(clientUpdatedAt),
+      deleted: Value(deleted),
+      synced: Value(synced),
+      audience: Value(audience),
+      title: Value(title),
+      body: Value(body),
+      forDay: Value(forDay),
+      source: Value(source),
+    );
+  }
+
+  factory DailyTipRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyTipRow(
+      id: serializer.fromJson<String>(json['id']),
+      clientUpdatedAt: serializer.fromJson<int>(json['clientUpdatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      synced: serializer.fromJson<bool>(json['synced']),
+      audience: serializer.fromJson<String>(json['audience']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      forDay: serializer.fromJson<String>(json['forDay']),
+      source: serializer.fromJson<String>(json['source']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientUpdatedAt': serializer.toJson<int>(clientUpdatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'synced': serializer.toJson<bool>(synced),
+      'audience': serializer.toJson<String>(audience),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'forDay': serializer.toJson<String>(forDay),
+      'source': serializer.toJson<String>(source),
+    };
+  }
+
+  DailyTipRow copyWith({
+    String? id,
+    int? clientUpdatedAt,
+    bool? deleted,
+    bool? synced,
+    String? audience,
+    String? title,
+    String? body,
+    String? forDay,
+    String? source,
+  }) => DailyTipRow(
+    id: id ?? this.id,
+    clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+    deleted: deleted ?? this.deleted,
+    synced: synced ?? this.synced,
+    audience: audience ?? this.audience,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    forDay: forDay ?? this.forDay,
+    source: source ?? this.source,
+  );
+  DailyTipRow copyWithCompanion(DailyTipsCompanion data) {
+    return DailyTipRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientUpdatedAt: data.clientUpdatedAt.present
+          ? data.clientUpdatedAt.value
+          : this.clientUpdatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      synced: data.synced.present ? data.synced.value : this.synced,
+      audience: data.audience.present ? data.audience.value : this.audience,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      forDay: data.forDay.present ? data.forDay.value : this.forDay,
+      source: data.source.present ? data.source.value : this.source,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyTipRow(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('audience: $audience, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('forDay: $forDay, ')
+          ..write('source: $source')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    audience,
+    title,
+    body,
+    forDay,
+    source,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyTipRow &&
+          other.id == this.id &&
+          other.clientUpdatedAt == this.clientUpdatedAt &&
+          other.deleted == this.deleted &&
+          other.synced == this.synced &&
+          other.audience == this.audience &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.forDay == this.forDay &&
+          other.source == this.source);
+}
+
+class DailyTipsCompanion extends UpdateCompanion<DailyTipRow> {
+  final Value<String> id;
+  final Value<int> clientUpdatedAt;
+  final Value<bool> deleted;
+  final Value<bool> synced;
+  final Value<String> audience;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String> forDay;
+  final Value<String> source;
+  final Value<int> rowid;
+  const DailyTipsCompanion({
+    this.id = const Value.absent(),
+    this.clientUpdatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    this.audience = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.forDay = const Value.absent(),
+    this.source = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DailyTipsCompanion.insert({
+    required String id,
+    required int clientUpdatedAt,
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    required String audience,
+    required String title,
+    required String body,
+    required String forDay,
+    this.source = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientUpdatedAt = Value(clientUpdatedAt),
+       audience = Value(audience),
+       title = Value(title),
+       body = Value(body),
+       forDay = Value(forDay);
+  static Insertable<DailyTipRow> custom({
+    Expression<String>? id,
+    Expression<int>? clientUpdatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? synced,
+    Expression<String>? audience,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? forDay,
+    Expression<String>? source,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientUpdatedAt != null) 'client_updated_at': clientUpdatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (synced != null) 'synced': synced,
+      if (audience != null) 'audience': audience,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (forDay != null) 'for_day': forDay,
+      if (source != null) 'source': source,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DailyTipsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? clientUpdatedAt,
+    Value<bool>? deleted,
+    Value<bool>? synced,
+    Value<String>? audience,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String>? forDay,
+    Value<String>? source,
+    Value<int>? rowid,
+  }) {
+    return DailyTipsCompanion(
+      id: id ?? this.id,
+      clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+      deleted: deleted ?? this.deleted,
+      synced: synced ?? this.synced,
+      audience: audience ?? this.audience,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      forDay: forDay ?? this.forDay,
+      source: source ?? this.source,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientUpdatedAt.present) {
+      map['client_updated_at'] = Variable<int>(clientUpdatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
+    }
+    if (audience.present) {
+      map['audience'] = Variable<String>(audience.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (forDay.present) {
+      map['for_day'] = Variable<String>(forDay.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyTipsCompanion(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('audience: $audience, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('forDay: $forDay, ')
+          ..write('source: $source, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AlertsCacheTable extends AlertsCache
     with TableInfo<$AlertsCacheTable, AlertRow> {
   @override
@@ -5842,6 +6397,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final $DietPlansTable dietPlans = $DietPlansTable(this);
   late final $DietLogsTable dietLogs = $DietLogsTable(this);
+  late final $DailyTipsTable dailyTips = $DailyTipsTable(this);
   late final $AlertsCacheTable alertsCache = $AlertsCacheTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -5856,6 +6412,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     chatMessages,
     dietPlans,
     dietLogs,
+    dailyTips,
     alertsCache,
   ];
 }
@@ -8368,6 +8925,284 @@ typedef $$DietLogsTableProcessedTableManager =
       DietLogRow,
       PrefetchHooks Function()
     >;
+typedef $$DailyTipsTableCreateCompanionBuilder =
+    DailyTipsCompanion Function({
+      required String id,
+      required int clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      required String audience,
+      required String title,
+      required String body,
+      required String forDay,
+      Value<String> source,
+      Value<int> rowid,
+    });
+typedef $$DailyTipsTableUpdateCompanionBuilder =
+    DailyTipsCompanion Function({
+      Value<String> id,
+      Value<int> clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      Value<String> audience,
+      Value<String> title,
+      Value<String> body,
+      Value<String> forDay,
+      Value<String> source,
+      Value<int> rowid,
+    });
+
+class $$DailyTipsTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyTipsTable> {
+  $$DailyTipsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get audience => $composableBuilder(
+    column: $table.audience,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get forDay => $composableBuilder(
+    column: $table.forDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyTipsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyTipsTable> {
+  $$DailyTipsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get audience => $composableBuilder(
+    column: $table.audience,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get forDay => $composableBuilder(
+    column: $table.forDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyTipsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyTipsTable> {
+  $$DailyTipsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
+
+  GeneratedColumn<String> get audience =>
+      $composableBuilder(column: $table.audience, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get forDay =>
+      $composableBuilder(column: $table.forDay, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+}
+
+class $$DailyTipsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyTipsTable,
+          DailyTipRow,
+          $$DailyTipsTableFilterComposer,
+          $$DailyTipsTableOrderingComposer,
+          $$DailyTipsTableAnnotationComposer,
+          $$DailyTipsTableCreateCompanionBuilder,
+          $$DailyTipsTableUpdateCompanionBuilder,
+          (
+            DailyTipRow,
+            BaseReferences<_$AppDatabase, $DailyTipsTable, DailyTipRow>,
+          ),
+          DailyTipRow,
+          PrefetchHooks Function()
+        > {
+  $$DailyTipsTableTableManager(_$AppDatabase db, $DailyTipsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyTipsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyTipsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyTipsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> clientUpdatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                Value<String> audience = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> forDay = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyTipsCompanion(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                audience: audience,
+                title: title,
+                body: body,
+                forDay: forDay,
+                source: source,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int clientUpdatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                required String audience,
+                required String title,
+                required String body,
+                required String forDay,
+                Value<String> source = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DailyTipsCompanion.insert(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                audience: audience,
+                title: title,
+                body: body,
+                forDay: forDay,
+                source: source,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyTipsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyTipsTable,
+      DailyTipRow,
+      $$DailyTipsTableFilterComposer,
+      $$DailyTipsTableOrderingComposer,
+      $$DailyTipsTableAnnotationComposer,
+      $$DailyTipsTableCreateCompanionBuilder,
+      $$DailyTipsTableUpdateCompanionBuilder,
+      (
+        DailyTipRow,
+        BaseReferences<_$AppDatabase, $DailyTipsTable, DailyTipRow>,
+      ),
+      DailyTipRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AlertsCacheTableCreateCompanionBuilder =
     AlertsCacheCompanion Function({
       required String id,
@@ -8671,6 +9506,8 @@ class $AppDatabaseManager {
       $$DietPlansTableTableManager(_db, _db.dietPlans);
   $$DietLogsTableTableManager get dietLogs =>
       $$DietLogsTableTableManager(_db, _db.dietLogs);
+  $$DailyTipsTableTableManager get dailyTips =>
+      $$DailyTipsTableTableManager(_db, _db.dailyTips);
   $$AlertsCacheTableTableManager get alertsCache =>
       $$AlertsCacheTableTableManager(_db, _db.alertsCache);
 }

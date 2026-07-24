@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/constants.dart';
 import '../../core/providers.dart';
 import 'profile_screen.dart';
 
@@ -72,6 +74,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       final result = await ref
           .read(authRepositoryProvider)
           .verifyOtp(widget.phone, _codeController.text.trim());
+      if (result.isNewUser) {
+        // Fresh account on this server — make any existing local data
+        // upload so nothing is lost when switching backends.
+        await ref.read(dbProvider).resetSyncFlags();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(kLastPulledAtKey);
+      }
       if (!mounted) return;
       if (result.isNewUser) {
         Navigator.of(context).pushReplacement(

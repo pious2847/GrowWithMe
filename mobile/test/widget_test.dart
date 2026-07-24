@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grow_with_me/domain/care_terms.dart';
 import 'package:grow_with_me/domain/checkin.dart';
 import 'package:grow_with_me/domain/diet_guide.dart';
 import 'package:grow_with_me/domain/growth_reference.dart';
@@ -113,6 +114,17 @@ void main() {
     });
     expect(slots.length, 1);
     expect((slots.first['options'] as List).first['name'], 'Old-style koko');
+  });
+
+  test('care terms: BCG + OPV 0 explained in plain words', () {
+    final plain = explainCareTerm('BCG + OPV 0 (at birth)');
+    expect(plain, isNotNull);
+    expect(plain, contains('TB'));
+    expect(plain, contains('polio'));
+  });
+
+  test('care terms: custom reminders need no explanation', () {
+    expect(explainCareTerm('Buy ORS at the market'), isNull);
   });
 
   test('triage: reduced fetal movement is urgent', () {

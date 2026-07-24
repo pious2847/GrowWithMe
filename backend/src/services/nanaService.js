@@ -209,4 +209,53 @@ async function dietPlan(context) {
   throw lastError;
 }
 
-module.exports = { chat, checkinQuestions, dietPlan, configured };
+const TIP_PROMPT = `You are Nana, writing today's fresh feeding/nutrition tip(s) for a caregiver in Northern Ghana. You receive her situation: children and their ages, pregnancy stage, the food season, her recent diet scores, and the titles of tips she was shown recently.
+
+RULES:
+- Write ONE tip per relevant audience (child / pregnancy / lactating). Max 2 tips.
+- Very short: a punchy title (3-6 words) and a body of 2-3 simple sentences a low-literacy caregiver understands when read aloud.
+- Practical and specific to Northern Ghana foods and this season. Vary the topic — do NOT repeat any recent tip title.
+- If her diet scores show missing food groups, target one of the gaps.
+- Never mention medicines except "iron tablets" for pregnancy.
+
+Reply with ONLY JSON:
+{"tips": [{"audience": "child"|"pregnancy"|"lactating", "title": "...", "body": "..."}]}`;
+
+/** Fresh personalized daily tips. Returns validated [{audience,title,body}]. */
+async function dailyTips(context) {
+  const payload = {
+    model: env.nvidia.model,
+    temperature: 0.7,
+    max_tokens: 400,
+    messages: [
+      { role: 'system', content: TIP_PROMPT },
+      { role: 'user', content: `HER SITUATION:\n${context}` },
+    ],
+  };
+  const res = await axios.post(NIM_URL, payload, {
+    headers: {
+      Authorization: `Bearer ${env.nvidia.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 90000,
+  });
+  const raw = res.data?.choices?.[0]?.message?.content || '';
+  const sliced = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+  let parsed;
+  try {
+    parsed = JSON.parse(sliced);
+  } catch (_) {
+    parsed = JSON.parse(sliced.replace(/,\s*([}\]])/g, '$1'));
+  }
+  return (parsed.tips || [])
+    .filter(
+      (t) =>
+        t &&
+        typeof t.title === 'string' &&
+        typeof t.body === 'string' &&
+        ['child', 'pregnancy', 'lactating', 'general'].includes(t.audience)
+    )
+    .slice(0, 2);
+}
+
+module.exports = { chat, checkinQuestions, dietPlan, dailyTips, configured };

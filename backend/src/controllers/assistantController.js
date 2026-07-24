@@ -63,4 +63,15 @@ const dietPlan = asyncHandler(async (req, res) => {
   res.json({ success: true, plan });
 });
 
-module.exports = { chat, speak, checkinQuestions, dietPlan };
+// POST /api/v1/assistant/daily-tips { context }
+const dailyTips = asyncHandler(async (req, res) => {
+  if (!nana.configured()) {
+    throw new ApiError(503, 'Assistant is not configured on this server');
+  }
+  const context = String(req.body?.context || '').slice(0, 4000);
+  const tips = await nana.dailyTips(context);
+  logger.info(`[nana] daily tips generated for ${req.user.phone}: ${tips.length}`);
+  res.json({ success: true, tips });
+});
+
+module.exports = { chat, speak, checkinQuestions, dietPlan, dailyTips };

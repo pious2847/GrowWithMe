@@ -7,6 +7,7 @@ import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
 import '../data/assistant/nana_assistant.dart';
 import '../data/diet/diet_planner.dart';
+import '../data/diet/tips_updater.dart';
 import '../data/notifications/notification_service.dart';
 import '../data/repositories/care_actions.dart';
 import '../data/sync/sync_service.dart';
@@ -54,6 +55,14 @@ final dietPlannerProvider = Provider<DietPlanner>((ref) => DietPlanner(
     ref.watch(dbProvider),
     ref.watch(apiClientProvider),
     ref.watch(nanaAssistantProvider)));
+
+final tipsUpdaterProvider = Provider<TipsUpdater>((ref) => TipsUpdater(
+    ref.watch(dbProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(nanaAssistantProvider)));
+
+final dailyTipsProvider =
+    StreamProvider((ref) => ref.watch(dbProvider).watchDailyTips());
 
 final latestDietPlanProvider =
     StreamProvider((ref) => ref.watch(dbProvider).watchLatestDietPlan());

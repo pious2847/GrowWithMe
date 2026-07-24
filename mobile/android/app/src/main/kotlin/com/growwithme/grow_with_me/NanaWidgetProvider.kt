@@ -9,9 +9,9 @@ import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 /**
- * "Nana says" widget: the daily message from the AI care educator. Tapping it
- * opens the app straight into Nana, who reads the day's briefing aloud —
- * voice-first care for caregivers who cannot read.
+ * Minimal Nana strip: one short line from her, matching the app's light
+ * widget style. Tapping opens the app and Nana speaks the day's briefing —
+ * voice-first care in a single sleek row.
  */
 class NanaWidgetProvider : HomeWidgetProvider() {
 
@@ -23,19 +23,18 @@ class NanaWidgetProvider : HomeWidgetProvider() {
     ) {
         for (widgetId in appWidgetIds) {
             try {
-                val views = RemoteViews(context.packageName, R.layout.widget_nana).apply {
-                    setTextViewText(
-                        R.id.nana_date,
-                        widgetData.getString("nana_date", "") ?: ""
-                    )
-                    setTextViewText(
-                        R.id.nana_message,
-                        widgetData.getString(
-                            "nana_message",
-                            "Hello! Open GrowWithMe and I will help you care for your family."
-                        )
-                    )
-                }
+                val views = RemoteViews(context.packageName, R.layout.widget_nana)
+
+                val short = widgetData.getString("nana_short", "") ?: ""
+                val long = widgetData.getString("nana_message", "") ?: ""
+                views.setTextViewText(
+                    R.id.nana_message,
+                    when {
+                        short.isNotEmpty() -> short
+                        long.isNotEmpty() -> long
+                        else -> "Hello! Open GrowWithMe and I will help you today."
+                    }
+                )
 
                 val pending = HomeWidgetLaunchIntent.getActivity(
                     context,

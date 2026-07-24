@@ -110,6 +110,17 @@ class DietLogs extends Table with SyncColumns {
   TextColumn get eatenMealsJson => text().nullable()(); // JSON array of meal labels
 }
 
+/// A day's feeding tip (AI-personalized or from the offline library) — kept
+/// forever so caregivers can browse past guidance.
+@DataClassName('DailyTipRow')
+class DailyTips extends Table with SyncColumns {
+  TextColumn get audience => text()(); // pregnancy | lactating | child | general
+  TextColumn get title => text()();
+  TextColumn get body => text()();
+  TextColumn get forDay => text()(); // YYYY-MM-DD
+  TextColumn get source => text().withDefault(const Constant('offline'))();
+}
+
 /// Server-authored referral alerts, cached read-only for offline viewing.
 @DataClassName('AlertRow')
 class AlertsCache extends Table {
@@ -136,6 +147,7 @@ class AlertsCache extends Table {
   ChatMessages,
   DietPlans,
   DietLogs,
+  DailyTips,
   AlertsCache
 ])
 class AppDatabase extends _$AppDatabase {
@@ -144,7 +156,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -168,6 +180,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 6) {
             await m.addColumn(dietLogs, dietLogs.eatenMealsJson);
+          }
+          if (from < 7) {
+            await m.createTable(dailyTips);
           }
         },
       );
@@ -243,6 +258,18 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<DietPlanRow>> dirtyDietPlans() =>
       (select(dietPlans)..where((t) => t.synced.equals(false))).get();
+  Future<List<DailyTipRow>> dirtyDailyTips() =>
+      (select(dailyTips)..where((t) => t.synced.equals(false))).get();
+
+  Stream<List<DailyTipRow>> watchDailyTips() => (select(dailyTips)
+        ..where((t) => t.deleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.forDay)])
+        ..limit(60))
+      .watch();
+
+  Future<List<DailyTipRow>> tipsForDay(String dayKey) => (select(dailyTips)
+        ..where((t) => t.deleted.equals(false) & t.forDay.equals(dayKey)))
+      .get();
   Future<List<DietLogRow>> dirtyDietLogs() =>
       (select(dietLogs)..where((t) => t.synced.equals(false))).get();
 
@@ -269,6 +296,28 @@ class AppDatabase extends _$AppDatabase {
             ..where((t) => t.deleted.equals(false) & t.childId.equals(childId))
             ..orderBy([(t) => OrderingTerm.asc(t.measuredAt)]))
           .watch();
+
+  /// Marks every record as needing upload. Used when signing in against a
+  /// NEW backend (e.g. after moving from the dev server to production): the
+  /// account there is fresh, so the whole local history re-uploads.
+  Future<void> resetSyncFlags() async {
+    for (final table in <TableInfo>[
+      children,
+      pregnancies,
+      assessments,
+      reminders,
+      growthRecords,
+      chatMessages,
+      dietPlans,
+      dietLogs,
+      dailyTips,
+    ]) {
+      await customUpdate(
+        'UPDATE ${table.actualTableName} SET synced = 0',
+        updates: {table},
+      );
+    }
+  }
 
   Future<void> markSynced(TableInfo table, List<String> ids) async {
     if (ids.isEmpty) return;

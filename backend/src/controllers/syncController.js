@@ -8,6 +8,7 @@ const GrowthRecord = require('../models/GrowthRecord');
 const ChatMessage = require('../models/ChatMessage');
 const DietPlan = require('../models/DietPlan');
 const DietLog = require('../models/DietLog');
+const DailyTip = require('../models/DailyTip');
 const Alert = require('../models/Alert');
 const { raiseAlert } = require('../services/alertService');
 const logger = require('../utils/logger');
@@ -22,6 +23,7 @@ const SYNCABLE = [
   { key: 'chatMessages', model: ChatMessage },
   { key: 'dietPlans', model: DietPlan },
   { key: 'dietLogs', model: DietLog },
+  { key: 'dailyTips', model: DailyTip },
 ];
 
 const PROTECTED_FIELDS = ['owner', 'createdAt', 'updatedAt', '__v', 'alert'];

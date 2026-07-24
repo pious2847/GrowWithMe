@@ -49,6 +49,7 @@ router.post('/assistant/chat', requireAuth, assistantController.chat);
 router.post('/assistant/speak', requireAuth, assistantController.speak);
 router.post('/assistant/checkin-questions', requireAuth, assistantController.checkinQuestions);
 router.post('/assistant/diet-plan', requireAuth, assistantController.dietPlan);
+router.post('/assistant/daily-tips', requireAuth, assistantController.dailyTips);
 
 // Facility dashboard + monitoring queue
 router.get(

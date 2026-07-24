@@ -5,15 +5,14 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
 /**
- * Home-screen widget: upcoming care visits as chip-labelled rows plus the
- * daily feeding tip. Data is written by the Flutter side (WidgetService) via
- * home_widget's SharedPreferences bridge — fully offline.
+ * Home-screen widget, refreshed daily: mother-and-baby illustration with the
+ * countdown to delivery (or the child's age), this week's checks, and the
+ * daily motivation line.
  */
 class ReminderWidgetProvider : HomeWidgetProvider() {
 
@@ -38,81 +37,92 @@ class ReminderWidgetProvider : HomeWidgetProvider() {
         widgetId: Int,
         widgetData: SharedPreferences
     ) {
-        run {
-            val views = RemoteViews(context.packageName, R.layout.widget_reminders)
+        val views = RemoteViews(context.packageName, R.layout.widget_reminders)
 
-            views.setTextViewText(
-                R.id.widget_title,
-                widgetData.getString("title", "") ?: ""
-            )
-
-            bindRow(
-                views, widgetData, 1,
-                R.id.row1, R.id.chip1, R.id.title1,
-                emptyFallback = "Open GrowWithMe to set up your care calendar"
-            )
-            bindRow(views, widgetData, 2, R.id.row2, R.id.chip2, R.id.title2, null)
-            bindRow(views, widgetData, 3, R.id.row3, R.id.chip3, R.id.title3, null)
-
-            val tip = widgetData.getString("tip", "") ?: ""
-            if (tip.isEmpty()) {
-                views.setViewVisibility(R.id.widget_tip, View.GONE)
+        // Countdown computed at RENDER time from raw dates — the launcher
+        // re-renders every 30 min, so this stays correct day after day even
+        // if the app is never opened.
+        val now = System.currentTimeMillis()
+        val dayMs = 86_400_000L
+        val edd = widgetData.getString("edd_millis", "")?.toLongOrNull()
+        val dob = widgetData.getString("dob_millis", "")?.toLongOrNull()
+        val childName = widgetData.getString("child_name", "") ?: ""
+        var big: String
+        var small: String
+        if (edd != null && edd > 0) {
+            val daysLeft = ((edd - now) / dayMs).toInt()
+            if (daysLeft > 0) {
+                big = "$daysLeft day" + (if (daysLeft == 1) "" else "s")
+                small = "to delivery 🍼"
             } else {
-                views.setViewVisibility(R.id.widget_tip, View.VISIBLE)
-                views.setTextViewText(R.id.widget_tip, "🌿 $tip")
+                big = "Baby is due"
+                small = "stay close to your clinic"
             }
-
-            val launchIntent = context.packageManager
-                .getLaunchIntentForPackage(context.packageName)
-            if (launchIntent != null) {
-                val pending = PendingIntent.getActivity(
-                    context,
-                    0,
-                    launchIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                views.setOnClickPendingIntent(R.id.widget_root, pending)
-            }
-
-            appWidgetManager.updateAppWidget(widgetId, views)
+        } else if (dob != null && dob > 0) {
+            val days = ((now - dob) / dayMs).toInt()
+            big = if (days < 60) "${days / 7} weeks" else "${days / 30} months"
+            small = if (childName.isEmpty()) "growing strong 🌱"
+                    else "$childName is growing 🌱"
+        } else {
+            big = widgetData.getString("countdown_big", "Welcome") ?: "Welcome"
+            small = widgetData.getString("countdown_small", "to GrowWithMe") ?: ""
         }
+        views.setTextViewText(R.id.countdown_big, big)
+        views.setTextViewText(R.id.countdown_small, small)
+
+        bindCheck(views, widgetData, 1, R.id.check1,
+            fallback = "Open the app to plan your week")
+        bindCheck(views, widgetData, 2, R.id.check2, fallback = null)
+        bindCheck(views, widgetData, 3, R.id.check3, fallback = null)
+
+        // Motivation rotates by day-of-year at render time.
+        val motivationList = (widgetData.getString("motivations", "") ?: "")
+            .split('|').filter { it.isNotBlank() }
+        val motivation = if (motivationList.isNotEmpty()) {
+            motivationList[java.time.LocalDate.now().dayOfYear % motivationList.size]
+        } else {
+            widgetData.getString("motivation", "") ?: ""
+        }
+        if (motivation.isEmpty()) {
+            views.setViewVisibility(R.id.widget_motivation, View.GONE)
+        } else {
+            views.setViewVisibility(R.id.widget_motivation, View.VISIBLE)
+            views.setTextViewText(R.id.widget_motivation, "🌟 $motivation")
+        }
+
+        val launchIntent = context.packageManager
+            .getLaunchIntentForPackage(context.packageName)
+        if (launchIntent != null) {
+            val pending = PendingIntent.getActivity(
+                context,
+                0,
+                launchIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_root, pending)
+        }
+
+        appWidgetManager.updateAppWidget(widgetId, views)
     }
 
-    private fun bindRow(
+    private fun bindCheck(
         views: RemoteViews,
         data: SharedPreferences,
         index: Int,
-        rowId: Int,
-        chipId: Int,
-        titleId: Int,
-        emptyFallback: String?
+        viewId: Int,
+        fallback: String?
     ) {
-        val whenText = data.getString("when$index", "") ?: ""
-        val titleText = data.getString("title$index", "") ?: ""
-
-        if (titleText.isEmpty()) {
-            if (emptyFallback != null) {
-                views.setViewVisibility(rowId, View.VISIBLE)
-                views.setViewVisibility(chipId, View.GONE)
-                views.setTextViewText(titleId, emptyFallback)
+        val text = data.getString("check$index", "") ?: ""
+        if (text.isEmpty()) {
+            if (fallback != null) {
+                views.setViewVisibility(viewId, View.VISIBLE)
+                views.setTextViewText(viewId, fallback)
             } else {
-                views.setViewVisibility(rowId, View.GONE)
+                views.setViewVisibility(viewId, View.GONE)
             }
             return
         }
-
-        views.setViewVisibility(rowId, View.VISIBLE)
-        views.setViewVisibility(chipId, View.VISIBLE)
-        views.setTextViewText(chipId, whenText)
-        views.setTextViewText(titleId, titleText)
-
-        // "Today" (and overdue) chips get the filled brand style.
-        if (whenText == "Today" || whenText == "Overdue") {
-            views.setInt(chipId, "setBackgroundResource", R.drawable.chip_bg_today)
-            views.setTextColor(chipId, Color.WHITE)
-        } else {
-            views.setInt(chipId, "setBackgroundResource", R.drawable.chip_bg)
-            views.setTextColor(chipId, Color.parseColor("#1B5E20"))
-        }
+        views.setViewVisibility(viewId, View.VISIBLE)
+        views.setTextViewText(viewId, "○ $text")
     }
 }

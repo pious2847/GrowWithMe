@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
+import '../../domain/care_terms.dart';
 
 /// One calendar for the whole care journey — antenatal visits, immunizations,
 /// growth checks, postnatal care AND her own personal reminders. Any date can
@@ -118,7 +119,7 @@ class _CalendarTabState extends ConsumerState<CalendarTab> {
     for (final r in reminders) {
       (byDay[_dayKey(r.dueDate)] ??= []).add(r);
     }
-    final selectedEvents = (byDay[_dayKey(_selectedDay)] ?? const [])
+    final selectedEvents = [...(byDay[_dayKey(_selectedDay)] ?? const [])]
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
     final monthCount = reminders
@@ -347,7 +348,7 @@ class _CalendarTabState extends ConsumerState<CalendarTab> {
   }
 }
 
-class _EventTile extends StatelessWidget {
+class _EventTile extends ConsumerWidget {
   const _EventTile(
       {required this.reminder, required this.onDone, this.onDelete});
 
@@ -355,17 +356,73 @@ class _EventTile extends StatelessWidget {
   final VoidCallback onDone;
   final VoidCallback? onDelete;
 
+  void _showDetails(BuildContext context, WidgetRef ref, String? plain) {
+    final speakText = [
+      reminder.title,
+      ?plain,
+      if (reminder.description?.isNotEmpty == true) reminder.description!,
+    ].join('. ');
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Text(emojiForType(reminder.type),
+                style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 8),
+            Expanded(
+                child: Text(labelForType(reminder.type),
+                    style: const TextStyle(fontSize: 18))),
+            IconButton(
+              tooltip: 'Read aloud',
+              icon: const Icon(Icons.volume_up),
+              onPressed: () => ref.read(ttsProvider).speak(speakText),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(reminder.title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            if (plain != null) ...[
+              const SizedBox(height: 8),
+              Text(plain),
+            ],
+            if (reminder.description?.isNotEmpty == true) ...[
+              const SizedBox(height: 8),
+              Text(reminder.description!),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              'Due ${DateFormat('EEEE, d MMMM').format(reminder.dueDate)}',
+              style: Theme.of(dialogContext).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final done = reminder.status == 'done';
     final missed = reminder.status == 'missed';
     final isCustom = reminder.type == 'custom';
     final hasTime =
         reminder.dueDate.hour != 0 || reminder.dueDate.minute != 0;
+    final plain = explainCareTerm(reminder.title);
 
     return Card(
       child: ListTile(
+        onTap: () => _showDetails(context, ref, plain),
         leading: CircleAvatar(
           backgroundColor: colorForType(reminder.type).withValues(alpha: 0.15),
           child: Text(emojiForType(reminder.type),
@@ -377,18 +434,31 @@ class _EventTile extends StatelessWidget {
               ? const TextStyle(decoration: TextDecoration.lineThrough)
               : const TextStyle(fontWeight: FontWeight.w500),
         ),
-        subtitle: Text(
-          [
-            if (hasTime) DateFormat.jm().format(reminder.dueDate),
-            done
-                ? 'Done'
-                : missed
-                    ? 'Missed — go for catch-up'
-                    : labelForType(reminder.type),
-            if (reminder.description?.isNotEmpty == true)
-              reminder.description!,
-          ].join(' · '),
-          style: TextStyle(color: missed ? Colors.orange.shade800 : null),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              [
+                if (hasTime) DateFormat.jm().format(reminder.dueDate),
+                done
+                    ? 'Done'
+                    : missed
+                        ? 'Missed — go for catch-up'
+                        : labelForType(reminder.type),
+                if (reminder.description?.isNotEmpty == true)
+                  reminder.description!,
+              ].join(' · '),
+              style:
+                  TextStyle(color: missed ? Colors.orange.shade800 : null),
+            ),
+            if (plain != null)
+              Text(
+                plain,
+                style: theme.textTheme.bodySmall?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.onSurfaceVariant),
+              ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

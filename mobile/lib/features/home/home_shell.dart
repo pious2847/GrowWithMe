@@ -19,6 +19,7 @@ import '../children/child_detail_screen.dart';
 import '../diet/diet_screen.dart';
 import '../nana/nana_chat_screen.dart';
 import '../pregnancy/add_pregnancy_screen.dart';
+import '../pregnancy/pregnancies_screen.dart';
 import '../pregnancy/pregnancy_card.dart';
 import '../pregnancy/pregnancy_records_screen.dart';
 import '../tips/tips_tab.dart';
@@ -43,8 +44,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     Future.microtask(() async {
       ref.read(syncControllerProvider.notifier).sync();
       ref.read(widgetServiceProvider).refresh();
-      // A fresh meal plan waits on the home page every day.
+      // A fresh meal plan and fresh tips wait on the home page every day.
       ref.read(dietPlannerProvider).ensureTodayPlan();
+      ref.read(tipsUpdaterProvider).ensureTodayTips();
       // Re-arm phone alerts for upcoming personal reminders (e.g. after a
       // reinstall or on a new device — they ride the sync).
       final custom = await ref.read(dbProvider).upcomingCustomReminders();
@@ -62,8 +64,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         // Network changed — the best route to the backend may have too.
         ref.read(apiClientProvider).invalidateBaseUrl();
         ref.read(syncControllerProvider.notifier).sync();
-        // Back online: upgrade today's cookbook plan to an AI plan if needed.
+        // Back online: upgrade today's cookbook plan/tips to AI if needed.
         ref.read(dietPlannerProvider).ensureTodayPlan();
+        ref.read(tipsUpdaterProvider).ensureTodayTips();
       }
     });
     // Nana widget tap → open Nana and speak the day's briefing.
@@ -436,11 +439,38 @@ class _HomeTab extends ConsumerWidget {
         const _TodayMealsCard(),
         const SizedBox(height: 16),
 
-        // ---- Pregnancy journey ----
-        for (final pregnancy in activePregnancies) ...[
-          PregnancyCard(pregnancy: pregnancy),
-          const SizedBox(height: 8),
-        ],
+        // ---- Pregnancy journey: only the CURRENT one lives on Home;
+        // history and management sit behind "See all". ----
+        Builder(builder: (context) {
+          final allPregnancies =
+              ref.watch(pregnanciesProvider).value ?? const [];
+          final hasMore =
+              allPregnancies.length > (activePregnancies.isEmpty ? 0 : 1);
+          if (activePregnancies.isEmpty && !hasMore) {
+            return const SizedBox.shrink();
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('My pregnancy', style: theme.textTheme.titleMedium),
+                  const Spacer(),
+                  if (hasMore)
+                    TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const PregnanciesScreen())),
+                      child: const Text('See all'),
+                    ),
+                ],
+              ),
+              if (activePregnancies.isNotEmpty)
+                PregnancyCard(pregnancy: activePregnancies.first),
+              const SizedBox(height: 8),
+            ],
+          );
+        }),
 
         // ---- Children ----
         Text('My children', style: theme.textTheme.titleMedium),

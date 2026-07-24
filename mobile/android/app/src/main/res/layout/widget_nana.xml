@@ -3,63 +3,52 @@
     android:id="@+id/nana_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_nana_bg"
-    android:padding="16dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🧓🏾"
-            android:textSize="20sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="7dp"
-            android:text="Nana says"
-            android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/nana_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:textSize="11sp"
-            android:textColor="#E8F5E9"
-            android:maxLines="1" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/nana_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:textSize="13sp"
-        android:lineSpacingExtra="3dp"
-        android:textColor="#FFFFFF"
-        android:maxLines="4"
-        android:ellipsize="end" />
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_bg"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:background="@drawable/chip_bg"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:text="🔊  Tap to hear today's plan"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:textColor="#1B5E20" />
+        android:padding="6dp"
+        android:text="🧓🏾"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/nana_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12.5sp"
+            android:textColor="#1F1F1F"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Nana · tap to hear"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#558B2F" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="🔊"
+        android:textSize="16sp" />
 </LinearLayout>

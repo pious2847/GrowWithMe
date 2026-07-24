@@ -52,7 +52,9 @@ class ApiClient {
 
   final Dio dio;
   final FlutterSecureStorage _storage;
-  bool _resolved = false;
+  // A single candidate (release builds) needs no probing.
+  late bool _resolved =
+      kApiBaseCandidates.where((c) => c.isNotEmpty).length <= 1;
 
   /// Marks the base URL as stale so the next request re-probes (call on
   /// connectivity changes).
@@ -60,9 +62,11 @@ class ApiClient {
 
   Future<void> _ensureBaseUrl() async {
     if (_resolved) return;
+    // Generous enough for a sleeping free-tier server to wake up; local
+    // candidates fail instantly (connection refused) so dev stays fast.
     final probe = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 2),
-      receiveTimeout: const Duration(seconds: 2),
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 8),
     ));
     for (final base in kApiBaseCandidates.where((c) => c.isNotEmpty)) {
       final healthUrl =

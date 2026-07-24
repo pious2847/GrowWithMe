@@ -2,12 +2,15 @@ import 'package:drift/drift.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
 
+import '../../domain/motivation.dart';
 import '../../domain/nutrition_tips.dart';
 import '../db/app_database.dart';
 
-/// Pushes fresh data to the Android home-screen widget: today's/next care
-/// visits plus the daily feeding tip. Everything is computed locally so the
-/// widget works with zero connectivity.
+/// Feeds the home-screen widgets — all computed locally, refreshed on every
+/// app open/sync and every 30 minutes by the launcher:
+/// - Reminders widget: countdown to delivery (or child's age), this week's
+///   checks, and the daily motivation line.
+/// - Nana widget: her daily message (next visit + tip).
 class WidgetService {
   WidgetService(this._db);
 
@@ -16,13 +19,14 @@ class WidgetService {
   Future<void> refresh() async {
     try {
       final now = DateTime.now();
+      final weekAhead = now.add(const Duration(days: 7));
+
       final reminders = await (_db.select(_db.reminders)
             ..where((t) =>
                 t.deleted.equals(false) & t.status.isIn(['upcoming', 'snoozed']))
             ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
-            ..limit(3))
+            ..limit(10))
           .get();
-
       final children = await (_db.select(_db.children)
             ..where((t) => t.deleted.equals(false)))
           .get();
@@ -30,61 +34,106 @@ class WidgetService {
             ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
           .get();
 
-      final fmt = DateFormat('E d MMM');
-      final today = DateTime(now.year, now.month, now.day);
-      String whenLabel(DateTime due) {
-        final day = DateTime(due.year, due.month, due.day);
-        if (day.isBefore(today)) return 'Overdue';
-        if (day == today) return 'Today';
-        if (day == today.add(const Duration(days: 1))) return 'Tomorrow';
-        return fmt.format(due);
+      // ---- Countdown: delivery first, else youngest child's age ----
+      String big;
+      String small;
+      if (pregnancies.isNotEmpty) {
+        pregnancies.sort(
+            (a, b) => a.expectedDueDate.compareTo(b.expectedDueDate));
+        final daysLeft =
+            pregnancies.first.expectedDueDate.difference(now).inDays;
+        if (daysLeft > 0) {
+          big = '$daysLeft day${daysLeft == 1 ? '' : 's'}';
+          small = 'to delivery 🍼';
+        } else {
+          big = 'Baby is due';
+          small = 'stay close to your clinic';
+        }
+      } else if (children.isNotEmpty) {
+        children.sort((a, b) => b.dateOfBirth.compareTo(a.dateOfBirth));
+        final youngest = children.first;
+        final days = now.difference(youngest.dateOfBirth).inDays;
+        if (days < 60) {
+          big = '${(days / 7).floor()} weeks';
+        } else {
+          big = '${days ~/ 30} months';
+        }
+        small = '${youngest.name} is growing 🌱';
+      } else {
+        big = 'Welcome';
+        small = 'to GrowWithMe';
       }
 
-      // Daily tip: pregnancy takes priority, else youngest child's age band.
+      // ---- This week's checks ----
+      final weekChecks = reminders
+          .where((r) => !r.dueDate.isAfter(weekAhead))
+          .take(3)
+          .toList();
+
+      await HomeWidget.saveWidgetData<String>('countdown_big', big);
+      await HomeWidget.saveWidgetData<String>('countdown_small', small);
+      // Raw values so the widget recomputes the countdown and motivation at
+      // every render — it stays correct daily even if the app never opens.
+      await HomeWidget.saveWidgetData<String>(
+          'edd_millis',
+          pregnancies.isNotEmpty
+              ? pregnancies.first.expectedDueDate.millisecondsSinceEpoch
+                  .toString()
+              : '');
+      await HomeWidget.saveWidgetData<String>(
+          'dob_millis',
+          children.isNotEmpty
+              ? children.first.dateOfBirth.millisecondsSinceEpoch.toString()
+              : '');
+      await HomeWidget.saveWidgetData<String>(
+          'child_name', children.isNotEmpty ? children.first.name : '');
+      await HomeWidget.saveWidgetData<String>(
+          'motivations', motivationLines.join('|'));
+      for (var i = 0; i < 3; i++) {
+        await HomeWidget.saveWidgetData<String>(
+          'check${i + 1}',
+          i < weekChecks.length
+              ? '${DateFormat('EEE').format(weekChecks[i].dueDate)} · ${weekChecks[i].title}'
+              : (i == 0 ? 'No visits this week — on track! 🎉' : ''),
+        );
+      }
+      await HomeWidget.saveWidgetData<String>(
+          'motivation', dailyMotivation());
+      await HomeWidget.updateWidget(
+        name: 'ReminderWidgetProvider',
+        androidName: 'ReminderWidgetProvider',
+      );
+
+      // ---- Nana widget: next visit + daily tip ----
       String tip;
       if (pregnancies.isNotEmpty) {
         final t = dailyPregnancyTip();
         tip = '${t.title}: ${t.body}';
       } else if (children.isNotEmpty) {
-        children.sort((a, b) => b.dateOfBirth.compareTo(a.dateOfBirth));
         final months = now.difference(children.first.dateOfBirth).inDays ~/ 30;
         final t = dailyChildTip(months);
         tip = '${t.title}: ${t.body}';
       } else {
         tip = 'Add a child or pregnancy in the app to get daily feeding tips.';
       }
-
-      await HomeWidget.saveWidgetData<String>(
-          'title', DateFormat('EEEE, d MMMM').format(now));
-      for (var i = 0; i < 3; i++) {
-        final has = i < reminders.length;
-        await HomeWidget.saveWidgetData<String>(
-            'when${i + 1}', has ? whenLabel(reminders[i].dueDate) : '');
-        await HomeWidget.saveWidgetData<String>(
-            'title${i + 1}',
-            has
-                ? reminders[i].title
-                : (i == 0 ? 'No upcoming visits — all caught up!' : ''));
-      }
-      await HomeWidget.saveWidgetData<String>('tip', tip);
-      await HomeWidget.updateWidget(
-        name: 'ReminderWidgetProvider',
-        androidName: 'ReminderWidgetProvider',
-      );
-
-      // Nana widget: today's message = next visit (if any) + the daily tip.
       final nextLine = reminders.isEmpty
           ? ''
-          : '${whenLabel(reminders.first.dueDate)}: ${reminders.first.title}. ';
+          : '${DateFormat('EEE d MMM').format(reminders.first.dueDate)}: ${reminders.first.title}. ';
       await HomeWidget.saveWidgetData<String>(
           'nana_date', DateFormat('EEE d MMM').format(now));
       await HomeWidget.saveWidgetData<String>('nana_message', '$nextLine$tip');
+      // The sleek strip widget shows just one short line.
+      await HomeWidget.saveWidgetData<String>(
+          'nana_short',
+          nextLine.isNotEmpty
+              ? nextLine.trim().replaceAll(RegExp(r'\.\s*$'), '')
+              : tip.split(':').first);
       await HomeWidget.updateWidget(
         name: 'NanaWidgetProvider',
         androidName: 'NanaWidgetProvider',
       );
     } catch (_) {
-      // Widget refresh must never break app flows (e.g. no widget added yet).
+      // Widget refresh must never break app flows.
     }
   }
 }
