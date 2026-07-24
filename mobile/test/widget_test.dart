@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:grow_with_me/domain/growth_reference.dart';
 import 'package:grow_with_me/domain/triage/triage_engine.dart';
 
 void main() {
@@ -36,6 +37,21 @@ void main() {
       'eatingPoorly': false,
     });
     expect(result.riskLevel, 'low');
+  });
+
+  test('growth: healthy weight passes screening', () {
+    final result = assessWeight(7.9, 6, 'male');
+    expect(result.status, GrowthStatus.healthy);
+  });
+
+  test('growth: low weight flags underweight', () {
+    final result = assessWeight(6.0, 6, 'male');
+    expect(result.status, GrowthStatus.underweight);
+  });
+
+  test('growth: very low weight flags severe', () {
+    final result = assessWeight(5.0, 6, 'male');
+    expect(result.status, GrowthStatus.severelyUnderweight);
   });
 
   test('triage: reduced fetal movement is urgent', () {

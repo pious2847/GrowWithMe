@@ -24,6 +24,21 @@ class ReminderWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         for (widgetId in appWidgetIds) {
+            try {
+                updateOne(context, appWidgetManager, widgetId, widgetData)
+            } catch (_: Exception) {
+                // A failed bind must never take down the whole widget host.
+            }
+        }
+    }
+
+    private fun updateOne(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        widgetId: Int,
+        widgetData: SharedPreferences
+    ) {
+        run {
             val views = RemoteViews(context.packageName, R.layout.widget_reminders)
 
             views.setTextViewText(

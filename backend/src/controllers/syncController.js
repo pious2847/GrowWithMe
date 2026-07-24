@@ -4,6 +4,7 @@ const Child = require('../models/Child');
 const Pregnancy = require('../models/Pregnancy');
 const Assessment = require('../models/Assessment');
 const Reminder = require('../models/Reminder');
+const GrowthRecord = require('../models/GrowthRecord');
 const Alert = require('../models/Alert');
 const { raiseAlert } = require('../services/alertService');
 const logger = require('../utils/logger');
@@ -14,6 +15,7 @@ const SYNCABLE = [
   { key: 'pregnancies', model: Pregnancy },
   { key: 'assessments', model: Assessment },
   { key: 'reminders', model: Reminder },
+  { key: 'growthRecords', model: GrowthRecord },
 ];
 
 const PROTECTED_FIELDS = ['owner', 'createdAt', 'updatedAt', '__v', 'alert'];

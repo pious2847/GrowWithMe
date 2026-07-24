@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../core/providers.dart';
 import '../assessment/assessment_screen.dart';
 import '../calendar/calendar_tab.dart';
 import '../children/add_child_screen.dart';
+import '../children/child_detail_screen.dart';
 import '../pregnancy/add_pregnancy_screen.dart';
 import '../pregnancy/pregnancy_card.dart';
 import '../tips/tips_tab.dart';
@@ -181,22 +183,116 @@ class _HomeTab extends ConsumerWidget {
     return '${months ~/ 12} years';
   }
 
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final children = ref.watch(childrenProvider).value ?? const [];
+    final reminders = ref.watch(remindersProvider).value ?? const [];
     final activePregnancies = (ref.watch(pregnanciesProvider).value ?? const [])
         .where((p) => p.status == 'active')
         .toList();
+    final name = ref.watch(userNameProvider).value;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueSoon = reminders.where((r) {
+      final d = DateTime(r.dueDate.year, r.dueDate.month, r.dueDate.day);
+      return !d.isAfter(today.add(const Duration(days: 7)));
+    }).toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // Greeting
+        Text(
+          name == null || name.isEmpty
+              ? '${_greeting()} 👋'
+              : '${_greeting()}, ${name.split(' ').first} 👋',
+          style: theme.textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        Text(
+          DateFormat('EEEE, d MMMM').format(now),
+          style: theme.textTheme.bodyMedium
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 16),
+
+        // This week's visits hero card
+        Card(
+          color: theme.colorScheme.primary,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.event_available, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      'This week',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (dueSoon.isEmpty)
+                  const Text(
+                    'No visits due in the next 7 days. Well done — you are on track!',
+                    style: TextStyle(color: Colors.white),
+                  )
+                else
+                  for (final r in dueSoon.take(3))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                                color: Colors.white, shape: BoxShape.circle),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${DateFormat('EEE d').format(r.dueDate)} — ${r.title}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                if (dueSoon.length > 3)
+                  Text('+${dueSoon.length - 3} more on the calendar',
+                      style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Pregnancy journey
         for (final pregnancy in activePregnancies)
           PregnancyCard(pregnancy: pregnancy),
         if (activePregnancies.isEmpty)
           Card(
             child: ListTile(
-              leading: const Icon(Icons.pregnant_woman),
+              leading: CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: const Icon(Icons.pregnant_woman),
+              ),
               title: const Text('Expecting? Track your pregnancy'),
               subtitle: const Text('ANC visit calendar and weekly guidance'),
               trailing: const Icon(Icons.chevron_right),
@@ -204,19 +300,36 @@ class _HomeTab extends ConsumerWidget {
                   builder: (_) => const AddPregnancyScreen())),
             ),
           ),
-        const SizedBox(height: 8),
-        Text('My children', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 4),
+        const SizedBox(height: 16),
+
+        // Children
+        Row(
+          children: [
+            Text('My children', style: theme.textTheme.titleMedium),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AddChildScreen())),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add'),
+            ),
+          ],
+        ),
         for (final child in children)
           Card(
             child: ListTile(
-              leading: CircleAvatar(child: Text(child.name.characters.first)),
-              title: Text(child.name),
-              subtitle: Text(_age(child.dateOfBirth)),
+              leading: CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Text(child.name.characters.first,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              title: Text(child.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(
+                  '${_age(child.dateOfBirth)} · growth & health record'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => AssessmentScreen(
-                      subjectType: 'child', childId: child.id))),
+                  builder: (_) => ChildDetailScreen(child: child))),
             ),
           ),
         if (children.isEmpty)
@@ -224,13 +337,6 @@ class _HomeTab extends ConsumerWidget {
             animation: 'assets/lottie/welcome_heart.json',
             message: 'Add your first child to create their care calendar',
           ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AddChildScreen())),
-          icon: const Icon(Icons.add),
-          label: const Text('Add child'),
-        ),
         const SizedBox(height: 80),
       ],
     );

@@ -2854,6 +2854,477 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
   }
 }
 
+class $GrowthRecordsTable extends GrowthRecords
+    with TableInfo<$GrowthRecordsTable, GrowthRecordRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GrowthRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientUpdatedAtMeta = const VerificationMeta(
+    'clientUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> clientUpdatedAt = GeneratedColumn<int>(
+    'client_updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
+  @override
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _childIdMeta = const VerificationMeta(
+    'childId',
+  );
+  @override
+  late final GeneratedColumn<String> childId = GeneratedColumn<String>(
+    'child_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weightKgMeta = const VerificationMeta(
+    'weightKg',
+  );
+  @override
+  late final GeneratedColumn<double> weightKg = GeneratedColumn<double>(
+    'weight_kg',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _measuredAtMeta = const VerificationMeta(
+    'measuredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> measuredAt = GeneratedColumn<DateTime>(
+    'measured_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    childId,
+    weightKg,
+    measuredAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'growth_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GrowthRecordRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_updated_at')) {
+      context.handle(
+        _clientUpdatedAtMeta,
+        clientUpdatedAt.isAcceptableOrUnknown(
+          data['client_updated_at']!,
+          _clientUpdatedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('synced')) {
+      context.handle(
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
+      );
+    }
+    if (data.containsKey('child_id')) {
+      context.handle(
+        _childIdMeta,
+        childId.isAcceptableOrUnknown(data['child_id']!, _childIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_childIdMeta);
+    }
+    if (data.containsKey('weight_kg')) {
+      context.handle(
+        _weightKgMeta,
+        weightKg.isAcceptableOrUnknown(data['weight_kg']!, _weightKgMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weightKgMeta);
+    }
+    if (data.containsKey('measured_at')) {
+      context.handle(
+        _measuredAtMeta,
+        measuredAt.isAcceptableOrUnknown(data['measured_at']!, _measuredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_measuredAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GrowthRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GrowthRecordRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
+      childId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}child_id'],
+      )!,
+      weightKg: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight_kg'],
+      )!,
+      measuredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}measured_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GrowthRecordsTable createAlias(String alias) {
+    return $GrowthRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class GrowthRecordRow extends DataClass implements Insertable<GrowthRecordRow> {
+  final String id;
+  final int clientUpdatedAt;
+  final bool deleted;
+  final bool synced;
+  final String childId;
+  final double weightKg;
+  final DateTime measuredAt;
+  const GrowthRecordRow({
+    required this.id,
+    required this.clientUpdatedAt,
+    required this.deleted,
+    required this.synced,
+    required this.childId,
+    required this.weightKg,
+    required this.measuredAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_updated_at'] = Variable<int>(clientUpdatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['synced'] = Variable<bool>(synced);
+    map['child_id'] = Variable<String>(childId);
+    map['weight_kg'] = Variable<double>(weightKg);
+    map['measured_at'] = Variable<DateTime>(measuredAt);
+    return map;
+  }
+
+  GrowthRecordsCompanion toCompanion(bool nullToAbsent) {
+    return GrowthRecordsCompanion(
+      id: Value(id),
+      clientUpdatedAt: Value(clientUpdatedAt),
+      deleted: Value(deleted),
+      synced: Value(synced),
+      childId: Value(childId),
+      weightKg: Value(weightKg),
+      measuredAt: Value(measuredAt),
+    );
+  }
+
+  factory GrowthRecordRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GrowthRecordRow(
+      id: serializer.fromJson<String>(json['id']),
+      clientUpdatedAt: serializer.fromJson<int>(json['clientUpdatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      synced: serializer.fromJson<bool>(json['synced']),
+      childId: serializer.fromJson<String>(json['childId']),
+      weightKg: serializer.fromJson<double>(json['weightKg']),
+      measuredAt: serializer.fromJson<DateTime>(json['measuredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientUpdatedAt': serializer.toJson<int>(clientUpdatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'synced': serializer.toJson<bool>(synced),
+      'childId': serializer.toJson<String>(childId),
+      'weightKg': serializer.toJson<double>(weightKg),
+      'measuredAt': serializer.toJson<DateTime>(measuredAt),
+    };
+  }
+
+  GrowthRecordRow copyWith({
+    String? id,
+    int? clientUpdatedAt,
+    bool? deleted,
+    bool? synced,
+    String? childId,
+    double? weightKg,
+    DateTime? measuredAt,
+  }) => GrowthRecordRow(
+    id: id ?? this.id,
+    clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+    deleted: deleted ?? this.deleted,
+    synced: synced ?? this.synced,
+    childId: childId ?? this.childId,
+    weightKg: weightKg ?? this.weightKg,
+    measuredAt: measuredAt ?? this.measuredAt,
+  );
+  GrowthRecordRow copyWithCompanion(GrowthRecordsCompanion data) {
+    return GrowthRecordRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientUpdatedAt: data.clientUpdatedAt.present
+          ? data.clientUpdatedAt.value
+          : this.clientUpdatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      synced: data.synced.present ? data.synced.value : this.synced,
+      childId: data.childId.present ? data.childId.value : this.childId,
+      weightKg: data.weightKg.present ? data.weightKg.value : this.weightKg,
+      measuredAt: data.measuredAt.present
+          ? data.measuredAt.value
+          : this.measuredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GrowthRecordRow(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('childId: $childId, ')
+          ..write('weightKg: $weightKg, ')
+          ..write('measuredAt: $measuredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    clientUpdatedAt,
+    deleted,
+    synced,
+    childId,
+    weightKg,
+    measuredAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GrowthRecordRow &&
+          other.id == this.id &&
+          other.clientUpdatedAt == this.clientUpdatedAt &&
+          other.deleted == this.deleted &&
+          other.synced == this.synced &&
+          other.childId == this.childId &&
+          other.weightKg == this.weightKg &&
+          other.measuredAt == this.measuredAt);
+}
+
+class GrowthRecordsCompanion extends UpdateCompanion<GrowthRecordRow> {
+  final Value<String> id;
+  final Value<int> clientUpdatedAt;
+  final Value<bool> deleted;
+  final Value<bool> synced;
+  final Value<String> childId;
+  final Value<double> weightKg;
+  final Value<DateTime> measuredAt;
+  final Value<int> rowid;
+  const GrowthRecordsCompanion({
+    this.id = const Value.absent(),
+    this.clientUpdatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    this.childId = const Value.absent(),
+    this.weightKg = const Value.absent(),
+    this.measuredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GrowthRecordsCompanion.insert({
+    required String id,
+    required int clientUpdatedAt,
+    this.deleted = const Value.absent(),
+    this.synced = const Value.absent(),
+    required String childId,
+    required double weightKg,
+    required DateTime measuredAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientUpdatedAt = Value(clientUpdatedAt),
+       childId = Value(childId),
+       weightKg = Value(weightKg),
+       measuredAt = Value(measuredAt);
+  static Insertable<GrowthRecordRow> custom({
+    Expression<String>? id,
+    Expression<int>? clientUpdatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? synced,
+    Expression<String>? childId,
+    Expression<double>? weightKg,
+    Expression<DateTime>? measuredAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientUpdatedAt != null) 'client_updated_at': clientUpdatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (synced != null) 'synced': synced,
+      if (childId != null) 'child_id': childId,
+      if (weightKg != null) 'weight_kg': weightKg,
+      if (measuredAt != null) 'measured_at': measuredAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GrowthRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? clientUpdatedAt,
+    Value<bool>? deleted,
+    Value<bool>? synced,
+    Value<String>? childId,
+    Value<double>? weightKg,
+    Value<DateTime>? measuredAt,
+    Value<int>? rowid,
+  }) {
+    return GrowthRecordsCompanion(
+      id: id ?? this.id,
+      clientUpdatedAt: clientUpdatedAt ?? this.clientUpdatedAt,
+      deleted: deleted ?? this.deleted,
+      synced: synced ?? this.synced,
+      childId: childId ?? this.childId,
+      weightKg: weightKg ?? this.weightKg,
+      measuredAt: measuredAt ?? this.measuredAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientUpdatedAt.present) {
+      map['client_updated_at'] = Variable<int>(clientUpdatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
+    }
+    if (childId.present) {
+      map['child_id'] = Variable<String>(childId.value);
+    }
+    if (weightKg.present) {
+      map['weight_kg'] = Variable<double>(weightKg.value);
+    }
+    if (measuredAt.present) {
+      map['measured_at'] = Variable<DateTime>(measuredAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GrowthRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('clientUpdatedAt: $clientUpdatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('synced: $synced, ')
+          ..write('childId: $childId, ')
+          ..write('weightKg: $weightKg, ')
+          ..write('measuredAt: $measuredAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AlertsCacheTable extends AlertsCache
     with TableInfo<$AlertsCacheTable, AlertRow> {
   @override
@@ -3456,6 +3927,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PregnanciesTable pregnancies = $PregnanciesTable(this);
   late final $AssessmentsTable assessments = $AssessmentsTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
+  late final $GrowthRecordsTable growthRecords = $GrowthRecordsTable(this);
   late final $AlertsCacheTable alertsCache = $AlertsCacheTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -3466,6 +3938,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pregnancies,
     assessments,
     reminders,
+    growthRecords,
     alertsCache,
   ];
 }
@@ -4813,6 +5286,248 @@ typedef $$RemindersTableProcessedTableManager =
       ReminderRow,
       PrefetchHooks Function()
     >;
+typedef $$GrowthRecordsTableCreateCompanionBuilder =
+    GrowthRecordsCompanion Function({
+      required String id,
+      required int clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      required String childId,
+      required double weightKg,
+      required DateTime measuredAt,
+      Value<int> rowid,
+    });
+typedef $$GrowthRecordsTableUpdateCompanionBuilder =
+    GrowthRecordsCompanion Function({
+      Value<String> id,
+      Value<int> clientUpdatedAt,
+      Value<bool> deleted,
+      Value<bool> synced,
+      Value<String> childId,
+      Value<double> weightKg,
+      Value<DateTime> measuredAt,
+      Value<int> rowid,
+    });
+
+class $$GrowthRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+  $$GrowthRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get childId => $composableBuilder(
+    column: $table.childId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weightKg => $composableBuilder(
+    column: $table.weightKg,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GrowthRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+  $$GrowthRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get childId => $composableBuilder(
+    column: $table.childId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weightKg => $composableBuilder(
+    column: $table.weightKg,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GrowthRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GrowthRecordsTable> {
+  $$GrowthRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get clientUpdatedAt => $composableBuilder(
+    column: $table.clientUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
+
+  GeneratedColumn<String> get childId =>
+      $composableBuilder(column: $table.childId, builder: (column) => column);
+
+  GeneratedColumn<double> get weightKg =>
+      $composableBuilder(column: $table.weightKg, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get measuredAt => $composableBuilder(
+    column: $table.measuredAt,
+    builder: (column) => column,
+  );
+}
+
+class $$GrowthRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GrowthRecordsTable,
+          GrowthRecordRow,
+          $$GrowthRecordsTableFilterComposer,
+          $$GrowthRecordsTableOrderingComposer,
+          $$GrowthRecordsTableAnnotationComposer,
+          $$GrowthRecordsTableCreateCompanionBuilder,
+          $$GrowthRecordsTableUpdateCompanionBuilder,
+          (
+            GrowthRecordRow,
+            BaseReferences<_$AppDatabase, $GrowthRecordsTable, GrowthRecordRow>,
+          ),
+          GrowthRecordRow,
+          PrefetchHooks Function()
+        > {
+  $$GrowthRecordsTableTableManager(_$AppDatabase db, $GrowthRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GrowthRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GrowthRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GrowthRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> clientUpdatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                Value<String> childId = const Value.absent(),
+                Value<double> weightKg = const Value.absent(),
+                Value<DateTime> measuredAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GrowthRecordsCompanion(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                childId: childId,
+                weightKg: weightKg,
+                measuredAt: measuredAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int clientUpdatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
+                required String childId,
+                required double weightKg,
+                required DateTime measuredAt,
+                Value<int> rowid = const Value.absent(),
+              }) => GrowthRecordsCompanion.insert(
+                id: id,
+                clientUpdatedAt: clientUpdatedAt,
+                deleted: deleted,
+                synced: synced,
+                childId: childId,
+                weightKg: weightKg,
+                measuredAt: measuredAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GrowthRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GrowthRecordsTable,
+      GrowthRecordRow,
+      $$GrowthRecordsTableFilterComposer,
+      $$GrowthRecordsTableOrderingComposer,
+      $$GrowthRecordsTableAnnotationComposer,
+      $$GrowthRecordsTableCreateCompanionBuilder,
+      $$GrowthRecordsTableUpdateCompanionBuilder,
+      (
+        GrowthRecordRow,
+        BaseReferences<_$AppDatabase, $GrowthRecordsTable, GrowthRecordRow>,
+      ),
+      GrowthRecordRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AlertsCacheTableCreateCompanionBuilder =
     AlertsCacheCompanion Function({
       required String id,
@@ -5108,6 +5823,8 @@ class $AppDatabaseManager {
       $$AssessmentsTableTableManager(_db, _db.assessments);
   $$RemindersTableTableManager get reminders =>
       $$RemindersTableTableManager(_db, _db.reminders);
+  $$GrowthRecordsTableTableManager get growthRecords =>
+      $$GrowthRecordsTableTableManager(_db, _db.growthRecords);
   $$AlertsCacheTableTableManager get alertsCache =>
       $$AlertsCacheTableTableManager(_db, _db.alertsCache);
 }

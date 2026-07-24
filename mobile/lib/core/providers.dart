@@ -6,6 +6,7 @@ import '../data/api/api_client.dart';
 import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
 import '../data/sync/sync_service.dart';
+import '../data/voice/tts_service.dart';
 import '../data/widget/widget_service.dart';
 import 'constants.dart';
 
@@ -29,6 +30,14 @@ final syncServiceProvider = Provider<SyncService>(
 
 final widgetServiceProvider =
     Provider<WidgetService>((ref) => WidgetService(ref.watch(dbProvider)));
+
+final ttsProvider = Provider<TtsService>((ref) => TtsService());
+
+/// Display name saved at login/onboarding for the home-screen greeting.
+final userNameProvider = FutureProvider<String?>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('userName');
+});
 
 /// true = signed in. Starts by checking for a stored access token.
 class AuthController extends AsyncNotifier<bool> {

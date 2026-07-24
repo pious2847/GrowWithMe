@@ -76,7 +76,17 @@ class ResultScreen extends ConsumerWidget {
               ),
             const SizedBox(height: 16),
           ],
-          Text('What to do', style: Theme.of(context).textTheme.titleMedium),
+          Row(
+            children: [
+              Text('What to do', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => ref.read(ttsProvider).speak(result.guidance),
+                icon: const Icon(Icons.volume_up, size: 18),
+                label: const Text('Listen'),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           Text(result.guidance, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 24),

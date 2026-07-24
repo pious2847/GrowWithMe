@@ -125,6 +125,13 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
         title: Text(widget.subjectType == 'child'
             ? 'Child health check'
             : 'Pregnancy health check'),
+        actions: [
+          IconButton(
+            tooltip: 'Read question aloud',
+            icon: const Icon(Icons.volume_up),
+            onPressed: () => ref.read(ttsProvider).speak(q.text),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(value: progress),

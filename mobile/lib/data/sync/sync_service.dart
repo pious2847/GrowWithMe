@@ -30,6 +30,7 @@ class SyncService {
     final dirtyPregnancies = await _db.dirtyPregnancies();
     final dirtyAssessments = await _db.dirtyAssessments();
     final dirtyReminders = await _db.dirtyReminders();
+    final dirtyGrowthRecords = await _db.dirtyGrowthRecords();
 
     final res = await _api.dio.post('/sync', data: {
       'lastPulledAt': lastPulledAt,
@@ -38,6 +39,7 @@ class SyncService {
         'pregnancies': dirtyPregnancies.map(_pregnancyToJson).toList(),
         'assessments': dirtyAssessments.map(_assessmentToJson).toList(),
         'reminders': dirtyReminders.map(_reminderToJson).toList(),
+        'growthRecords': dirtyGrowthRecords.map(_growthToJson).toList(),
       },
     });
 
@@ -50,6 +52,8 @@ class SyncService {
       await _db.markSynced(_db.pregnancies, dirtyPregnancies.map((r) => r.id).toList());
       await _db.markSynced(_db.assessments, dirtyAssessments.map((r) => r.id).toList());
       await _db.markSynced(_db.reminders, dirtyReminders.map((r) => r.id).toList());
+      await _db.markSynced(
+          _db.growthRecords, dirtyGrowthRecords.map((r) => r.id).toList());
 
       for (final doc in (pull['children'] as List? ?? [])) {
         await _db.into(_db.children).insertOnConflictUpdate(_childFromJson(doc));
@@ -62,6 +66,11 @@ class SyncService {
       }
       for (final doc in (pull['reminders'] as List? ?? [])) {
         await _db.into(_db.reminders).insertOnConflictUpdate(_reminderFromJson(doc));
+      }
+      for (final doc in (pull['growthRecords'] as List? ?? [])) {
+        await _db
+            .into(_db.growthRecords)
+            .insertOnConflictUpdate(_growthFromJson(doc));
       }
       for (final doc in (pull['alerts'] as List? ?? [])) {
         await _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(doc));
@@ -129,7 +138,25 @@ class SyncService {
         'completedAt': _iso(r.completedAt),
       };
 
+  Map<String, dynamic> _growthToJson(GrowthRecordRow r) => {
+        ..._syncFields(r),
+        'child': r.childId,
+        'weightKg': r.weightKg,
+        'measuredAt': _iso(r.measuredAt),
+      };
+
   // ---- Backend JSON -> companions (synced=true: they came from the server) ----
+
+  GrowthRecordsCompanion _growthFromJson(Map<String, dynamic> d) =>
+      GrowthRecordsCompanion(
+        id: Value(d['_id'] as String),
+        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+        deleted: Value(d['deleted'] as bool? ?? false),
+        synced: const Value(true),
+        childId: Value(d['child'] as String? ?? ''),
+        weightKg: Value((d['weightKg'] as num).toDouble()),
+        measuredAt: Value(_date(d['measuredAt']) ?? DateTime.now()),
+      );
 
   ChildrenCompanion _childFromJson(Map<String, dynamic> d) => ChildrenCompanion(
         id: Value(d['_id'] as String),

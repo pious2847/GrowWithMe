@@ -85,7 +85,7 @@ class TipsTab extends ConsumerWidget {
   }
 }
 
-class _TodayCard extends StatelessWidget {
+class _TodayCard extends ConsumerWidget {
   const _TodayCard(
       {required this.icon, required this.heading, required this.tip});
 
@@ -94,7 +94,7 @@ class _TodayCard extends StatelessWidget {
   final NutritionTip tip;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: Padding(
@@ -113,10 +113,12 @@ class _TodayCard extends StatelessWidget {
                           .titleSmall
                           ?.copyWith(fontWeight: FontWeight.bold)),
                 ),
-                Chip(
-                  label: const Text('Today'),
-                  visualDensity: VisualDensity.compact,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
+                IconButton(
+                  tooltip: 'Read aloud',
+                  icon: const Icon(Icons.volume_up),
+                  onPressed: () => ref
+                      .read(ttsProvider)
+                      .speak('${tip.title}. ${tip.body}'),
                 ),
               ],
             ),

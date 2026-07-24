@@ -63,6 +63,15 @@ class Reminders extends Table with SyncColumns {
   DateTimeColumn get completedAt => dateTime().nullable()();
 }
 
+/// Weights recorded at growth-monitoring visits, plotted against WHO
+/// weight-for-age curves for offline malnutrition screening.
+@DataClassName('GrowthRecordRow')
+class GrowthRecords extends Table with SyncColumns {
+  TextColumn get childId => text()();
+  RealColumn get weightKg => real()();
+  DateTimeColumn get measuredAt => dateTime()();
+}
+
 /// Server-authored referral alerts, cached read-only for offline viewing.
 @DataClassName('AlertRow')
 class AlertsCache extends Table {
@@ -80,14 +89,24 @@ class AlertsCache extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Children, Pregnancies, Assessments, Reminders, AlertsCache])
+@DriftDatabase(
+    tables: [Children, Pregnancies, Assessments, Reminders, GrowthRecords, AlertsCache])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'growwithme'));
 
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(growthRecords);
+          }
+        },
+      );
 
   // ---- Watch queries for the UI ----
 
@@ -130,6 +149,14 @@ class AppDatabase extends _$AppDatabase {
       (select(assessments)..where((t) => t.synced.equals(false))).get();
   Future<List<ReminderRow>> dirtyReminders() =>
       (select(reminders)..where((t) => t.synced.equals(false))).get();
+  Future<List<GrowthRecordRow>> dirtyGrowthRecords() =>
+      (select(growthRecords)..where((t) => t.synced.equals(false))).get();
+
+  Stream<List<GrowthRecordRow>> watchGrowthRecords(String childId) =>
+      (select(growthRecords)
+            ..where((t) => t.deleted.equals(false) & t.childId.equals(childId))
+            ..orderBy([(t) => OrderingTerm.asc(t.measuredAt)]))
+          .watch();
 
   Future<void> markSynced(TableInfo table, List<String> ids) async {
     if (ids.isEmpty) return;
