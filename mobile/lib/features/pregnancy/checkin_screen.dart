@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/providers.dart';
@@ -27,9 +28,13 @@ class CheckinScreen extends ConsumerStatefulWidget {
 class _CheckinScreenState extends ConsumerState<CheckinScreen> {
   List<CheckinQuestion>? _questions;
   final Map<String, bool> _answers = {};
+  final SpeechToText _speech = SpeechToText();
   int _index = 0;
   bool _finishing = false;
   bool _personalized = false;
+  bool _voiceSession = false;
+  bool _listening = false;
+  int _voiceRetries = 0;
 
   @override
   void initState() {
@@ -37,10 +42,21 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     _loadQuestions();
   }
 
+  @override
+  void dispose() {
+    _speech.stop();
+    ref.read(nanaVoiceProvider).stop();
+    super.dispose();
+  }
+
   Future<void> _loadQuestions() async {
     var questions = mergeQuestions(const []);
     try {
-      final context = await ref.read(nanaAssistantProvider).buildContext();
+      // Check-in-specific context: her week + past answers, so the AI can
+      // follow up on what she actually reported before.
+      final context = await ref
+          .read(nanaAssistantProvider)
+          .buildCheckinContext(widget.pregnancy);
       final res = await ref.read(apiClientProvider).dio.post(
         '/assistant/checkin-questions',
         data: {'context': context},
@@ -60,6 +76,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
   }
 
   void _speakCurrent() {
+    if (_voiceSession) return; // the voice session speaks for itself
     if ((ref.read(autoVoiceProvider).value ?? false) && _questions != null) {
       if (_index < _questions!.length) {
         ref.read(ttsProvider).speak(_questions![_index].text);
@@ -72,10 +89,110 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     _answers[questions[_index].id] = value;
     if (_index + 1 < questions.length) {
       setState(() => _index += 1);
-      _speakCurrent();
+      if (_voiceSession) {
+        _askCurrent();
+      } else {
+        _speakCurrent();
+      }
     } else {
+      if (_voiceSession) {
+        await _speech.stop();
+        await ref
+            .read(nanaVoiceProvider)
+            .speak('Thank you, my daughter. Let me look at your answers.');
+      }
       await _finish();
     }
+  }
+
+  // ---- Voice session: Nana asks each question aloud, listens for YES/NO,
+  // ---- and moves on — hands-free from start to saved result.
+
+  Future<void> _toggleVoiceSession() async {
+    if (_voiceSession) {
+      _voiceSession = false;
+      await _speech.stop();
+      await ref.read(nanaVoiceProvider).stop();
+      if (mounted) setState(() => _listening = false);
+      return;
+    }
+    setState(() => _voiceSession = true);
+    await ref.read(nanaVoiceProvider).speak(
+        'I will ask you the questions myself. After each one, answer me with YES or NO.');
+    if (mounted && _voiceSession) _askCurrent();
+  }
+
+  Future<void> _askCurrent() async {
+    if (!_voiceSession || _questions == null || _index >= _questions!.length) {
+      return;
+    }
+    _voiceRetries = 0;
+    await _speech.stop(); // cancel any leftover listening first
+    await ref.read(nanaVoiceProvider).speak(_questions![_index].text);
+    if (!mounted || !_voiceSession) return;
+    // Short pause so the mic never hears the tail of Nana's own voice.
+    await Future.delayed(const Duration(milliseconds: 350));
+    _listenForAnswer();
+  }
+
+  Future<void> _listenForAnswer() async {
+    if (!_voiceSession || !mounted) return;
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' && mounted) {
+          setState(() => _listening = false);
+        }
+      },
+    );
+    if (!available) {
+      if (!mounted) return;
+      setState(() => _voiceSession = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Microphone is not available — tap YES or NO instead')));
+      return;
+    }
+    if (!mounted || !_voiceSession) return;
+    setState(() => _listening = true);
+    await _speech.listen(
+      listenOptions: SpeechListenOptions(partialResults: false),
+      onResult: (result) {
+        if (result.finalResult) {
+          if (mounted) setState(() => _listening = false);
+          _handleVoiceAnswer(result.recognizedWords);
+        }
+      },
+    );
+  }
+
+  Future<void> _handleVoiceAnswer(String words) async {
+    if (!_voiceSession || !mounted) return;
+    final tokens = words.toLowerCase().split(RegExp(r'[^a-z]+'));
+    const noWords = ['no', 'not', 'nope', 'never', 'nothing', 'don', 'dont'];
+    const yesWords = ['yes', 'yeah', 'yep', 'yah', 'sure', 'correct', 'true'];
+    bool? value;
+    if (tokens.any(noWords.contains)) {
+      value = false;
+    } else if (tokens.any(yesWords.contains)) {
+      value = true;
+    }
+
+    if (value == null) {
+      _voiceRetries += 1;
+      if (_voiceRetries >= 3) {
+        // She's struggling with the mic — hand this one back to the buttons.
+        await ref
+            .read(nanaVoiceProvider)
+            .speak('Tap YES or NO on the screen for this one.');
+        return;
+      }
+      await ref
+          .read(nanaVoiceProvider)
+          .speak('Please answer me with YES or NO.');
+      if (mounted && _voiceSession) _listenForAnswer();
+      return;
+    }
+    _answer(value);
   }
 
   Future<void> _finish() async {
@@ -225,6 +342,46 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                 label: const Text('No'),
               ),
             ),
+            const Spacer(),
+            if (_voiceSession)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _listening ? Icons.hearing : Icons.record_voice_over,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _listening
+                            ? 'Nana is listening — say YES or NO'
+                            : 'Nana is speaking…',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Stop voice session',
+                      icon: const Icon(Icons.stop_circle_outlined),
+                      onPressed: _toggleVoiceSession,
+                    ),
+                  ],
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14)),
+                onPressed: _toggleVoiceSession,
+                icon: const Icon(Icons.support_agent),
+                label: const Text('Let Nana ask me aloud'),
+              ),
           ],
         ),
       ),

@@ -303,14 +303,21 @@ function parseReply(raw) {
   };
 }
 
-const CHECKIN_PROMPT = `You generate a short pregnancy check-in questionnaire for a mother in Northern Ghana, personalized from her history. Rules:
-- 4 to 6 questions, each answerable YES or NO, in very simple English.
-- Personalize: follow up on symptoms or risks from her history (e.g. if she reported headaches before, ask if they returned or worsened).
+const CHECKIN_PROMPT = `You generate a short pregnancy check-in questionnaire for a mother in Northern Ghana, like the routine questions a nurse asks at an antenatal (ANC) visit — but personalized from HER data. You receive her gestational week, her past check-ins (with the exact questions she answered YES to), and her family/diet data. Rules:
+- 4 to 6 questions, each answerable YES or NO, in very simple English that reads well aloud.
+- FOLLOW UP FIRST: for each symptom she said YES to recently, ask if it is still there or worse (e.g. YES to tiredness last time -> "Are you still feeling very tired, or is it worse now?"). Repeating a topic across check-ins is good — that is how a nurse tracks a symptom.
+- The app ALWAYS asks these core danger questions itself, so do NOT repeat them: bleeding, fits/severe headache, severe belly pain, water breaking, baby movement, fever, swelling.
+- Then add routine ANC-style questions matched to her week:
+  weeks 1-13: severe vomiting, able to eat and keep food down, very dizzy or weak
+  weeks 14-27: taking iron tablets, sleeping under a mosquito net, attended her ANC visit
+  weeks 28+: iron tablets, resting enough, transport plan ready for delivery, items ready for the baby
+- Also cover wellbeing when relevant: eating well, sleeping well, worry/low mood, support at home.
 - Each question has a category:
-  "danger"  = a YES means she needs a facility NOW (bleeding, fits, severe pain, no baby movement, water broken)
-  "caution" = a YES means she should visit a clinic soon (swelling, tiredness, fever, poor sleep/appetite, worry)
-  "info"    = wellbeing only (eating well, taking iron tablets, sleeping under a net)
-- Never ask about medicines/doses. Never diagnose.
+  "danger"  = a YES means she needs a facility NOW
+  "caution" = a YES means she should visit a clinic soon (tiredness, poor sleep/appetite, dizziness, worry)
+  "info"    = wellbeing/routine only (iron tablets, net, ANC visit, transport plan)
+- Phrase questions so YES = the problem is present for danger/caution, and YES = the good thing is happening for info.
+- Never ask about medicine doses. Never diagnose.
 Reply with ONLY JSON: {"questions": [{"id": "q1", "text": "...", "category": "danger|caution|info"}]}`;
 
 /**

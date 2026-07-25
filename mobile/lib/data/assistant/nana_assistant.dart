@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
 
@@ -94,6 +96,50 @@ class NanaAssistant {
       'pregnancy, tell you today\'s visits, share a feeding tip, or check '
       'symptoms when someone is unwell.',
     );
+  }
+
+  /// Check-in specific context: gestational week + her past check-in history
+  /// with the exact questions she answered YES to — this is what lets the AI
+  /// genuinely follow up ("last time your feet were swollen — and now?")
+  /// instead of guessing.
+  Future<String> buildCheckinContext(PregnancyRow pregnancy) async {
+    final now = DateTime.now();
+    final conception =
+        pregnancy.expectedDueDate.subtract(const Duration(days: 280));
+    final week = (now.difference(conception).inDays / 7).floor().clamp(1, 42);
+
+    final b = StringBuffer()
+      ..writeln('Gestational week: $week of 40 '
+          '(due ${DateFormat('yyyy-MM-dd').format(pregnancy.expectedDueDate)})');
+
+    final past = await (_db.select(_db.assessments)
+          ..where((t) =>
+              t.deleted.equals(false) &
+              t.pregnancyId.equals(pregnancy.id))
+          ..orderBy([(t) => OrderingTerm.desc(t.completedAt)])
+          ..limit(5))
+        .get();
+    if (past.isEmpty) {
+      b.writeln('Past check-ins: none yet — this is her first.');
+    } else {
+      b.writeln('Past check-ins (newest first):');
+      for (final a in past) {
+        final yes = <String>[];
+        try {
+          for (final ans in jsonDecode(a.answersJson) as List) {
+            if (ans is Map && ans['answer'] == true) {
+              yes.add(ans['question'] as String? ?? '');
+            }
+          }
+        } catch (_) {}
+        b.writeln('- ${DateFormat('yyyy-MM-dd').format(a.completedAt)}: '
+            'risk ${a.riskLevel}'
+            '${yes.isEmpty ? ', no symptoms reported' : ', answered YES to: ${yes.join('; ')}'}');
+      }
+    }
+
+    b.write(await buildContext());
+    return b.toString();
   }
 
   /// The compact data summary sent to the LLM — built entirely from the
