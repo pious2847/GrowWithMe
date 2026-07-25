@@ -52,7 +52,26 @@ function buildSummary(assessment, caregiver) {
  * with self-help guidance when no volunteer is in range.
  */
 async function raiseAlert(assessment, caregiver) {
-  const coordinates = assessment.location && assessment.location.coordinates;
+  let coordinates = assessment.location && assessment.location.coordinates;
+  // No GPS on this assessment (phone had no fix)? Fall back to her most
+  // recent located assessment — for 25 km volunteer routing, where she was
+  // last week beats not searching at all.
+  if (!coordinates || coordinates.length !== 2) {
+    const Assessment = require('../models/Assessment');
+    const prev = await Assessment.findOne({
+      owner: caregiver._id,
+      'location.coordinates.1': { $exists: true },
+    })
+      .sort({ completedAt: -1 })
+      .lean();
+    if (prev) {
+      coordinates = prev.location.coordinates;
+      const logger = require('../utils/logger');
+      logger.warn(
+        `[alert] assessment ${assessment._id} had no GPS — using last known location from ${prev._id}`
+      );
+    }
+  }
   const summary = buildSummary(assessment, caregiver);
 
   let volunteer = null;
@@ -74,7 +93,11 @@ async function raiseAlert(assessment, caregiver) {
   // Clinician-facing PDF report (best-effort) — travels by SMS link so the
   // receiving facility can see history before the patient arrives.
   const { buildRiskReport } = require('./reportService');
-  const reportUrl = await buildRiskReport(caregiver, assessment);
+  const reportUrl = await buildRiskReport(
+    caregiver,
+    assessment,
+    coordinates && coordinates.length === 2 ? coordinates : null
+  );
   const reportNote = reportUrl ? ` Patient report: ${reportUrl}` : '';
 
   // The hospital where she does her checks/scans, if registered.

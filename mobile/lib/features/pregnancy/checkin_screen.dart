@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
+import '../../data/voice/nana_voice.dart';
 import '../../domain/checkin.dart';
 import '../assessment/result_screen.dart';
 
@@ -29,23 +30,28 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
   List<CheckinQuestion>? _questions;
   final Map<String, bool> _answers = {};
   final SpeechToText _speech = SpeechToText();
+  // Cached in initState — Riverpod forbids ref lookups inside dispose().
+  late final NanaVoice _voice;
   int _index = 0;
   bool _finishing = false;
   bool _personalized = false;
   bool _voiceSession = false;
   bool _listening = false;
   int _voiceRetries = 0;
+  int _listenGeneration = 0;
+  bool _answeredThisListen = false;
 
   @override
   void initState() {
     super.initState();
+    _voice = ref.read(nanaVoiceProvider);
     _loadQuestions();
   }
 
   @override
   void dispose() {
     _speech.stop();
-    ref.read(nanaVoiceProvider).stop();
+    _voice.stop();
     super.dispose();
   }
 
@@ -97,8 +103,7 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     } else {
       if (_voiceSession) {
         await _speech.stop();
-        await ref
-            .read(nanaVoiceProvider)
+        await _voice
             .speak('Thank you, my daughter. Let me look at your answers.');
       }
       await _finish();
@@ -112,12 +117,12 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     if (_voiceSession) {
       _voiceSession = false;
       await _speech.stop();
-      await ref.read(nanaVoiceProvider).stop();
+      await _voice.stop();
       if (mounted) setState(() => _listening = false);
       return;
     }
     setState(() => _voiceSession = true);
-    await ref.read(nanaVoiceProvider).speak(
+    await _voice.speak(
         'I will ask you the questions myself. After each one, answer me with YES or NO.');
     if (mounted && _voiceSession) _askCurrent();
   }
@@ -128,20 +133,47 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     }
     _voiceRetries = 0;
     await _speech.stop(); // cancel any leftover listening first
-    await ref.read(nanaVoiceProvider).speak(_questions![_index].text);
+    await _voice.speak(_questions![_index].text);
     if (!mounted || !_voiceSession) return;
     // Short pause so the mic never hears the tail of Nana's own voice.
     await Future.delayed(const Duration(milliseconds: 350));
     _listenForAnswer();
   }
 
+  /// yes/no from spoken words, or null when unclear. Checks negatives first
+  /// so "no, not at all" and "I don't think so" never read as YES.
+  static bool? _interpret(String words) {
+    final tokens = words.toLowerCase().split(RegExp(r'[^a-z]+'));
+    const noWords = [
+      'no', 'not', 'nope', 'nah', 'na', 'never', 'nothing', 'don', 'dont'
+    ];
+    const yesWords = [
+      'yes', 'yeah', 'yep', 'yah', 'yea', 'ya', 'sure', 'okay', 'ok',
+      'correct', 'true'
+    ];
+    if (tokens.any(noWords.contains)) return false;
+    if (tokens.any(yesWords.contains)) return true;
+    return null;
+  }
+
   Future<void> _listenForAnswer() async {
     if (!_voiceSession || !mounted) return;
+    // Generation guard: every listen cycle gets a number so callbacks from an
+    // abandoned cycle (old question, stale mic session) can never act.
+    final gen = ++_listenGeneration;
+    _answeredThisListen = false;
     final available = await _speech.initialize(
       onStatus: (status) {
-        if (status == 'notListening' && mounted) {
+        if ((status == 'done' || status == 'notListening') && mounted) {
           setState(() => _listening = false);
+          // Mic closed. If we captured nothing, recover — never strand her
+          // on a question with a dead microphone.
+          _recoverListen(gen);
         }
+      },
+      onError: (_) {
+        if (mounted) setState(() => _listening = false);
+        _recoverListen(gen);
       },
     );
     if (!available) {
@@ -152,47 +184,71 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
               Text('Microphone is not available — tap YES or NO instead')));
       return;
     }
-    if (!mounted || !_voiceSession) return;
+    if (!mounted || !_voiceSession || gen != _listenGeneration) return;
     setState(() => _listening = true);
     await _speech.listen(
-      listenOptions: SpeechListenOptions(partialResults: false),
+      listenOptions: SpeechListenOptions(
+        partialResults: true,
+        listenFor: const Duration(seconds: 10),
+        pauseFor: const Duration(seconds: 3),
+      ),
       onResult: (result) {
-        if (result.finalResult) {
-          if (mounted) setState(() => _listening = false);
-          _handleVoiceAnswer(result.recognizedWords);
+        if (gen != _listenGeneration || _answeredThisListen || !mounted) {
+          return;
         }
+        // Accept the instant a clear yes/no appears — even mid-utterance.
+        // Waiting only for finalResult is what made answers get swallowed.
+        final value = _interpret(result.recognizedWords);
+        if (value != null) {
+          _answeredThisListen = true;
+          _speech.stop();
+          setState(() => _listening = false);
+          _voiceRetries = 0;
+          _answer(value);
+        } else if (result.finalResult && result.recognizedWords.isNotEmpty) {
+          // She said something, but not a yes/no.
+          _answeredThisListen = true;
+          setState(() => _listening = false);
+          _unclearAnswer();
+        }
+        // final + empty → silence; the onStatus recovery re-opens the mic.
       },
     );
   }
 
-  Future<void> _handleVoiceAnswer(String words) async {
-    if (!_voiceSession || !mounted) return;
-    final tokens = words.toLowerCase().split(RegExp(r'[^a-z]+'));
-    const noWords = ['no', 'not', 'nope', 'never', 'nothing', 'don', 'dont'];
-    const yesWords = ['yes', 'yeah', 'yep', 'yah', 'sure', 'correct', 'true'];
-    bool? value;
-    if (tokens.any(noWords.contains)) {
-      value = false;
-    } else if (tokens.any(yesWords.contains)) {
-      value = true;
-    }
-
-    if (value == null) {
-      _voiceRetries += 1;
-      if (_voiceRetries >= 3) {
-        // She's struggling with the mic — hand this one back to the buttons.
-        await ref
-            .read(nanaVoiceProvider)
-            .speak('Tap YES or NO on the screen for this one.');
-        return;
-      }
-      await ref
-          .read(nanaVoiceProvider)
-          .speak('Please answer me with YES or NO.');
-      if (mounted && _voiceSession) _listenForAnswer();
+  /// Mic closed without an answer (silence, timeout, or engine error):
+  /// re-open it, remind her once in the middle, and only after several dead
+  /// ends hand the question back to the buttons.
+  Future<void> _recoverListen(int gen) async {
+    if (!_voiceSession ||
+        !mounted ||
+        _answeredThisListen ||
+        gen != _listenGeneration) {
       return;
     }
-    _answer(value);
+    _voiceRetries += 1;
+    if (_voiceRetries >= 4) {
+      await _voice.speak('Tap YES or NO on the screen for this one.');
+      return;
+    }
+    if (_voiceRetries == 2) {
+      await _voice.speak('I did not hear you. Say YES or NO.');
+    } else {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+    if (_voiceSession && mounted && !_answeredThisListen) _listenForAnswer();
+  }
+
+  Future<void> _unclearAnswer() async {
+    if (!_voiceSession || !mounted) return;
+    _voiceRetries += 1;
+    if (_voiceRetries >= 4) {
+      // She's struggling with the mic — hand this one back to the buttons.
+      await _voice.speak('Tap YES or NO on the screen for this one.');
+      return;
+    }
+    await _voice.speak('Please answer me with YES or NO.');
+    if (mounted && _voiceSession) _listenForAnswer();
   }
 
   Future<void> _finish() async {
@@ -211,12 +267,23 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
         }
         if (permission == LocationPermission.always ||
             permission == LocationPermission.whileInUse) {
-          final pos = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                  accuracy: LocationAccuracy.high,
-                  timeLimit: Duration(seconds: 15)));
-          lng = pos.longitude;
-          lat = pos.latitude;
+          try {
+            final pos = await Geolocator.getCurrentPosition(
+                locationSettings: const LocationSettings(
+                    accuracy: LocationAccuracy.medium,
+                    timeLimit: Duration(seconds: 20)));
+            lng = pos.longitude;
+            lat = pos.latitude;
+          } catch (_) {}
+          // No fix (indoors, GPS cold start): the last known position is
+          // still plenty accurate for 25 km volunteer routing.
+          if (lng == null) {
+            final last = await Geolocator.getLastKnownPosition();
+            if (last != null) {
+              lng = last.longitude;
+              lat = last.latitude;
+            }
+          }
         }
       } catch (_) {}
     }

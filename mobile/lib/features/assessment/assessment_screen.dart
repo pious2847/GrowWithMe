@@ -101,12 +101,23 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
         }
         if (permission == LocationPermission.always ||
             permission == LocationPermission.whileInUse) {
-          final pos = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                  accuracy: LocationAccuracy.high,
-                  timeLimit: Duration(seconds: 15)));
-          lng = pos.longitude;
-          lat = pos.latitude;
+          try {
+            final pos = await Geolocator.getCurrentPosition(
+                locationSettings: const LocationSettings(
+                    accuracy: LocationAccuracy.medium,
+                    timeLimit: Duration(seconds: 20)));
+            lng = pos.longitude;
+            lat = pos.latitude;
+          } catch (_) {}
+          // No fix (indoors, GPS cold start): the last known position is
+          // still plenty accurate for 25 km volunteer routing.
+          if (lng == null) {
+            final last = await Geolocator.getLastKnownPosition();
+            if (last != null) {
+              lng = last.longitude;
+              lat = last.latitude;
+            }
+          }
         }
       } catch (_) {
         // No fix — the alert still goes out without coordinates.

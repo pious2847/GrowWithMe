@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers.dart';
 import '../../data/assistant/nana_assistant.dart';
 import '../../data/db/app_database.dart';
+import '../../data/voice/nana_voice.dart';
 import '../../domain/growth_reference.dart';
 import '../assessment/assessment_screen.dart';
 import '../children/add_child_screen.dart';
@@ -45,6 +46,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
   final SpeechToText _speech = SpeechToText();
+  // Cached in initState — Riverpod forbids ref lookups inside dispose().
+  late final NanaVoice _voice;
+  late final SyncController _syncController;
   bool _thinking = false;
   bool _listening = false;
   late bool _voiceMode = widget.voiceMode;
@@ -54,6 +58,8 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
   @override
   void initState() {
     super.initState();
+    _voice = ref.read(nanaVoiceProvider);
+    _syncController = ref.read(syncControllerProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Nana remembers: load the saved conversation history first.
       final saved = await ref.read(dbProvider).recentChatMessages(50);
@@ -99,9 +105,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
   @override
   void dispose() {
     _speech.stop();
-    ref.read(nanaVoiceProvider).stop();
+    _voice.stop();
     // Push the conversation to the server in the background.
-    ref.read(syncControllerProvider.notifier).sync();
+    _syncController.sync();
     super.dispose();
   }
 
