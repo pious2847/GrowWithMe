@@ -7,6 +7,153 @@ const NIM_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 // Nana: the AI care educator. She teaches and helps operate the app — she
 // NEVER diagnoses or classifies risk; the deterministic triage engine owns
 // that. Any mention of danger signs → she directs to the in-app health check.
+const NIM_HEADERS = () => ({
+  Authorization: `Bearer ${env.nvidia.apiKey}`,
+  'Content-Type': 'application/json',
+});
+
+/**
+ * One NIM call with completeness guarantees:
+ * - guided_json (decoder-level schema constraint) when a schema is given,
+ *   with automatic unguided fallback if the endpoint rejects it;
+ * - finish_reason inspection: output cut by the token limit is NEVER parsed —
+ *   the call retries with a doubled budget instead.
+ */
+async function callNim(payload, { schema } = {}) {
+  let useGuided = Boolean(schema);
+  let tokens = payload.max_tokens;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const body = { ...payload, max_tokens: tokens };
+    if (useGuided) body.nvext = { guided_json: schema };
+    try {
+      const res = await axios.post(NIM_URL, body, {
+        headers: NIM_HEADERS(),
+        timeout: 90000,
+      });
+      const choice = res.data?.choices?.[0] || {};
+      const content = choice.message?.content || '';
+      if (choice.finish_reason === 'length') {
+        logger.warn(
+          `[nana] output hit the ${tokens}-token limit — retrying with ${tokens * 2}`
+        );
+        tokens *= 2;
+        continue;
+      }
+      return content;
+    } catch (err) {
+      const status = err.response?.status;
+      if (useGuided && status >= 400 && status < 500) {
+        logger.warn('[nana] guided_json rejected by endpoint — retrying unguided');
+        useGuided = false;
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('model output kept exceeding the token limit');
+}
+
+const CHAT_SCHEMA = {
+  type: 'object',
+  properties: {
+    say: { type: 'string' },
+    action: {
+      anyOf: [
+        { type: 'null' },
+        {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            params: { type: 'object' },
+          },
+          required: ['name', 'params'],
+        },
+      ],
+    },
+  },
+  required: ['say', 'action'],
+};
+
+const CHECKIN_SCHEMA = {
+  type: 'object',
+  properties: {
+    questions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          text: { type: 'string' },
+          category: { type: 'string', enum: ['danger', 'caution', 'info'] },
+        },
+        required: ['text', 'category'],
+      },
+    },
+  },
+  required: ['questions'],
+};
+
+const MEAL_OPTION_SCHEMA = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    ingredients: { type: 'string' },
+    portion: { type: 'string' },
+    prep: { type: 'string' },
+  },
+  required: ['name', 'ingredients', 'portion', 'prep'],
+};
+
+const DIET_SCHEMA = {
+  type: 'object',
+  properties: {
+    summary: { type: 'string' },
+    meals: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          time: { type: 'string' },
+          options: { type: 'array', items: MEAL_OPTION_SCHEMA },
+        },
+        required: ['time', 'options'],
+      },
+    },
+    tips: { type: 'array', items: { type: 'string' } },
+    extracted: {
+      type: 'object',
+      properties: {
+        budget: { type: 'string', enum: ['low', 'ok'] },
+        pantry: { type: 'string' },
+        household: { type: 'string' },
+      },
+    },
+  },
+  required: ['summary', 'meals'],
+};
+
+const TIPS_SCHEMA = {
+  type: 'object',
+  properties: {
+    tips: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          audience: {
+            type: 'string',
+            enum: ['child', 'pregnancy', 'lactating', 'general'],
+          },
+          title: { type: 'string' },
+          body: { type: 'string' },
+        },
+        required: ['audience', 'title', 'body'],
+      },
+    },
+  },
+  required: ['tips'],
+};
+
 const SYSTEM_PROMPT = `You are Nana, a warm, wise Ghanaian grandmother who helps mothers and caregivers in Northern Ghana use the GrowWithMe app and care for their children (0-59 months) and pregnancies.
 
 STYLE:
@@ -37,6 +184,77 @@ CONTEXT about this user is provided in the first user message. Today's date is g
 const configured = () => Boolean(env.nvidia.apiKey);
 
 /**
+ * Closes whatever a truncated JSON string left open — unterminated string,
+ * then every unclosed bracket/brace in the correct order.
+ */
+function balanceClose(s) {
+  let inStr = false;
+  let esc = false;
+  const stack = [];
+  for (const ch of s) {
+    if (esc) {
+      esc = false;
+      continue;
+    }
+    if (inStr && ch === '\\') {
+      esc = true;
+      continue;
+    }
+    if (ch === '"') {
+      inStr = !inStr;
+      continue;
+    }
+    if (inStr) continue;
+    if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') stack.pop();
+  }
+  let out = s;
+  if (inStr) out += '"';
+  out = out.replace(/,\s*$/, '');
+  while (stack.length) out += stack.pop() === '{' ? '}' : ']';
+  return out;
+}
+
+/**
+ * Forgiving JSON parse for small-model output: tolerates trailing commas,
+ * and truncation anywhere — mid-string, mid-array, mid-object. As a last
+ * resort it cuts back to the last complete element and closes from there
+ * (losing at most the partial trailing item).
+ */
+function parseJsonLoose(raw) {
+  const start = raw.indexOf('{');
+  if (start === -1) throw new Error('no JSON object found');
+  const body = raw.slice(start).trim();
+
+  const candidates = [];
+  const toLastBrace = body.slice(0, body.lastIndexOf('}') + 1);
+  if (toLastBrace) candidates.push(toLastBrace);
+  candidates.push(balanceClose(body));
+  // Cut back to progressively earlier complete elements, then close.
+  let cut = body.length;
+  for (let i = 0; i < 8; i++) {
+    const lastCloser = Math.max(
+      body.lastIndexOf('}', cut - 1),
+      body.lastIndexOf(']', cut - 1)
+    );
+    if (lastCloser <= 0) break;
+    candidates.push(balanceClose(body.slice(0, lastCloser + 1)));
+    cut = lastCloser;
+  }
+
+  for (const base of candidates) {
+    for (const s of [base, base.replace(/,\s*([}\]])/g, '$1')]) {
+      try {
+        return JSON.parse(s);
+      } catch (_) {
+        /* try next */
+      }
+    }
+  }
+  throw new Error('unparseable JSON');
+}
+
+/**
  * One chat turn with Nana. `messages` is the running [{role, content}] history
  * from the app (user/assistant only); `context` is a compact summary of the
  * caregiver's data the app builds locally.
@@ -46,7 +264,7 @@ async function chat(messages, context) {
   const payload = {
     model: env.nvidia.model,
     temperature: 0.4,
-    max_tokens: 400,
+    max_tokens: 700,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: `CONTEXT (not written by the user):\n${context}` },
@@ -55,35 +273,34 @@ async function chat(messages, context) {
     ],
   };
 
-  const res = await axios.post(NIM_URL, payload, {
-    headers: {
-      Authorization: `Bearer ${env.nvidia.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    // The free NIM endpoint can queue under load — allow a generous window.
-    timeout: 90000,
-  });
-
-  const raw = res.data?.choices?.[0]?.message?.content || '';
+  const raw = await callNim(payload, { schema: CHAT_SCHEMA });
   return parseReply(raw);
 }
 
 function parseReply(raw) {
-  // The model is asked for pure JSON, but be forgiving: find the outermost
-  // object and fall back to treating the whole text as speech.
+  // The model is asked for pure JSON — parse forgivingly (truncation,
+  // trailing commas), and NEVER show raw JSON to the caregiver.
   try {
-    const start = raw.indexOf('{');
-    const end = raw.lastIndexOf('}');
-    if (start !== -1 && end > start) {
-      const parsed = JSON.parse(raw.slice(start, end + 1));
-      if (typeof parsed.say === 'string') {
-        return { say: parsed.say, action: parsed.action || null };
-      }
+    const parsed = parseJsonLoose(raw);
+    if (typeof parsed.say === 'string') {
+      return { say: parsed.say, action: parsed.action || null };
     }
-  } catch (err) {
-    logger.warn('[nana] reply was not valid JSON, using as plain text');
+  } catch (_) {
+    logger.warn('[nana] reply was not valid JSON, salvaging');
   }
-  return { say: raw.trim() || 'Sorry, I did not get that. Please try again.', action: null };
+  // Salvage just the spoken text if the object is beyond repair.
+  const sayMatch = raw.match(/"say"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (sayMatch) {
+    return { say: sayMatch[1].replace(/\\"/g, '"'), action: null };
+  }
+  // If the text contains no JSON at all, it IS the speech.
+  if (!raw.includes('{')) {
+    return { say: raw.trim(), action: null };
+  }
+  return {
+    say: 'Sorry, my daughter — say that again for me?',
+    action: null,
+  };
 }
 
 const CHECKIN_PROMPT = `You generate a short pregnancy check-in questionnaire for a mother in Northern Ghana, personalized from her history. Rules:
@@ -111,17 +328,8 @@ async function checkinQuestions(context) {
       { role: 'user', content: `HER HISTORY AND CURRENT DATA:\n${context}` },
     ],
   };
-  const res = await axios.post(NIM_URL, payload, {
-    headers: {
-      Authorization: `Bearer ${env.nvidia.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    timeout: 90000,
-  });
-  const raw = res.data?.choices?.[0]?.message?.content || '';
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  const parsed = JSON.parse(raw.slice(start, end + 1));
+  const raw = await callNim(payload, { schema: CHECKIN_SCHEMA });
+  const parsed = parseJsonLoose(raw);
   const valid = (parsed.questions || [])
     .filter(
       (q) =>
@@ -148,18 +356,13 @@ RULES:
 
 For EACH meal time give TWO different options so she can choose — both must fit her foods and budget, and be genuinely different dishes (not the same dish reworded). Every option must be an actual FOOD or DRINK she can prepare — never advice, tablets or reminders (those belong in "tips").
 
+Keep every field SHORT so nothing gets cut off: "prep" at most 2 short sentences, "ingredients" under 12 words, at most 4 meal times, at most 2 tips.
+
 Reply with ONLY JSON:
 {"summary": "<1-2 warm sentences>", "meals": [{"time": "Morning|Midday|Evening|Snack", "options": [{"name": "...", "ingredients": "...", "portion": "...", "prep": "..."}, {"name": "...", "ingredients": "...", "portion": "...", "prep": "..."}]}], "tips": ["...", "..."], "extracted": {"budget": "low"|"ok", "pantry": "<foodstuffs she has, comma separated>", "household": "<number as string>"}}`;
 
 function parseDietJson(raw) {
-  const sliced = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
-  let parsed;
-  try {
-    parsed = JSON.parse(sliced);
-  } catch (_) {
-    // Small models sometimes emit trailing commas — repair and retry.
-    parsed = JSON.parse(sliced.replace(/,\s*([}\]])/g, '$1'));
-  }
+  const parsed = parseJsonLoose(raw);
   if (!parsed.summary || !Array.isArray(parsed.meals)) {
     throw new Error('malformed diet plan');
   }
@@ -192,14 +395,7 @@ async function dietPlan(context) {
   let lastError;
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const res = await axios.post(NIM_URL, payload, {
-        headers: {
-          Authorization: `Bearer ${env.nvidia.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 90000,
-      });
-      const raw = res.data?.choices?.[0]?.message?.content || '';
+      const raw = await callNim(payload, { schema: DIET_SCHEMA });
       return parseDietJson(raw);
     } catch (err) {
       lastError = err;
@@ -232,21 +428,8 @@ async function dailyTips(context) {
       { role: 'user', content: `HER SITUATION:\n${context}` },
     ],
   };
-  const res = await axios.post(NIM_URL, payload, {
-    headers: {
-      Authorization: `Bearer ${env.nvidia.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    timeout: 90000,
-  });
-  const raw = res.data?.choices?.[0]?.message?.content || '';
-  const sliced = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
-  let parsed;
-  try {
-    parsed = JSON.parse(sliced);
-  } catch (_) {
-    parsed = JSON.parse(sliced.replace(/,\s*([}\]])/g, '$1'));
-  }
+  const raw = await callNim(payload, { schema: TIPS_SCHEMA });
+  const parsed = parseJsonLoose(raw);
   return (parsed.tips || [])
     .filter(
       (t) =>
@@ -258,4 +441,11 @@ async function dailyTips(context) {
     .slice(0, 2);
 }
 
-module.exports = { chat, checkinQuestions, dietPlan, dailyTips, configured };
+module.exports = {
+  chat,
+  checkinQuestions,
+  dietPlan,
+  dailyTips,
+  configured,
+  parseJsonLoose,
+};

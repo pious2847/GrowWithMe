@@ -31,37 +31,100 @@ class PregnancyCard extends ConsumerWidget {
         TextEditingController(text: pregnancy.hospitalName ?? '');
     final phoneController =
         TextEditingController(text: pregnancy.hospitalPhone ?? '');
-    final saved = await showDialog<bool>(
+    final saved = await showModalBottomSheet<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('My check-up hospital'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-                'The hospital or clinic where you do your checks and scans. '
-                'If a check-in ever finds a risk, they receive your report.'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Hospital name'),
-            ),
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Hospital phone'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel')),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Save')),
-        ],
-      ),
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        // Bottom padding tracks the keyboard so the fields stay visible.
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+              20, 0, 20, 24 + MediaQuery.of(sheetContext).viewInsets.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Icon(Icons.local_hospital,
+                        color: theme.colorScheme.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'My check-up hospital',
+                      style: theme.textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Where you go for your checks and scans. If a check-in finds '
+                'a risk, they receive your report.',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: 'Hospital name',
+                  hintText: 'e.g. Tamale Teaching Hospital',
+                  prefixIcon: const Icon(Icons.apartment),
+                  filled: true,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Hospital phone',
+                  hintText: 'e.g. 037 202 2454',
+                  prefixIcon: const Icon(Icons.call),
+                  filled: true,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14)),
+                      onPressed: () => Navigator.pop(sheetContext, false),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14)),
+                      onPressed: () => Navigator.pop(sheetContext, true),
+                      icon: const Icon(Icons.check),
+                      label: const Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
     if (saved != true) return;
     final db = ref.read(dbProvider);
@@ -169,7 +232,9 @@ class PregnancyCard extends ConsumerWidget {
                       Text('My pregnancy — week $week',
                           style: theme.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
-                      Text('Baby is about the size of ${babySize(week)}'),
+                      Text(week >= 37
+                          ? 'Baby is full grown — ready to meet you 👶'
+                          : 'Baby is about the size of ${babySize(week)}'),
                       Text(
                         daysLeft > 0
                             ? '~$daysLeft days to ${DateFormat.MMMMd().format(pregnancy.expectedDueDate)}'

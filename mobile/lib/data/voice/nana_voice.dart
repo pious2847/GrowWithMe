@@ -1,7 +1,10 @@
-import 'dart:typed_data';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../api/api_client.dart';
 import 'tts_service.dart';
@@ -39,7 +42,9 @@ class NanaVoice {
       if (res.data != null && res.data!.isNotEmpty) {
         bytes = Uint8List.fromList(res.data!);
       }
-    } catch (_) {
+      debugPrint('[nana_voice] fetch ok: ${bytes?.length ?? 0} bytes');
+    } catch (e) {
+      debugPrint('[nana_voice] fetch FAILED: $e');
       bytes = null;
     }
     // A newer speak() started while we were fetching — abandon quietly.
@@ -47,19 +52,38 @@ class NanaVoice {
 
     // 2. No audio obtained (offline / quota / error) → phone voice, alone.
     if (bytes == null) {
+      debugPrint('[nana_voice] no audio -> phone TTS fallback');
       try {
         await _tts.speak(text);
       } catch (_) {}
       return;
     }
 
-    // 3. Audio obtained → play it. If playback breaks midway, SILENCE the
-    //    player first, then let the phone voice take over — never overlap.
+    // 3. Audio obtained → play it from a temp FILE (byte-source playback is
+    //    unreliable on some Android builds). If playback still breaks,
+    //    SILENCE the player first, then let the phone voice take over —
+    //    never overlap.
     try {
-      await _player.play(BytesSource(bytes));
-      await _player.onPlayerComplete.first
-          .timeout(const Duration(seconds: 90), onTimeout: () {});
-    } catch (_) {
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/nana_voice_$myGeneration.mp3');
+      await file.writeAsBytes(bytes, flush: true);
+      debugPrint('[nana_voice] wrote ${file.path}');
+      if (myGeneration != _generation) return;
+      await _player.play(DeviceFileSource(file.path));
+      debugPrint('[nana_voice] playback started');
+      try {
+        await _player.onPlayerComplete.first
+            .timeout(const Duration(seconds: 90));
+      } on TimeoutException {
+        debugPrint('[nana_voice] gave up waiting for completion');
+      }
+      debugPrint('[nana_voice] playback completed');
+      // Best-effort cleanup of this clip.
+      try {
+        await file.delete();
+      } catch (_) {}
+    } catch (e) {
+      debugPrint('[nana_voice] playback FAILED: $e -> phone TTS fallback');
       await _player.stop();
       if (myGeneration == _generation) {
         try {
