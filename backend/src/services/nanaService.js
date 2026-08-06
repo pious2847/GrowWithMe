@@ -1,6 +1,14 @@
 const axios = require('axios');
 const env = require('../config/env');
 const logger = require('../utils/logger');
+const {
+  FEEDING_KNOWLEDGE,
+  PREGNANCY_DANGER_SIGNS,
+  BABY_DANGER_SIGNS,
+  PROTECTING_PREGNANCY,
+  LABOUR_AND_DELIVERY,
+  CHILD_MILESTONES,
+} = require('./nanaKnowledge');
 
 const NIM_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -179,7 +187,16 @@ ACTIONS you can perform for the user (the app executes them after the user confi
 RESPONSE FORMAT — always reply with ONLY a JSON object, no other text:
 {"say": "<what you tell the user, spoken aloud>", "action": null | {"name": "<action name>", "params": {...}}}
 
-CONTEXT about this user is provided in the first user message. Today's date is given there too — use it to compute dates of birth from ages.`;
+CONTEXT about this user is provided in the first user message. Today's date is given there too — use it to compute dates of birth from ages.
+
+TRUSTED KNOWLEDGE — the official Ghana Health Service / WHO guidance used by health workers. Base every answer on it; never contradict it; do not invent guidance beyond it:
+${FEEDING_KNOWLEDGE}
+${PREGNANCY_DANGER_SIGNS}
+${BABY_DANGER_SIGNS}
+${PROTECTING_PREGNANCY}
+${LABOUR_AND_DELIVERY}
+${CHILD_MILESTONES}
+If she mentions anything matching a danger sign above, use start_health_check. For milestones: if the child's age is AT or PAST a milestone age and the child cannot do it, warmly advise visiting the health facility now — do not tell her to wait. Same for any hearing or seeing warning sign.`;
 
 const configured = () => Boolean(env.nvidia.apiKey);
 
@@ -318,6 +335,9 @@ const CHECKIN_PROMPT = `You generate a short pregnancy check-in questionnaire fo
   "info"    = wellbeing/routine only (iron tablets, net, ANC visit, transport plan)
 - Phrase questions so YES = the problem is present for danger/caution, and YES = the good thing is happening for info.
 - Never ask about medicine doses. Never diagnose.
+Draw danger/caution topics ONLY from this official Ghana Health Service danger-sign list (the app's core already covers bleeding, fits/severe headache, severe belly pain, water breaking, baby movement, fever, swelling — use the OTHERS):
+${PREGNANCY_DANGER_SIGNS}
+${PROTECTING_PREGNANCY}
 Reply with ONLY JSON: {"questions": [{"id": "q1", "text": "...", "category": "danger|caution|info"}]}`;
 
 /**
@@ -362,6 +382,10 @@ RULES:
 - Never mention supplements/medicines except "take your iron tablets" for pregnancy.
 
 For EACH meal time give TWO different options so she can choose — both must fit her foods and budget, and be genuinely different dishes (not the same dish reworded). Every option must be an actual FOOD or DRINK she can prepare — never advice, tablets or reminders (those belong in "tips").
+
+GROUND EVERY PLAN IN THIS OFFICIAL GUIDANCE (Ghana Health Service / WHO — never contradict it):
+${FEEDING_KNOWLEDGE}
+For a child, match meal count, portion (tablespoons / fraction of a 250 ml cup) and texture to the child's exact age band above, and make the day cover all 4 star groups. For pregnancy, include iron-rich foods (green leaves, beans) daily.
 
 Keep every field SHORT so nothing gets cut off: "prep" at most 2 short sentences, "ingredients" under 12 words, at most 4 meal times, at most 2 tips.
 
@@ -420,6 +444,9 @@ RULES:
 - Practical and specific to Northern Ghana foods and this season. Vary the topic — do NOT repeat any recent tip title.
 - If her diet scores show missing food groups, target one of the gaps.
 - Never mention medicines except "iron tablets" for pregnancy.
+- Ground every tip in this official guidance (never contradict it):
+${FEEDING_KNOWLEDGE}
+${PROTECTING_PREGNANCY}
 
 Reply with ONLY JSON:
 {"tips": [{"audience": "child"|"pregnancy"|"lactating", "title": "...", "body": "..."}]}`;
