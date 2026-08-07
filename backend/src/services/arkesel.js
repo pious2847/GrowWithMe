@@ -33,7 +33,16 @@ async function sendSms(to, message) {
     else logger.error(`[sms] Arkesel rejected send to ${recipient}:`, res.data);
     return ok ? { ok: true } : { ok: false, error: JSON.stringify(res.data) };
   } catch (err) {
-    logger.error(`[sms] failed to ${recipient}: ${err.message}`);
+    const status = err.response && err.response.status;
+    const detail = err.response && err.response.data ? JSON.stringify(err.response.data) : err.message;
+    if (status === 402) {
+      // Payment Required — the Arkesel account has no SMS credit left.
+      logger.error(
+        `[sms] Arkesel balance exhausted (402) sending to ${recipient} — top up at sms.arkesel.com. ${detail}`
+      );
+      return { ok: false, error: 'sms_balance_exhausted' };
+    }
+    logger.error(`[sms] failed to ${recipient} (${status || 'no response'}): ${detail}`);
     return { ok: false, error: err.message };
   }
 }

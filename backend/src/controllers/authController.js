@@ -38,7 +38,25 @@ const requestOtp = asyncHandler(async (req, res) => {
     normalized,
     `Your GrowWithMe verification code is ${code}. It expires in ${env.otpTtlMinutes} minutes.`
   );
-  if (!result.ok) throw new ApiError(502, 'Could not send verification SMS. Please try again.');
+  if (!result.ok) {
+    // Escape hatch for demos/dev when the SMS provider is down or out of
+    // credit: with OTP_DEBUG=true the code is written to the server logs so
+    // login still works. NEVER enable in real production.
+    if (env.otpDebug) {
+      logger.warn(`[auth] OTP_DEBUG: SMS failed (${result.error}) — code for ${normalized} is ${code}`);
+      return res.json({
+        success: true,
+        message: 'SMS could not be sent — code available in server logs (OTP_DEBUG)',
+        expiresInMinutes: env.otpTtlMinutes,
+        smsDelivered: false,
+      });
+    }
+    const reason =
+      result.error === 'sms_balance_exhausted'
+        ? 'SMS service is out of credit. Please contact support.'
+        : 'Could not send verification SMS. Please try again.';
+    throw new ApiError(502, reason);
+  }
 
   res.json({ success: true, message: 'OTP sent', expiresInMinutes: env.otpTtlMinutes });
 });

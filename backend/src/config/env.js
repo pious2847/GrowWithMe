@@ -28,6 +28,9 @@ const env = {
     voiceId: process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
   },
   otpTtlMinutes: parseInt(process.env.OTP_TTL_MINUTES || '10', 10),
+  // OTP_DEBUG=true: when SMS sending fails, log the code server-side and let
+  // the flow continue — demo/dev safety net only, never for real production.
+  otpDebug: process.env.OTP_DEBUG === 'true',
   // Public base URL for links that travel by SMS (alert deep links)
   publicUrl: process.env.PUBLIC_URL || 'https://growwithme.onrender.com',
   isProd: (process.env.NODE_ENV || 'development') === 'production',
