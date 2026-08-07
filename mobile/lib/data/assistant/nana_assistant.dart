@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../domain/nutrition_tips.dart';
 import '../api/api_client.dart';
 import '../db/app_database.dart';
+import '../model/nlu_service.dart';
 
 class NanaAction {
   const NanaAction(this.name, this.params);
@@ -23,13 +24,15 @@ class NanaReply {
 }
 
 /// Nana's brain-glue. Builds the caregiver's context from the local database,
-/// asks the backend LLM when online, and falls back to a local intent parser
-/// offline — so Nana always answers, connectivity or not.
+/// asks the backend LLM when online, and falls back offline to the on-device
+/// NLU model (natural-language understanding, curated replies) or — when that
+/// is not downloaded — the keyword parser. Nana always answers.
 class NanaAssistant {
-  NanaAssistant(this._db, this._api);
+  NanaAssistant(this._db, this._api, [this._nlu]);
 
   final AppDatabase _db;
   final ApiClient _api;
+  final NluService? _nlu;
 
   Future<NanaReply> send(
       String text, List<Map<String, String>> history) async {
@@ -59,7 +62,9 @@ class NanaAssistant {
     return localIntent(text);
   }
 
-  /// Offline fallback: recognizes the core requests without any AI.
+  /// Offline fallback: the deterministic symptom-keyword net ALWAYS runs
+  /// first (a symptom mention must open the health check no matter what any
+  /// model thinks), then the on-device NLU if downloaded, then keywords.
   Future<NanaReply> localIntent(String text) async {
     final t = text.toLowerCase();
 
@@ -73,6 +78,67 @@ class NanaAssistant {
         action: NanaAction('start_health_check', {}),
       );
     }
+
+    final understood = _nlu?.classify(text);
+    if (understood != null) {
+      final reply = await _replyForIntent(understood);
+      if (reply != null) return reply;
+    }
+
+    return _keywordIntent(t);
+  }
+
+  /// Curated (never generated) replies for what the NLU understood.
+  Future<NanaReply?> _replyForIntent(NluResult r) async {
+    switch (r.intent) {
+      case 'start_health_check':
+        return NanaReply(
+          'I hear you. Let us check this properly and safely right now.',
+          action: NanaAction('start_health_check',
+              {if (r.subject != 'unknown') 'subject': r.subject}),
+        );
+      case 'open_add_child':
+        return const NanaReply(
+          'Let us add your child together. I will open the form for you.',
+          action: NanaAction('open_add_child', {}),
+        );
+      case 'open_add_pregnancy':
+        return const NanaReply(
+          'Wonderful news. Let us start tracking your pregnancy.',
+          action: NanaAction('open_add_pregnancy', {}),
+        );
+      case 'plan_diet':
+        return const NanaReply(
+          'Let us plan good food that fits your pocket. Opening the kitchen.',
+          action: NanaAction('plan_diet', {}),
+        );
+      case 'read_today':
+        return NanaReply(await buildBriefing());
+      case 'get_tip':
+        return NanaReply(await _tipText());
+      case 'log_weight':
+        return const NanaReply(
+          'To save a weight, open your child\'s page and tap "Add weight" — '
+          'it works even without internet. I can also do it for you here '
+          'when we are back online.',
+        );
+      case 'set_reminder':
+        return const NanaReply(
+          'I can set reminders for you when we are back online. For now, '
+          'your clinic visits are already in the Calendar tab.',
+        );
+      case 'greeting':
+        return const NanaReply(
+          'Hello, my daughter. I am here. Ask me about food, your visits, '
+          'or tell me if someone is unwell.',
+        );
+      default:
+        return null; // help_other and anything else → generic helper below
+    }
+  }
+
+  /// Last-resort keyword matching — the pre-NLU behavior, kept as the floor.
+  Future<NanaReply> _keywordIntent(String t) async {
     if (t.contains('child') && (t.contains('add') || t.contains('new') || t.contains('register'))) {
       return const NanaReply(
         'Let us add your child together. I will open the form for you.',

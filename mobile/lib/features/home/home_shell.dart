@@ -47,9 +47,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       // A fresh meal plan and fresh tips wait on the home page every day.
       ref.read(dietPlannerProvider).ensureTodayPlan();
       ref.read(tipsUpdaterProvider).ensureTodayTips();
-      // Background-fetch the offline risk model (6 KB) — silent no-op when
-      // offline; the optional measurements feature hides until it exists.
+      // Background-fetch the offline models (risk 6 KB, NLU ~1 MB) — silent
+      // no-op when offline; features hide/fall back until they exist.
       ref.read(modelServiceProvider).ensureLatest();
+      ref.read(nluServiceProvider).ensureLatest();
       // Re-arm phone alerts for upcoming personal reminders (e.g. after a
       // reinstall or on a new device — they ride the sync).
       final custom = await ref.read(dbProvider).upcomingCustomReminders();
@@ -71,6 +72,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ref.read(dietPlannerProvider).ensureTodayPlan();
         ref.read(tipsUpdaterProvider).ensureTodayTips();
         ref.read(modelServiceProvider).ensureLatest();
+        ref.read(nluServiceProvider).ensureLatest();
       }
     });
     // Nana widget tap → open Nana and speak the day's briefing.

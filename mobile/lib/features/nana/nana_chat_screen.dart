@@ -185,10 +185,15 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
         final child = childName == null
             ? null
             : await ref.read(careActionsProvider).findChildByName(childName);
+        // Subject can come by name lookup (online LLM) or as a plain
+        // 'subject' param (offline NLU, which knows child vs pregnancy but
+        // not names).
+        final subjectParam = action.params['subject'] as String?;
         if (!mounted) return;
         Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => AssessmentScreen(
-                subjectType: child != null ? 'child' : 'pregnancy',
+                subjectType:
+                    child != null ? 'child' : (subjectParam ?? 'pregnancy'),
                 childId: child?.id)));
         return;
       case 'open_add_child':

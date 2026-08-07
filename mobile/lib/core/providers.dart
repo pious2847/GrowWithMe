@@ -6,6 +6,7 @@ import '../data/api/api_client.dart';
 import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
 import '../data/model/model_service.dart';
+import '../data/model/nlu_service.dart';
 import '../data/assistant/nana_assistant.dart';
 import '../data/diet/diet_planner.dart';
 import '../data/diet/tips_updater.dart';
@@ -43,6 +44,9 @@ final ttsProvider = Provider<TtsService>((ref) => TtsService());
 final modelServiceProvider =
     Provider<ModelService>((ref) => ModelService(ref.watch(apiClientProvider)));
 
+final nluServiceProvider =
+    Provider<NluService>((ref) => NluService(ref.watch(apiClientProvider)));
+
 final nanaVoiceProvider = Provider<NanaVoice>(
     (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider)));
 
@@ -52,8 +56,10 @@ final careActionsProvider =
 final notificationServiceProvider =
     Provider<NotificationService>((ref) => NotificationService.instance);
 
-final nanaAssistantProvider = Provider<NanaAssistant>(
-    (ref) => NanaAssistant(ref.watch(dbProvider), ref.watch(apiClientProvider)));
+final nanaAssistantProvider = Provider<NanaAssistant>((ref) => NanaAssistant(
+    ref.watch(dbProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(nluServiceProvider)));
 
 final dietPlannerProvider = Provider<DietPlanner>((ref) => DietPlanner(
     ref.watch(dbProvider),
