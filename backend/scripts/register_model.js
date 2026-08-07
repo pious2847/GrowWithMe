@@ -18,16 +18,18 @@ const MlModel = require('../src/models/MlModel');
 
 const NANA_NLU_MANIFEST = {
   name: 'nana-nlu',
-  version: 1,
+  version: 2,
   kind: 'tflite',
-  url: 'https://res.cloudinary.com/dj3qeohxn/raw/upload/v1786130733/growwithme/models/nana_nlu_v1.tflite',
-  sha256: 'fc5ec6730d01cb45d618c2ba89560794c90ffca2933a13d8b8625fce493842f8',
-  sizeBytes: 795448,
+  url: 'https://res.cloudinary.com/dj3qeohxn/raw/upload/v1786133632/growwithme/models/nana_nlu_v2.tflite',
+  sha256: '8187f9d7b5601bdb89f6003c34e9d37a8451abdc2da787a6c84628bf976693ff',
+  sizeBytes: 1057136,
   active: true,
   meta: {
     intents: [
       'start_health_check', 'open_add_child', 'open_add_pregnancy', 'plan_diet',
       'read_today', 'get_tip', 'log_weight', 'set_reminder', 'greeting', 'help_other',
+      'ask_danger_signs', 'ask_feeding_question', 'ask_vaccine', 'find_clinic',
+      'open_calendar', 'open_tips', 'start_checkin',
     ],
     subjects: ['child', 'pregnancy', 'unknown'],
     buckets: 8192,
@@ -36,11 +38,12 @@ const NANA_NLU_MANIFEST = {
     outputLayout: 'concat: intents then subjects',
     minConfidence: 0.5,
     eval: {
-      intentAccuracy: 0.912,
-      startHealthCheckRecall: 0.98,
-      subjectAccuracy: 0.956,
+      hardTestIntent: '23/23',
+      hardTestSubject: '22/23',
+      heldOutIntentAccuracy: 1.0,
+      heldOutSubjectAccuracy: 0.997,
     },
-    trainedOn: '449 examples (templates + LLM distillation), v1',
+    trainedOn: '5201 examples (Ghana-grounded generator: Pidgin, SMS noise, local foods, hard negatives), v2',
     disclaimer:
       'Understanding only — replies are curated in-app; the model never generates text.',
   },
