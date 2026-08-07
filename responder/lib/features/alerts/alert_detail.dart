@@ -57,10 +57,12 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
   Future<void> _advance(String status) async {
     setState(() => _acting = true);
     try {
-      final res = await Api.I.dio
+      await Api.I.dio
           .patch('/alerts/${widget.alertId}/status', data: {'status': status});
+      // The PATCH response carries unpopulated references (plain IDs) —
+      // refetch so caregiver/facility/assessment stay full objects.
+      await _load();
       if (!mounted) return;
-      setState(() => _alert = res.data['alert'] as Map<String, dynamic>);
       if (status == 'acknowledged') {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content:
@@ -122,9 +124,14 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
     );
   }
 
+  /// Populated references are Maps; unpopulated ones are plain ID strings —
+  /// treat anything that isn't a Map as absent instead of crashing.
+  static Map<String, dynamic>? _asMap(dynamic v) =>
+      v is Map ? v.cast<String, dynamic>() : null;
+
   List<Widget> _buildBody(ThemeData theme, Map<String, dynamic> alert) {
-    final caregiver = alert['caregiver'] as Map<String, dynamic>?;
-    final assessment = alert['assessment'] as Map<String, dynamic>?;
+    final caregiver = _asMap(alert['caregiver']);
+    final assessment = _asMap(alert['assessment']);
     final dangerSigns =
         ((assessment?['dangerSigns'] as List?) ?? []).cast<String>();
     final coords = (alert['location'] as Map?)?['coordinates'] as List?;
