@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/constants.dart';
 import '../../core/providers.dart';
-import 'profile_screen.dart';
+import 'privacy_screen.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   const OtpScreen({super.key, required this.phone});
@@ -83,8 +83,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       }
       if (!mounted) return;
       if (result.isNewUser) {
+        // New account: explain data protection BEFORE asking for consent.
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const ProfileScreen()));
+            MaterialPageRoute(builder: (_) => const PrivacyScreen()));
       } else {
         ref.read(authControllerProvider.notifier).signedIn();
         Navigator.of(context).popUntil((route) => route.isFirst);
