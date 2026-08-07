@@ -47,5 +47,7 @@ const alertSchema = new mongoose.Schema(
 
 alertSchema.index({ facility: 1, status: 1 });
 alertSchema.index({ volunteer: 1, status: 1 });
+// Responder app finds unassigned alerts near the responder ($near query)
+alertSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Alert', alertSchema);
