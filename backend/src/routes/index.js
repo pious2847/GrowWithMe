@@ -11,6 +11,7 @@ const uploadController = require('../controllers/uploadController');
 const dashboardController = require('../controllers/dashboardController');
 const assistantController = require('../controllers/assistantController');
 const responderController = require('../controllers/responderController');
+const modelController = require('../controllers/modelController');
 
 const router = Router();
 const upload = multer({
@@ -70,6 +71,11 @@ router.post(
   requireRole('admin'),
   responderController.verifyResponder
 );
+
+// On-device model registry: apps poll the manifest, then background-download
+// the model file from its URL (see OFFLINE_MODEL_PLAN.md)
+router.get('/models/:name', requireAuth, modelController.getModel);
+router.post('/admin/models', requireAuth, requireRole('admin'), modelController.upsertModel);
 
 // Nana — AI care educator (LLM proxy + natural voice)
 router.post('/assistant/chat', requireAuth, assistantController.chat);
