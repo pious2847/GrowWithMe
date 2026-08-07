@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../core/providers.dart';
 import '../../domain/first_aid.dart';
 import '../../domain/triage/triage_engine.dart';
+import 'measurements_screen.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
   const ResultScreen({
@@ -113,6 +114,27 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           const SizedBox(height: 8),
           Text(result.guidance, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 24),
+          // Offline AI second opinion — only for non-urgent results (urgent
+          // means GET HELP, not measure), and only once the on-device model
+          // has been downloaded. It can raise concern, never lower it.
+          if (result.riskLevel != 'urgent' &&
+              ref.watch(modelServiceProvider).ready) ...[
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) =>
+                      MeasurementsScreen(rulesRiskLevel: result.riskLevel))),
+              icon: const Icon(Icons.monitor_heart),
+              label: const Text('Add measurements (optional)'),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Know your blood pressure from your ANC card? The offline '
+              'helper can give a second opinion — even without internet.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+          ],
           if (result.riskLevel == 'urgent') ...[
             Card(
               color: Colors.amber.shade50,

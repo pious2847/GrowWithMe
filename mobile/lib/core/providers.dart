@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/api/api_client.dart';
 import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
+import '../data/model/model_service.dart';
 import '../data/assistant/nana_assistant.dart';
 import '../data/diet/diet_planner.dart';
 import '../data/diet/tips_updater.dart';
@@ -38,6 +39,9 @@ final widgetServiceProvider =
     Provider<WidgetService>((ref) => WidgetService(ref.watch(dbProvider)));
 
 final ttsProvider = Provider<TtsService>((ref) => TtsService());
+
+final modelServiceProvider =
+    Provider<ModelService>((ref) => ModelService(ref.watch(apiClientProvider)));
 
 final nanaVoiceProvider = Provider<NanaVoice>(
     (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider)));
