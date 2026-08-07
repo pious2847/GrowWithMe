@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api_client.dart';
 import '../../core/model_service.dart';
+import '../../core/offline_cache.dart';
 import 'assess_vitals_screen.dart';
 
 /// Live case view: danger signs, patient contact, risk report, and the big
@@ -23,6 +24,8 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
   Map<String, dynamic>? _alert;
   String? _error;
   bool _acting = false;
+  // True when showing the last saved copy because we are offline.
+  bool _fromCache = false;
 
   // The next step for each status, in referral-loop order.
   static const _next = {
@@ -47,12 +50,25 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
       setState(() {
         _alert = res.data['alert'] as Map<String, dynamic>;
         _error = null;
+        _fromCache = false;
       });
+      OfflineCache.put('alert_${widget.alertId}', _alert!);
     } catch (_) {
-      if (mounted) {
-        setState(() => _error =
-            'Could not load this case. It may have been closed, or you are offline.');
-      }
+      // Offline: show the last saved version of this case so the responder
+      // keeps the address, phone number and danger signs in the field.
+      final cached = await OfflineCache.get('alert_${widget.alertId}')
+          as Map<String, dynamic>?;
+      if (!mounted) return;
+      setState(() {
+        if (cached != null) {
+          _alert = cached;
+          _fromCache = true;
+          _error = null;
+        } else {
+          _error =
+              'Could not load this case. It may have been closed, or you are offline.';
+        }
+      });
     }
   }
 
@@ -119,7 +135,35 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
-                children: _buildBody(theme, alert),
+                children: [
+                  if (_fromCache)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.cloud_off,
+                              size: 16, color: Colors.orange.shade900),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Offline — showing the last saved copy. Status '
+                              'updates will work once you are back online.',
+                              style: TextStyle(
+                                  color: Colors.orange.shade900,
+                                  fontSize: 12.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ..._buildBody(theme, alert),
+                ],
               ),
             ),
       bottomNavigationBar: alert == null ? null : _buildActionBar(alert),

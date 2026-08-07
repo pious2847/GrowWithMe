@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../core/api_client.dart';
 import '../../core/model_service.dart';
+import '../../core/offline_cache.dart';
 import '../alerts/alert_detail.dart';
 import '../auth/login_screen.dart';
 
@@ -32,6 +33,8 @@ class _HomeShellState extends State<HomeShell> {
   List<Map<String, dynamic>> _facilities = [];
   Position? _position;
   bool _loading = true;
+  // True when the list shows the last saved fetch because we are offline.
+  bool _fromCache = false;
   Timer? _pollTimer;
   Timer? _heartbeatTimer;
 
@@ -88,7 +91,13 @@ class _HomeShellState extends State<HomeShell> {
       if (!mounted) return;
       setState(() => _facilities =
           (res.data['facilities'] as List).cast<Map<String, dynamic>>());
-    } catch (_) {}
+      OfflineCache.put('facilities', _facilities);
+    } catch (_) {
+      final cached = await OfflineCache.get('facilities') as List?;
+      if (cached != null && mounted) {
+        setState(() => _facilities = cached.cast<Map<String, dynamic>>());
+      }
+    }
   }
 
   Future<void> _refresh() async {
@@ -100,9 +109,23 @@ class _HomeShellState extends State<HomeShell> {
         _unassigned =
             (res.data['unassigned'] as List).cast<Map<String, dynamic>>();
         _loading = false;
+        _fromCache = false;
       });
+      OfflineCache.put('alerts', {'mine': _mine, 'unassigned': _unassigned});
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      // Offline: fall back to the last successful fetch so cases stay
+      // accessible in the field.
+      final cached = await OfflineCache.get('alerts') as Map<String, dynamic>?;
+      if (!mounted) return;
+      setState(() {
+        if (cached != null) {
+          _mine = (cached['mine'] as List).cast<Map<String, dynamic>>();
+          _unassigned =
+              (cached['unassigned'] as List).cast<Map<String, dynamic>>();
+          _fromCache = true;
+        }
+        _loading = false;
+      });
     }
   }
 
@@ -168,6 +191,25 @@ class _HomeShellState extends State<HomeShell> {
       body: Column(
         children: [
           _DutyBanner(available: _available, onChanged: _setAvailability),
+          if (_fromCache)
+            Container(
+              width: double.infinity,
+              color: Colors.orange.shade100,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.cloud_off, size: 16, color: Colors.orange.shade900),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Offline — showing your last saved cases. Pull to retry.',
+                      style: TextStyle(
+                          color: Colors.orange.shade900, fontSize: 12.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: _tab == 0 ? _buildAlertList() : _buildMap(),
           ),
