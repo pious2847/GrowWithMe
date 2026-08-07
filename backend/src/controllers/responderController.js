@@ -3,6 +3,7 @@ const ApiError = require('../utils/apiError');
 const Alert = require('../models/Alert');
 const User = require('../models/User');
 const { uploadBuffer, configured } = require('../services/cloudinaryService');
+const logger = require('../utils/logger');
 
 const TIERS = ['volunteer', 'chw', 'nurse', 'midwife', 'doctor'];
 // Tiers claiming a medical profession MUST provide a license number and a
@@ -142,20 +143,35 @@ const nearbyAlerts = asyncHandler(async (req, res) => {
   let unassigned = [];
   const coords = req.user.location && req.user.location.coordinates;
   if (coords && coords.length === 2) {
-    unassigned = await Alert.find({
-      volunteer: { $exists: false },
-      status: { $in: ['pending', 'notified', 'unassigned'] },
-      location: {
-        $near: {
-          $geometry: { type: 'Point', coordinates: coords },
-          $maxDistance: NEARBY_M,
+    try {
+      unassigned = await Alert.find({
+        volunteer: { $exists: false },
+        status: { $in: ['pending', 'notified', 'unassigned'] },
+        location: {
+          $near: {
+            $geometry: { type: 'Point', coordinates: coords },
+            $maxDistance: NEARBY_M,
+          },
         },
-      },
-    })
-      .limit(25)
-      .populate('caregiver', 'name phone community')
-      .populate('facility', 'name phone type location')
-      .lean();
+      })
+        .limit(25)
+        .populate('caregiver', 'name phone community')
+        .populate('facility', 'name phone type location')
+        .lean();
+    } catch (err) {
+      // Geo index missing/mid-build must not take the whole list down —
+      // fall back to recent unassigned alerts without the distance filter.
+      logger.error(`[responder] $near query failed, falling back to non-geo list: ${err.message}`);
+      unassigned = await Alert.find({
+        volunteer: { $exists: false },
+        status: { $in: ['pending', 'notified', 'unassigned'] },
+      })
+        .sort({ createdAt: -1 })
+        .limit(25)
+        .populate('caregiver', 'name phone community')
+        .populate('facility', 'name phone type location')
+        .lean();
+    }
   }
   res.json({ success: true, mine, unassigned });
 });
