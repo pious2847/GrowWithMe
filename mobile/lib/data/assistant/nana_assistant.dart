@@ -168,6 +168,21 @@ class NanaAssistant {
           'was missed, do not fear — go to the next weighing and the nurse '
           'will continue from where you stopped.',
         );
+      case 'open_calendar':
+        return const NanaReply(
+          'Here is your calendar, my daughter — all your visits in one place.',
+          action: NanaAction('open_calendar', {}),
+        );
+      case 'open_tips':
+        return const NanaReply(
+          'Here are all the lessons I have shared with you.',
+          action: NanaAction('open_tips', {}),
+        );
+      case 'start_checkin':
+        return const NanaReply(
+          'Good. Let us check on you and the baby with a few short questions.',
+          action: NanaAction('start_checkin', {}),
+        );
       case 'find_clinic':
         return const NanaReply(
           'Your clinic visits in the Calendar tab show your facility. If '

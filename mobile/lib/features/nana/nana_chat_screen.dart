@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,9 +11,12 @@ import '../../data/db/app_database.dart';
 import '../../data/voice/nana_voice.dart';
 import '../../domain/growth_reference.dart';
 import '../assessment/assessment_screen.dart';
+import '../calendar/calendar_tab.dart';
 import '../children/add_child_screen.dart';
 import '../diet/diet_screen.dart';
 import '../pregnancy/add_pregnancy_screen.dart';
+import '../pregnancy/checkin_screen.dart';
+import '../tips/tips_tab.dart';
 
 class _ChatMessage {
   _ChatMessage(this.role, this.text, {this.offline = false, this.source = 'llm'});
@@ -227,6 +231,40 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
         final briefing = await ref.read(nanaAssistantProvider).buildBriefing();
         _addAssistant(briefing);
         return;
+      case 'open_calendar':
+        _addAssistant(reply.say, offline: offline, source: reply.source);
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => Scaffold(
+                appBar: AppBar(title: const Text('My calendar')),
+                body: const CalendarTab())));
+        return;
+      case 'open_tips':
+        _addAssistant(reply.say, offline: offline, source: reply.source);
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => Scaffold(
+                appBar: AppBar(title: const Text('Tips & lessons')),
+                body: const TipsTab())));
+        return;
+      case 'start_checkin':
+        final db = ref.read(dbProvider);
+        final pregnancy = await (db.select(db.pregnancies)
+              ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
+            .getSingleOrNull();
+        if (pregnancy == null) {
+          _addAssistant(
+              'You are not tracking a pregnancy yet. Tell me "I am pregnant" '
+              'and we will start together.',
+              offline: offline,
+              source: reply.source);
+          return;
+        }
+        _addAssistant(reply.say, offline: offline, source: reply.source);
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => CheckinScreen(pregnancy: pregnancy)));
+        return;
       // Mutating actions require a visible confirmation
       case 'add_child':
         setState(() {
@@ -363,6 +401,17 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           _send(result.recognizedWords);
         }
       },
+    );
+  }
+
+  Widget _quickChip(String emoji, String label, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ActionChip(
+        avatar: Text(emoji, style: const TextStyle(fontSize: 18)),
+        label: Text(label),
+        onPressed: onTap,
+      ),
     );
   }
 
@@ -533,7 +582,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                               color: isUser ? Colors.white : null,
                               height: 1.35),
                         ),
-                        if (m.offline)
+                        if (m.offline && m.source != 'quick')
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
@@ -593,6 +642,36 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                 ),
               ),
             ),
+          // Quick actions — one tap, no reading or typing needed. Each chip
+          // speaks its reply aloud and performs the action directly, so a
+          // caregiver who cannot read can still drive the whole app.
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                _quickChip('🩺', 'Check sickness', () => _handleAction(const NanaReply(
+                    'Let us check together, step by step.',
+                    action: NanaAction('start_health_check', {}), source: 'quick'))),
+                _quickChip('🍲', 'Food', () => _handleAction(const NanaReply(
+                    'Let us plan good food that fits your pocket.',
+                    action: NanaAction('plan_diet', {}), source: 'quick'))),
+                _quickChip('📅', 'My visits', () => _handleAction(const NanaReply(
+                    'Let me tell you what is coming.',
+                    action: NanaAction('read_today', {}), source: 'quick'))),
+                _quickChip('🤰', 'Check-in', () => _handleAction(const NanaReply(
+                    'Let us check on you and the baby.',
+                    action: NanaAction('start_checkin', {}), source: 'quick'))),
+                _quickChip('👶', 'Add baby', () => _handleAction(const NanaReply(
+                    'Let us add your child together.',
+                    action: NanaAction('open_add_child', {}), source: 'quick'))),
+                _quickChip('🗓️', 'Calendar', () => _handleAction(const NanaReply(
+                    'Here is your calendar.',
+                    action: NanaAction('open_calendar', {}), source: 'quick'))),
+              ],
+            ),
+          ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),

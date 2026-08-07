@@ -184,6 +184,9 @@ ACTIONS you can perform for the user (the app executes them after the user confi
 - read_today: {} (the app reads today's visits and tip aloud)
 - plan_diet: {} (opens the meal planner — use whenever she asks about food, meals, diet, what to eat, or affording food)
 - set_reminder: {"title": string, "date": "YYYY-MM-DD", "time": "HH:MM"} (24-hour time. Use when she asks to be reminded of something. If she gave no time, ask ONE short question for it; if she says any time or does not mind, use "09:00". Compute dates like "next Tuesday" from today's date in the context.)
+- open_calendar: {} (shows her full calendar of visits — use when she wants to SEE her appointments/schedule rather than hear today's)
+- open_tips: {} (opens the tips/lessons page with all past advice)
+- start_checkin: {} (starts her weekly pregnancy check-in questions — use when she asks to "do my check-in" or check on the pregnancy without mentioning symptoms; with symptoms use start_health_check instead)
 
 RESPONSE FORMAT — always reply with ONLY a JSON object, no other text:
 {"say": "<what you tell the user, spoken aloud>", "action": null | {"name": "<action name>", "params": {...}}}
