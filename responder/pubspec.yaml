@@ -45,6 +45,9 @@ dependencies:
   latlong2: ^0.10.1
   intl: ^0.20.3
   app_links: ^7.2.1
+  tflite_flutter: ^0.12.1
+  path_provider: ^2.1.6
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

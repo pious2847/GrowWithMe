@@ -3,6 +3,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api_client.dart';
+import '../../core/model_service.dart';
+import 'assess_vitals_screen.dart';
 
 /// Live case view: danger signs, patient contact, risk report, and the big
 /// action flow Accept → En route → At facility → Close. Accepting an
@@ -262,6 +264,18 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
             ),
         ],
       ),
+      // Offline AI vitals assessment — only offered once the on-device model
+      // has been downloaded and verified; works with zero connectivity.
+      if (ModelService.I.ready) ...[
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => AssessVitalsScreen(
+                  patientName: caregiver?['name'] as String?))),
+          icon: const Icon(Icons.monitor_heart),
+          label: const Text('Assess vitals (offline AI)'),
+        ),
+      ],
       const SizedBox(height: 18),
 
       // Timeline

@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/api_client.dart';
+import '../../core/model_service.dart';
 import '../alerts/alert_detail.dart';
 import '../auth/login_screen.dart';
 
@@ -48,6 +49,9 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _start() async {
+    // Background-fetch the offline risk model; silent no-op when offline or
+    // already current. The Assess Vitals feature hides until this succeeds.
+    ModelService.I.ensureLatest();
     await _heartbeat();
     await _refresh();
     _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _refresh());
