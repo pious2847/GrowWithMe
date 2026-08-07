@@ -34,7 +34,9 @@ class NluService {
   bool get ready => _model.ready;
   Future<void> ensureLatest() => _model.ensureLatest();
 
-  static int _fnv1a32(String s) {
+  /// Public for the contract test in test/nlu_featurizer_test.dart, which
+  /// pins these against the numbers the training notebook prints.
+  static int fnv1a32(String s) {
     var h = 2166136261;
     for (final b in s.codeUnits) {
       // Feature strings are ASCII by construction (see _featurize), so code
@@ -45,7 +47,7 @@ class NluService {
     return h;
   }
 
-  List<double> _featurize(String text, int buckets) {
+  static List<double> featurize(String text, int buckets) {
     final cleaned = text
         .toLowerCase()
         .replaceAll(RegExp(r"[^a-z0-9' ]"), ' ')
@@ -65,7 +67,7 @@ class NluService {
     }
     final v = List<double>.filled(buckets, 0);
     for (final f in feats) {
-      v[_fnv1a32(f) % buckets] += 1;
+      v[fnv1a32(f) % buckets] += 1;
     }
     var norm = 0.0;
     for (final x in v) {
@@ -94,7 +96,7 @@ class NluService {
         (meta['minConfidence'] as num?)?.toDouble() ?? 0.5;
 
     final out =
-        _model.run(_featurize(text, buckets), intents.length + subjects.length);
+        _model.run(featurize(text, buckets), intents.length + subjects.length);
     var bi = 0;
     for (var i = 1; i < intents.length; i++) {
       if (out[i] > out[bi]) bi = i;

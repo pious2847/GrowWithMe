@@ -1,7 +1,7 @@
 /**
  * Registers/updates an on-device model manifest in the MlModel registry.
- * Usage: node scripts/register_model.js [--env atlas-credentials.env]
- * Edit MANIFEST below when publishing a new version (bump `version`!).
+ * Usage: node scripts/register_model.js [--env atlas-credentials.env] [--name maternal-risk|nana-nlu]
+ * Default registers ALL manifests below. Bump `version` when publishing a new file!
  */
 const path = require('path');
 const envFile = process.argv.includes('--env')
@@ -16,7 +16,37 @@ require('dns').setServers(['8.8.8.8', '1.1.1.1']);
 const mongoose = require('mongoose');
 const MlModel = require('../src/models/MlModel');
 
-const MANIFEST = {
+const NANA_NLU_MANIFEST = {
+  name: 'nana-nlu',
+  version: 1,
+  kind: 'tflite',
+  url: 'https://res.cloudinary.com/dj3qeohxn/raw/upload/v1786130733/growwithme/models/nana_nlu_v1.tflite',
+  sha256: 'fc5ec6730d01cb45d618c2ba89560794c90ffca2933a13d8b8625fce493842f8',
+  sizeBytes: 795448,
+  active: true,
+  meta: {
+    intents: [
+      'start_health_check', 'open_add_child', 'open_add_pregnancy', 'plan_diet',
+      'read_today', 'get_tip', 'log_weight', 'set_reminder', 'greeting', 'help_other',
+    ],
+    subjects: ['child', 'pregnancy', 'unknown'],
+    buckets: 8192,
+    featurizer:
+      "lowercase; [^a-z0-9' ]->space; unigrams u:, bigrams b:_, char trigrams c: of ^tok$; fnv1a32 % buckets; L2 norm",
+    outputLayout: 'concat: intents then subjects',
+    minConfidence: 0.5,
+    eval: {
+      intentAccuracy: 0.912,
+      startHealthCheckRecall: 0.98,
+      subjectAccuracy: 0.956,
+    },
+    trainedOn: '449 examples (templates + LLM distillation), v1',
+    disclaimer:
+      'Understanding only — replies are curated in-app; the model never generates text.',
+  },
+};
+
+const MATERNAL_RISK_MANIFEST = {
   name: 'maternal-risk',
   version: 1,
   kind: 'tflite',
@@ -62,18 +92,26 @@ const MANIFEST = {
   },
 };
 
+const MANIFESTS = [MATERNAL_RISK_MANIFEST, NANA_NLU_MANIFEST];
+
 async function main() {
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
   if (!uri) throw new Error(`No MONGO_URI/MONGODB_URI in ${envFile}`);
+  const only = process.argv.includes('--name')
+    ? process.argv[process.argv.indexOf('--name') + 1]
+    : null;
   await mongoose.connect(uri);
   console.log(`[register_model] connected to ${mongoose.connection.name}`);
-  const { name, version, url, sha256, sizeBytes, kind, active, meta } = MANIFEST;
-  const doc = await MlModel.findOneAndUpdate(
-    { name },
-    { name, version, url, sha256, sizeBytes, kind, active, meta },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-  console.log(`[register_model] ${doc.name} v${doc.version} registered (${doc.sizeBytes} bytes)`);
+  for (const manifest of MANIFESTS) {
+    if (only && manifest.name !== only) continue;
+    const { name, version, url, sha256, sizeBytes, kind, active, meta } = manifest;
+    const doc = await MlModel.findOneAndUpdate(
+      { name },
+      { name, version, url, sha256, sizeBytes, kind, active, meta },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    console.log(`[register_model] ${doc.name} v${doc.version} registered (${doc.sizeBytes} bytes)`);
+  }
   await mongoose.disconnect();
 }
 
