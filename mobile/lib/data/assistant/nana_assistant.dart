@@ -139,6 +139,42 @@ class NanaAssistant {
           'Hello, my daughter. I am here. Ask me about food, your visits, '
           'or tell me if someone is unwell.',
         );
+      // v2 intents — curated GHS-based teaching, available fully offline.
+      case 'ask_danger_signs':
+        return const NanaReply(
+          'Listen well, because this can save a life. For a pregnant woman, '
+          'go to the clinic NOW if you see: bleeding, severe headache or '
+          'blurred vision, swollen face and hands, fever, strong belly pain, '
+          'the waters breaking early, or the baby not moving. For a baby or '
+          'child: convulsions, cannot drink or breastfeed, vomits everything, '
+          'very sleepy or hard to wake, fast or difficult breathing, or blood '
+          'in the stool. If you see ANY of these, tell me the symptoms and I '
+          'will check it with you right away.',
+        );
+      case 'ask_feeding_question':
+        return NanaReply(
+          'Remember: for the first 6 months, breast milk ALONE — no water, no '
+          'koko. From 6 months, start soft foods like enriched koko and '
+          'mashed foods while you keep breastfeeding up to 2 years. '
+          '${await _tipText()} For questions about your own child, the nurse '
+          'at weighing can help you best.',
+        );
+      case 'ask_vaccine':
+        return const NanaReply(
+          'Vaccines protect your baby from killer diseases, and they are '
+          'free. The visits follow the weighing card: at birth, then 6, 10 '
+          'and 14 weeks, then 9 and 18 months. Your own child\'s dates are in '
+          'the Calendar tab, and I remind you before each one. If a vaccine '
+          'was missed, do not fear — go to the next weighing and the nurse '
+          'will continue from where you stopped.',
+        );
+      case 'find_clinic':
+        return const NanaReply(
+          'Your clinic visits in the Calendar tab show your facility. If '
+          'someone is unwell RIGHT NOW, tell me the symptoms — if it is '
+          'serious, the app alerts the nearest facility and a health '
+          'responder with your location so help can find you.',
+        );
       default:
         return null; // help_other and anything else → generic helper below
     }
