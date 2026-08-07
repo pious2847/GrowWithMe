@@ -10,6 +10,7 @@ const facilityController = require('../controllers/facilityController');
 const uploadController = require('../controllers/uploadController');
 const dashboardController = require('../controllers/dashboardController');
 const assistantController = require('../controllers/assistantController');
+const responderController = require('../controllers/responderController');
 
 const router = Router();
 const upload = multer({
@@ -43,6 +44,32 @@ router.patch('/facilities/:id', requireAuth, requireRole('admin'), facilityContr
 
 // Uploads (Cloudinary)
 router.post('/uploads', requireAuth, upload.single('file'), uploadController.upload);
+
+// Responder app (volunteers, CHWs, nurses, midwives, doctors)
+router.post('/responder/profile', requireAuth, responderController.saveProfile);
+router.post(
+  '/responder/documents',
+  requireAuth,
+  upload.single('file'),
+  responderController.uploadDocument
+);
+router.post('/responder/location', requireAuth, responderController.updateLocation);
+router.post('/responder/availability', requireAuth, responderController.setAvailability);
+router.get('/responder/alerts', requireAuth, responderController.nearbyAlerts);
+
+// Admin: responder verification queue
+router.get(
+  '/admin/responders/pending',
+  requireAuth,
+  requireRole('admin'),
+  responderController.pendingResponders
+);
+router.post(
+  '/admin/responders/:id/verify',
+  requireAuth,
+  requireRole('admin'),
+  responderController.verifyResponder
+);
 
 // Nana — AI care educator (LLM proxy + natural voice)
 router.post('/assistant/chat', requireAuth, assistantController.chat);

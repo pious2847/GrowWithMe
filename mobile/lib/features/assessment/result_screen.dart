@@ -209,7 +209,37 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                 ),
               ),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          // The check is automated and fallible — never let a reassuring
+          // result talk a worried caregiver out of seeking care.
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blueGrey.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline,
+                    size: 20, color: Colors.blueGrey.shade700),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'This result comes from the app\'s automated health check, '
+                    'which can make mistakes. It does not replace a health '
+                    'worker. If you are worried, go to a clinic — even if the '
+                    'result looks fine.',
+                    style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: Colors.blueGrey.shade800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           FilledButton(
             onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
             child: const Text('Done'),

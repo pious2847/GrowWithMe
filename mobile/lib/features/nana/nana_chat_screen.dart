@@ -402,6 +402,18 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
       ),
       body: Column(
         children: [
+          // Always-visible honesty note: Nana is an AI and can be wrong.
+          Container(
+            width: double.infinity,
+            color: theme.colorScheme.surfaceContainerHigh,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Text(
+              'ℹ️ Nana is an AI helper and can make mistakes. For anything '
+              'serious, always check with a nurse, midwife or doctor.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,

@@ -2,21 +2,40 @@ const Alert = require('../models/Alert');
 const User = require('../models/User');
 const Facility = require('../models/Facility');
 const { sendSms } = require('./arkesel');
+const env = require('../config/env');
 
 const MAX_VOLUNTEER_DISTANCE_M = 25000; // 25 km
 const MAX_FACILITY_DISTANCE_M = 50000; // 50 km
 
-function findNearestVolunteer(coordinates) {
-  return User.findOne({
-    role: 'volunteer',
-    available: true,
-    location: {
-      $near: {
-        $geometry: { type: 'Point', coordinates },
-        $maxDistance: MAX_VOLUNTEER_DISTANCE_M,
+// Routing priority: professional tier + verification outrank raw distance.
+// A verified nurse 5 km away beats an unverified volunteer 1 km away;
+// a volunteer 1 km away beats a doctor 24 km away.
+const TIER_WEIGHT = { doctor: 5, midwife: 4.5, nurse: 4, chw: 3, volunteer: 2 };
+
+function responderScore(candidate) {
+  const tier = candidate.credentials?.tier || 'volunteer';
+  const verified = candidate.credentials?.status === 'verified';
+  const distanceKm = (candidate.distanceM || 0) / 1000;
+  return (TIER_WEIGHT[tier] || 2) + (verified ? 2 : 0) - distanceKm * 0.15;
+}
+
+/** Best available responder within 25 km, scored by tier + verification −
+ * distance. Returns a full User document, or null. */
+async function findBestResponder(coordinates) {
+  const candidates = await User.aggregate([
+    {
+      $geoNear: {
+        near: { type: 'Point', coordinates },
+        distanceField: 'distanceM',
+        maxDistance: MAX_VOLUNTEER_DISTANCE_M,
+        query: { role: 'volunteer', available: true },
       },
     },
-  });
+    { $limit: 25 },
+  ]);
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => responderScore(b) - responderScore(a));
+  return User.findById(candidates[0]._id);
 }
 
 function findNearestFacility(coordinates) {
@@ -79,7 +98,7 @@ async function raiseAlert(assessment, caregiver) {
   let placesHospital = null;
   if (coordinates && coordinates.length === 2) {
     [volunteer, facility] = await Promise.all([
-      findNearestVolunteer(coordinates),
+      findBestResponder(coordinates),
       findNearestFacility(coordinates),
     ]);
     // Real-world fallback: nothing in our registry nearby → ask Google Places
@@ -127,10 +146,14 @@ async function raiseAlert(assessment, caregiver) {
       ? ` Location: https://maps.google.com/?q=${coordinates[1]},${coordinates[0]}`
       : '';
 
+  // Responder deep link: opens the live alert in the responder app (or the
+  // web status page as a fallback for phones without it).
+  const alertLink = ` Case: ${env.publicUrl}/a/${alert._id}`;
+
   const sends = [];
   if (volunteer && volunteer.phone) {
     sends.push(
-      sendSms(volunteer.phone, `${summary}${mapsLink} Please respond and assist to the nearest facility.`).then(
+      sendSms(volunteer.phone, `${summary}${mapsLink}${alertLink} Please respond and assist to the nearest facility.`).then(
         (r) => alert.smsResults.push({ to: volunteer.phone, kind: 'volunteer', ok: r.ok, error: r.error })
       )
     );
@@ -139,6 +162,19 @@ async function raiseAlert(assessment, caregiver) {
     sends.push(
       sendSms(facility.phone, `${summary}${mapsLink}${reportNote} A case may be on the way to your facility.`).then((r) =>
         alert.smsResults.push({ to: facility.phone, kind: 'facility', ok: r.ok, error: r.error })
+      )
+    );
+  }
+  // Every emergency contact the facility registered gets the alert too
+  // (matron on duty, ambulance line...).
+  for (const contact of (facility && facility.emergencyContacts) || []) {
+    if (!contact.phone) continue;
+    sends.push(
+      sendSms(
+        contact.phone,
+        `${summary}${mapsLink}${reportNote} You are an emergency contact for ${facility.name}. A case may be on the way.`
+      ).then((r) =>
+        alert.smsResults.push({ to: contact.phone, kind: 'facility_contact', ok: r.ok, error: r.error })
       )
     );
   }

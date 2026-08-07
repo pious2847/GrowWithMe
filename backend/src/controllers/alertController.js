@@ -6,10 +6,17 @@ const STATUS_FLOW = ['acknowledged', 'en_route', 'at_facility', 'closed'];
 
 function canAccess(alert, user) {
   const id = String(user._id);
+  const caregiverId = String(alert.caregiver && alert.caregiver._id ? alert.caregiver._id : alert.caregiver);
+  const volunteerId = alert.volunteer
+    ? String(alert.volunteer._id ? alert.volunteer._id : alert.volunteer)
+    : null;
   return (
     user.role === 'admin' ||
-    String(alert.caregiver) === id ||
-    (alert.volunteer && String(alert.volunteer) === id) ||
+    caregiverId === id ||
+    (volunteerId && volunteerId === id) ||
+    // Responders may open unassigned alerts (to step in when no one was
+    // auto-assigned, or via the SMS deep link).
+    (user.role === 'volunteer' && !volunteerId) ||
     (user.role === 'facility' && user.facility && String(alert.facility) === String(user.facility))
   );
 }
@@ -58,9 +65,28 @@ const updateStatus = asyncHandler(async (req, res) => {
   if (!alert) throw ApiError.notFound('Alert not found');
   if (!canAccess(alert, req.user) || req.user.role === 'caregiver') throw ApiError.forbidden();
 
+  // A responder accepting an unassigned alert claims it.
+  const claiming = req.user.role === 'volunteer' && !alert.volunteer;
+  if (claiming) alert.volunteer = req.user._id;
+
+  const firstAccept = status === 'acknowledged' && alert.status !== 'acknowledged';
   alert.status = status;
   alert.timeline.push({ event: status, by: req.user._id, note });
   await alert.save();
+
+  // Tell the mother help is on the way the moment a responder accepts.
+  if (firstAccept && req.user.role === 'volunteer') {
+    const User = require('../models/User');
+    const { sendSms } = require('../services/arkesel');
+    const caregiver = await User.findById(alert.caregiver).lean();
+    if (caregiver && caregiver.phone) {
+      const who = req.user.name || 'A health responder';
+      sendSms(
+        caregiver.phone,
+        `${who} (${req.user.phone}) has accepted your case and is on the way. Stay where you can be found and keep your phone close.`
+      ).catch(() => {});
+    }
+  }
   res.json({ success: true, alert });
 });
 
