@@ -15,10 +15,13 @@ import '../diet/diet_screen.dart';
 import '../pregnancy/add_pregnancy_screen.dart';
 
 class _ChatMessage {
-  _ChatMessage(this.role, this.text, {this.offline = false});
+  _ChatMessage(this.role, this.text, {this.offline = false, this.source = 'llm'});
 
   final String role; // user | assistant
   final String text;
+
+  /// Which brain produced this: 'llm', 'nlu' (on-device model) or 'keyword'.
+  final String source;
 
   /// true when the offline helper answered (backend unreachable) — shown as
   /// a small tag so the caregiver knows which brain spoke.
@@ -112,9 +115,12 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
   }
 
   void _addAssistant(String text,
-      {bool speak = true, bool persist = true, bool offline = false}) {
-    setState(() =>
-        _messages.add(_ChatMessage('assistant', text, offline: offline)));
+      {bool speak = true,
+      bool persist = true,
+      bool offline = false,
+      String source = 'llm'}) {
+    setState(() => _messages
+        .add(_ChatMessage('assistant', text, offline: offline, source: source)));
     if (persist) _persist('assistant', text);
     if (speak) _speakReply(text);
     _scrollDown();
@@ -170,7 +176,8 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     if (reply.action != null) {
       await _handleAction(reply);
     } else {
-      _addAssistant(reply.say, offline: !reply.fromLlm);
+      _addAssistant(reply.say,
+          offline: !reply.fromLlm, source: reply.source);
     }
   }
 
@@ -180,7 +187,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     switch (action.name) {
       // Immediate, non-mutating actions
       case 'start_health_check':
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         final childName = action.params['childName'] as String?;
         final child = childName == null
             ? null
@@ -197,25 +204,26 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                 childId: child?.id)));
         return;
       case 'open_add_child':
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const AddChildScreen()));
         return;
       case 'open_add_pregnancy':
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
         Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AddPregnancyScreen()));
         return;
       case 'plan_diet':
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const DietScreen()));
         return;
       case 'read_today':
-        _addAssistant(reply.say, speak: false, offline: offline);
+        _addAssistant(reply.say,
+            speak: false, offline: offline, source: reply.source);
         final briefing = await ref.read(nanaAssistantProvider).buildBriefing();
         _addAssistant(briefing);
         return;
@@ -226,7 +234,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           _pendingActionSummary =
               'Add child: ${action.params['name']} (${action.params['sex'] ?? '?'}), born ${action.params['dateOfBirth']}';
         });
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         return;
       case 'add_pregnancy':
         setState(() {
@@ -234,7 +242,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           _pendingActionSummary =
               'Track pregnancy, due ${action.params['expectedDueDate']}';
         });
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         return;
       case 'log_weight':
         setState(() {
@@ -242,7 +250,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           _pendingActionSummary =
               'Save weight ${action.params['weightKg']} kg for ${action.params['childName']}';
         });
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         return;
       case 'set_reminder':
         setState(() {
@@ -250,10 +258,10 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           _pendingActionSummary =
               'Remind you: "${action.params['title']}" on ${action.params['date']} at ${action.params['time'] ?? '09:00'}';
         });
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
         return;
       default:
-        _addAssistant(reply.say, offline: offline);
+        _addAssistant(reply.say, offline: offline, source: reply.source);
     }
   }
 
@@ -358,6 +366,46 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     );
   }
 
+  void _showOfflineStatus() {
+    final nlu = ref.read(nluServiceProvider);
+    final risk = ref.read(modelServiceProvider);
+    String line(String name, bool ready, int? version, int? size) => ready
+        ? '✅ $name — v$version, ${((size ?? 0) / 1024).round()} KB, on this phone'
+        : '⬇️ $name — not downloaded yet (opens with internet once)';
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Offline AI on this phone'),
+        content: Text(
+          '${line('Nana understanding (nana-nlu)', nlu.ready, nlu.version, nlu.sizeBytes)}\n\n'
+          '${line('Risk model (maternal-risk)', risk.ready, risk.version, risk.sizeBytes)}\n\n'
+          'When the green bolt shows, turn on airplane mode and try: '
+          '"I just delivered a boy" or "what should I cook with small money" — '
+          'Nana will understand and open the right screen with no internet. '
+          'Replies under an offline answer say which helper produced them.',
+          style: const TextStyle(height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Manual re-check, e.g. right after turning data on.
+              nlu.ensureLatest();
+              risk.ensureLatest();
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(
+                  content: Text('Checking for models… reopen this dialog in a '
+                      'few seconds.')));
+            },
+            child: const Text('Check now'),
+          ),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -387,6 +435,21 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           ],
         ),
         actions: [
+          // Offline-brain status: green chip = the on-device NLU model is
+          // downloaded and Nana understands speech without internet.
+          // Tap for details (versions, sizes, how to test).
+          IconButton(
+            tooltip: 'Offline AI status',
+            icon: Icon(
+              ref.watch(nluServiceProvider).ready
+                  ? Icons.offline_bolt
+                  : Icons.offline_bolt_outlined,
+              color: ref.watch(nluServiceProvider).ready
+                  ? Colors.green.shade600
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            onPressed: _showOfflineStatus,
+          ),
           IconButton(
             tooltip: _voiceMode
                 ? 'End voice conversation'
@@ -474,7 +537,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              '📴 offline helper — connect to reach Nana\'s full brain',
+                              m.source == 'nlu'
+                                  ? '📴 offline — understood by Nana\'s on-device AI'
+                                  : '📴 offline basic helper — connect to reach Nana\'s full brain',
                               style: TextStyle(
                                   fontSize: 10.5,
                                   fontStyle: FontStyle.italic,

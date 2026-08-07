@@ -32,6 +32,8 @@ class NluService {
   final OnDeviceModel _model;
 
   bool get ready => _model.ready;
+  int? get version => _model.version;
+  int? get sizeBytes => _model.sizeBytes;
   Future<void> ensureLatest() => _model.ensureLatest();
 
   /// Public for the contract test in test/nlu_featurizer_test.dart, which

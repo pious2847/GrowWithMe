@@ -16,11 +16,16 @@ class NanaAction {
 }
 
 class NanaReply {
-  const NanaReply(this.say, {this.action, this.fromLlm = false});
+  const NanaReply(this.say, {this.action, this.source = 'keyword'});
 
   final String say;
   final NanaAction? action;
-  final bool fromLlm;
+
+  /// Which brain answered: 'llm' (backend), 'nlu' (on-device model with a
+  /// curated reply), or 'keyword' (basic offline matcher).
+  final String source;
+
+  bool get fromLlm => source == 'llm';
 }
 
 /// Nana's brain-glue. Builds the caregiver's context from the local database,
@@ -53,7 +58,7 @@ class NanaAssistant {
               ? null
               : NanaAction(actionJson['name'] as String? ?? '',
                   (actionJson['params'] as Map<String, dynamic>?) ?? {}),
-          fromLlm: true,
+          source: 'llm',
         );
       } catch (_) {
         _api.invalidateBaseUrl();
@@ -82,7 +87,9 @@ class NanaAssistant {
     final understood = _nlu?.classify(text);
     if (understood != null) {
       final reply = await _replyForIntent(understood);
-      if (reply != null) return reply;
+      if (reply != null) {
+        return NanaReply(reply.say, action: reply.action, source: 'nlu');
+      }
     }
 
     return _keywordIntent(t);

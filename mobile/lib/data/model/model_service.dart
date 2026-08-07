@@ -30,6 +30,8 @@ class ModelService {
 
   bool get ready => _model.ready;
   Map<String, dynamic> get meta => _model.meta;
+  int? get version => _model.version;
+  int? get sizeBytes => _model.sizeBytes;
   Future<void> ensureLatest() => _model.ensureLatest();
 
   /// Runs the model on partially-filled vitals. [values] keys follow
