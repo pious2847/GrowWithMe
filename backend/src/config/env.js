@@ -25,7 +25,9 @@ const env = {
   },
   elevenlabs: {
     apiKey: process.env.ELEVENLABS_API_KEY || '',
-    voiceId: process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
+    // Default: Sarah — a premade voice, usable on free-tier API keys.
+    // (Library/community voices and legacy Rachel 402 on free accounts.)
+    voiceId: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
   },
   otpTtlMinutes: parseInt(process.env.OTP_TTL_MINUTES || '10', 10),
   // OTP_DEBUG=true: when SMS sending fails, log the code server-side and let
