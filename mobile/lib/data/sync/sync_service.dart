@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/constants.dart';
@@ -71,49 +72,53 @@ class SyncService {
       await _db.markSynced(
           _db.dailyTips, dirtyDailyTips.map((r) => r.id).toList());
 
-      for (final doc in (pull['children'] as List? ?? [])) {
-        await _db.into(_db.children).insertOnConflictUpdate(_childFromJson(doc));
-      }
-      for (final doc in (pull['pregnancies'] as List? ?? [])) {
-        await _db.into(_db.pregnancies).insertOnConflictUpdate(_pregnancyFromJson(doc));
-      }
-      for (final doc in (pull['assessments'] as List? ?? [])) {
-        await _db.into(_db.assessments).insertOnConflictUpdate(_assessmentFromJson(doc));
-      }
-      for (final doc in (pull['reminders'] as List? ?? [])) {
-        await _db.into(_db.reminders).insertOnConflictUpdate(_reminderFromJson(doc));
-      }
-      for (final doc in (pull['growthRecords'] as List? ?? [])) {
-        await _db
-            .into(_db.growthRecords)
-            .insertOnConflictUpdate(_growthFromJson(doc));
-      }
-      for (final doc in (pull['chatMessages'] as List? ?? [])) {
-        await _db
-            .into(_db.chatMessages)
-            .insertOnConflictUpdate(_chatFromJson(doc));
-      }
-      for (final doc in (pull['dietPlans'] as List? ?? [])) {
-        await _db
-            .into(_db.dietPlans)
-            .insertOnConflictUpdate(_dietPlanFromJson(doc));
-      }
-      for (final doc in (pull['dietLogs'] as List? ?? [])) {
-        await _db
-            .into(_db.dietLogs)
-            .insertOnConflictUpdate(_dietLogFromJson(doc));
-      }
-      for (final doc in (pull['dailyTips'] as List? ?? [])) {
-        await _db
-            .into(_db.dailyTips)
-            .insertOnConflictUpdate(_dailyTipFromJson(doc));
-      }
-      for (final doc in (pull['alerts'] as List? ?? [])) {
-        await _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(doc));
-      }
+      // One malformed document must never take down the whole pull (it used
+      // to roll back the entire transaction, leaving a fresh install empty
+      // forever) — apply per-doc, log and skip failures.
+      await _applyAll('children', pull['children'],
+          (d) => _db.into(_db.children).insertOnConflictUpdate(_childFromJson(d)));
+      await _applyAll('pregnancies', pull['pregnancies'],
+          (d) => _db.into(_db.pregnancies).insertOnConflictUpdate(_pregnancyFromJson(d)));
+      await _applyAll('assessments', pull['assessments'],
+          (d) => _db.into(_db.assessments).insertOnConflictUpdate(_assessmentFromJson(d)));
+      await _applyAll('reminders', pull['reminders'],
+          (d) => _db.into(_db.reminders).insertOnConflictUpdate(_reminderFromJson(d)));
+      await _applyAll('growthRecords', pull['growthRecords'],
+          (d) => _db.into(_db.growthRecords).insertOnConflictUpdate(_growthFromJson(d)));
+      await _applyAll('chatMessages', pull['chatMessages'],
+          (d) => _db.into(_db.chatMessages).insertOnConflictUpdate(_chatFromJson(d)));
+      await _applyAll('dietPlans', pull['dietPlans'],
+          (d) => _db.into(_db.dietPlans).insertOnConflictUpdate(_dietPlanFromJson(d)));
+      await _applyAll('dietLogs', pull['dietLogs'],
+          (d) => _db.into(_db.dietLogs).insertOnConflictUpdate(_dietLogFromJson(d)));
+      await _applyAll('dailyTips', pull['dailyTips'],
+          (d) => _db.into(_db.dailyTips).insertOnConflictUpdate(_dailyTipFromJson(d)));
+      await _applyAll('alerts', pull['alerts'],
+          (d) => _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(d)));
     });
 
     await prefs.setInt(kLastPulledAtKey, data['serverTime'] as int);
+  }
+
+  /// Applies one pulled collection doc-by-doc; a failing document is logged
+  /// (id + error) and skipped instead of aborting the sync.
+  Future<void> _applyAll(
+      String key, dynamic docs, Future<void> Function(Map<String, dynamic>) apply) async {
+    final list = (docs as List? ?? []);
+    var failed = 0;
+    for (final doc in list) {
+      try {
+        await apply((doc as Map).cast<String, dynamic>());
+      } catch (e) {
+        failed++;
+        if (failed <= 3) {
+          debugPrint('[sync] $key doc ${doc is Map ? doc['_id'] : '?'} failed: $e');
+        }
+      }
+    }
+    if (failed > 0) {
+      debugPrint('[sync] $key: applied ${list.length - failed}/${list.length}, $failed skipped');
+    }
   }
 
   // ---- Row -> backend JSON ----

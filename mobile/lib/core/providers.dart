@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -158,6 +159,9 @@ class SyncController extends AsyncNotifier<DateTime?> {
       state = AsyncData(DateTime.now());
       return true;
     } catch (e, st) {
+      // Sync failures were previously invisible — a broken pull looked like
+      // "the app lost my data". Always leave a trace in the console.
+      debugPrint('[sync] FAILED: $e\n$st');
       state = AsyncError(e, st);
       return false;
     } finally {

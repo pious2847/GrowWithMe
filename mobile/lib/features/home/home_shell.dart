@@ -540,7 +540,31 @@ class _GlanceCharts extends ConsumerWidget {
     final logs = ref.watch(recentDietLogsProvider).value ?? const [];
     final riskRecords =
         ref.watch(pregnancyAssessmentsProvider).value ?? const [];
-    if (logs.isEmpty && riskRecords.isEmpty) return const SizedBox.shrink();
+    if (logs.isEmpty && riskRecords.isEmpty) {
+      // Never vanish silently — an empty slot looks like a broken feature
+      // (and hides that charts exist at all). Invite the first data instead.
+      return Card(
+        elevation: 0,
+        color: theme.colorScheme.surfaceContainerLow,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              const Text('📊', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Your health charts will appear here after your first '
+                  'check-in or meal log — or once your data finishes syncing.',
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
