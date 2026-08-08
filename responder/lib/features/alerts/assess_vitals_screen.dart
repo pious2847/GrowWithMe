@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api_client.dart';
 import '../../core/model_service.dart';
 
 /// Offline vitals assessment: the responder measures the patient and gets an
@@ -7,9 +8,10 @@ import '../../core/model_service.dart';
 /// phone. Empty fields are allowed (the model tolerates missing inputs down
 /// to the manifest's minimum policy).
 class AssessVitalsScreen extends StatefulWidget {
-  const AssessVitalsScreen({super.key, this.patientName});
+  const AssessVitalsScreen({super.key, this.patientName, this.alertId});
 
   final String? patientName;
+  final String? alertId;
 
   @override
   State<AssessVitalsScreen> createState() => _AssessVitalsScreenState();
@@ -72,6 +74,23 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
           : null;
       _result = result;
     });
+    if (result != null) _shadowLog(values, result);
+  }
+
+  /// Shadow-mode data flywheel: de-identified vitals + prediction go to the
+  /// backend so the model can later be fine-tuned on local cases. Best-effort
+  /// only — offline or failed sends are silently dropped.
+  Future<void> _shadowLog(Map<String, double?> values, RiskAssessment result) async {
+    try {
+      await Api.I.dio.post('/models/maternal-risk/log', data: {
+        'source': 'responder',
+        'modelVersion': ModelService.I.version,
+        'values': values,
+        'usedInputs': result.usedInputs,
+        'prediction': {'label': result.label, 'probs': result.probs},
+        if (widget.alertId != null) 'alertId': widget.alertId,
+      });
+    } catch (_) {}
   }
 
   @override

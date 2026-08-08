@@ -315,7 +315,8 @@ class _AlertDetailScreenState extends State<AlertDetailScreen> {
         OutlinedButton.icon(
           onPressed: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => AssessVitalsScreen(
-                  patientName: caregiver?['name'] as String?))),
+                  patientName: caregiver?['name'] as String?,
+                  alertId: widget.alertId))),
           icon: const Icon(Icons.monitor_heart),
           label: const Text('Assess vitals (offline AI)'),
         ),

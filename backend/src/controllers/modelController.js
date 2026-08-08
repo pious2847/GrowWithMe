@@ -36,4 +36,27 @@ const upsertModel = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, model });
 });
 
-module.exports = { getModel, upsertModel };
+// POST /api/v1/models/:name/log — shadow-mode assessment logging. Fire-and-
+// forget from the apps; must stay cheap and never fail loudly.
+const logAssessment = asyncHandler(async (req, res) => {
+  const VitalsLog = require('../models/VitalsLog');
+  const { source, modelVersion, values, usedInputs, prediction, rulesRiskLevel, alertId } =
+    req.body || {};
+  if (!['responder', 'caregiver'].includes(source)) {
+    throw ApiError.badRequest('source must be responder or caregiver');
+  }
+  await VitalsLog.create({
+    owner: req.user._id,
+    source,
+    modelName: req.params.name,
+    modelVersion,
+    values: values || {},
+    usedInputs,
+    prediction,
+    rulesRiskLevel,
+    alert: alertId || undefined,
+  });
+  res.status(201).json({ success: true });
+});
+
+module.exports = { getModel, upsertModel, logAssessment };

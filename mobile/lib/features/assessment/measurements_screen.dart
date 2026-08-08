@@ -88,6 +88,7 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
       _result = result;
     });
     if (result != null) {
+      _shadowLog(values, result);
       final autoVoice = ref.read(autoVoiceProvider).value ?? false;
       final raised = result.label != 'low risk';
       if (raised || autoVoice) {
@@ -97,6 +98,22 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
             : 'The numbers look okay. Still follow the advice from your check.');
       }
     }
+  }
+
+  /// Shadow-mode data flywheel: de-identified vitals + prediction + the rules
+  /// verdict go to the backend so the model can later be fine-tuned on local
+  /// cases (covered by her data-processing consent). Best-effort only.
+  Future<void> _shadowLog(Map<String, double?> values, RiskAssessment result) async {
+    try {
+      await ref.read(apiClientProvider).dio.post('/models/maternal-risk/log', data: {
+        'source': 'caregiver',
+        'modelVersion': _model.version,
+        'values': values,
+        'usedInputs': result.usedInputs,
+        'prediction': {'label': result.label, 'probs': result.probs},
+        'rulesRiskLevel': widget.rulesRiskLevel,
+      });
+    } catch (_) {}
   }
 
   @override

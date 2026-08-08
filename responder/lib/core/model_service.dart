@@ -46,6 +46,7 @@ class ModelService {
   bool get ready => _interpreter != null && _manifest != null;
   Map<String, dynamic> get meta =>
       (_manifest?['meta'] as Map<String, dynamic>?) ?? {};
+  int? get version => (_manifest?['version'] as num?)?.toInt();
 
   Future<File> _modelFile() async {
     final dir = await getApplicationSupportDirectory();

@@ -75,6 +75,7 @@ router.post(
 // On-device model registry: apps poll the manifest, then background-download
 // the model file from its URL (see OFFLINE_MODEL_PLAN.md)
 router.get('/models/:name', requireAuth, modelController.getModel);
+router.post('/models/:name/log', requireAuth, modelController.logAssessment);
 router.post('/admin/models', requireAuth, requireRole('admin'), modelController.upsertModel);
 
 // Nana — AI care educator (LLM proxy + natural voice)
