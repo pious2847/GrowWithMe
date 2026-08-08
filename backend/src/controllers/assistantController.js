@@ -34,7 +34,18 @@ const speak = asyncHandler(async (req, res) => {
   const { text } = req.body || {};
   if (!text || typeof text !== 'string') throw ApiError.badRequest('text is required');
 
-  const audio = await voice.synthesize(text.slice(0, 900));
+  // Quota exhausted recently — answer instantly so the app switches to its
+  // device TTS without waiting on a doomed upstream call.
+  if (voice.quotaBlocked()) {
+    throw new ApiError(503, 'Natural voice temporarily unavailable (provider quota)');
+  }
+
+  let audio;
+  try {
+    audio = await voice.synthesize(text.slice(0, 900));
+  } catch (err) {
+    throw new ApiError(503, 'Natural voice temporarily unavailable');
+  }
   res.set('Content-Type', 'audio/mpeg');
   res.send(audio);
 });
