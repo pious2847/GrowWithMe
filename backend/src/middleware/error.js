@@ -21,7 +21,13 @@ function errorHandler(err, req, res, next) {
     message = 'Duplicate value for a unique field';
   }
 
-  if (status >= 500) logger.error(`${req.method} ${req.originalUrl} failed:`, err);
+  // Expected unavailability (e.g. voice provider quota cooldown) is a fact,
+  // not a fault — one WARN line, no stack trace. Real 5xx keep the full dump.
+  if (err instanceof ApiError && status === 503) {
+    logger.warn(`${req.method} ${req.originalUrl} -> 503: ${message}`);
+  } else if (status >= 500) {
+    logger.error(`${req.method} ${req.originalUrl} failed:`, err);
+  }
 
   res.status(status).json({
     success: false,
