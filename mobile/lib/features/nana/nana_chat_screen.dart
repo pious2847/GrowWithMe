@@ -460,28 +460,32 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const CircleAvatar(child: Text('🧓🏾')),
-            const SizedBox(width: 10),
-            const Text('Nana'),
-            if (_voiceMode) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(99),
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircleAvatar(child: Text('🧓🏾')),
+              const SizedBox(width: 10),
+              const Text('Nana'),
+              if (_voiceMode) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text('● on call',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade900)),
                 ),
-                child: Text('● on call',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green.shade900)),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
         actions: [
           PopupMenuButton<String>(

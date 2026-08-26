@@ -57,6 +57,7 @@ dependencies:
   flutter_timezone: ^5.1.0
   tflite_flutter: ^0.12.1
   crypto: ^3.0.7
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:
