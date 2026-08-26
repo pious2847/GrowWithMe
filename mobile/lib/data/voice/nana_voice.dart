@@ -4,19 +4,22 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/providers.dart';
 import '../api/api_client.dart';
 import 'tts_service.dart';
 
-/// Nana's voice: natural speech from ElevenLabs (via our backend proxy) when
-/// online, falling back to the phone's built-in TTS ONLY when no ElevenLabs
+/// Nana's voice: natural speech from ElevenLabs/Fish Audio (via our backend proxy) when
+/// online, falling back to the phone's built-in TTS ONLY when no natural speech
 /// audio could be obtained — never both at once.
 class NanaVoice {
-  NanaVoice(this._api, this._tts);
+  NanaVoice(this._api, this._tts, this._ref);
 
   final ApiClient _api;
   final TtsService _tts;
+  final Ref _ref;
   final AudioPlayer _player = AudioPlayer();
   int _generation = 0;
 
@@ -28,12 +31,16 @@ class NanaVoice {
     final myGeneration = ++_generation;
     await stop();
 
-    // 1. Try to obtain ElevenLabs audio. Fetch ONLY — nothing audible yet.
+    // 1. Try to obtain natural speech audio. Fetch ONLY — nothing audible yet.
     Uint8List? bytes;
     try {
+      final voiceProvider = _ref.read(voiceProviderProvider).value ?? 'elevenlabs';
       final res = await _api.dio.post<List<int>>(
         '/assistant/speak',
-        data: {'text': text},
+        data: {
+          'text': text,
+          'provider': voiceProvider,
+        },
         options: Options(
           responseType: ResponseType.bytes,
           receiveTimeout: const Duration(seconds: 30),

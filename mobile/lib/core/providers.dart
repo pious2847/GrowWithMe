@@ -49,7 +49,7 @@ final nluServiceProvider =
     Provider<NluService>((ref) => NluService(ref.watch(apiClientProvider)));
 
 final nanaVoiceProvider = Provider<NanaVoice>(
-    (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider)));
+    (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider), ref));
 
 final careActionsProvider =
     Provider<CareActions>((ref) => CareActions(ref.watch(dbProvider)));
@@ -106,6 +106,24 @@ class AutoVoiceController extends AsyncNotifier<bool> {
 
 final autoVoiceProvider =
     AsyncNotifierProvider<AutoVoiceController, bool>(AutoVoiceController.new);
+
+/// Selected natural voice provider: 'elevenlabs' or 'fish_audio'.
+class VoiceProviderController extends AsyncNotifier<String> {
+  @override
+  Future<String> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('voiceProvider') ?? 'elevenlabs';
+  }
+
+  Future<void> setProvider(String provider) async {
+    state = AsyncData(provider);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('voiceProvider', provider);
+  }
+}
+
+final voiceProviderProvider =
+    AsyncNotifierProvider<VoiceProviderController, String>(VoiceProviderController.new);
 
 /// Display name saved at login/onboarding for the home-screen greeting.
 final userNameProvider = FutureProvider<String?>((ref) async {

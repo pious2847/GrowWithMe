@@ -29,6 +29,12 @@ const env = {
     // (Library/community voices and legacy Rachel 402 on free accounts.)
     voiceId: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
   },
+  fishaudio: {
+    apiKey: process.env.FISH_AUDIO_API || '',
+    voiceId: process.env.FISH_AUDIO_VOICE_ID || '933563129e564b19a115bedd57b7406a',
+    model: process.env.FISH_AUDIO_MODEL || 's2.1-pro-free',
+  },
+  voiceProvider: process.env.VOICE_PROVIDER || 'elevenlabs',
   otpTtlMinutes: parseInt(process.env.OTP_TTL_MINUTES || '10', 10),
   // OTP_DEBUG=true: when SMS sending fails, log the code server-side and let
   // the flow continue — demo/dev safety net only, never for real production.

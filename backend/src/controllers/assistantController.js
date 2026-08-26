@@ -26,23 +26,24 @@ const chat = asyncHandler(async (req, res) => {
   res.json({ success: true, reply });
 });
 
-// POST /api/v1/assistant/speak { text } -> audio/mpeg
+// POST /api/v1/assistant/speak { text, provider } -> audio/mpeg
 const speak = asyncHandler(async (req, res) => {
-  if (!voice.configured()) {
-    throw new ApiError(503, 'Voice is not configured on this server (ELEVENLABS_API_KEY missing)');
-  }
-  const { text } = req.body || {};
+  const { text, provider } = req.body || {};
   if (!text || typeof text !== 'string') throw ApiError.badRequest('text is required');
+
+  if (!voice.configured(provider)) {
+    throw new ApiError(503, `Voice is not configured on this server for provider: ${provider || 'default'}`);
+  }
 
   // Quota exhausted recently — answer instantly so the app switches to its
   // device TTS without waiting on a doomed upstream call.
-  if (voice.quotaBlocked()) {
+  if (voice.quotaBlocked(provider)) {
     throw new ApiError(503, 'Natural voice temporarily unavailable (provider quota)');
   }
 
   let audio;
   try {
-    audio = await voice.synthesize(text.slice(0, 900));
+    audio = await voice.synthesize(text.slice(0, 900), provider);
   } catch (err) {
     throw new ApiError(503, 'Natural voice temporarily unavailable');
   }

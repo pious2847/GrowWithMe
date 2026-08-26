@@ -51,14 +51,32 @@ async function main() {
   console.log('TEST3 action:', JSON.stringify(chat3.data.reply.action));
 
   // --- Test 4: ElevenLabs voice ---
-  const speak = await api.post(
-    '/assistant/speak',
-    { text: 'Hello my daughter, this is Nana. Your family is doing well.' },
-    { responseType: 'arraybuffer' }
-  );
-  const audioPath = __dirname + '/nana_test.mp3';
-  fs.writeFileSync(audioPath, Buffer.from(speak.data));
-  console.log(`TEST4 (voice): received ${speak.data.byteLength} bytes of audio -> ${audioPath}`);
+  try {
+    const speakEleven = await api.post(
+      '/assistant/speak',
+      { text: 'Hello my daughter, this is Nana. Your family is doing well.', provider: 'elevenlabs' },
+      { responseType: 'arraybuffer' }
+    );
+    const audioPathEleven = __dirname + '/nana_test_elevenlabs.mp3';
+    fs.writeFileSync(audioPathEleven, Buffer.from(speakEleven.data));
+    console.log(`TEST4 (ElevenLabs voice): received ${speakEleven.data.byteLength} bytes of audio -> ${audioPathEleven}`);
+  } catch (e) {
+    console.error('TEST4 ElevenLabs failed:', e.response ? `${e.response.status} ${JSON.stringify(e.response.data).slice(0, 300)}` : e.message);
+  }
+
+  // --- Test 5: Fish Audio voice ---
+  try {
+    const speakFish = await api.post(
+      '/assistant/speak',
+      { text: 'Hello my daughter, this is Nana. Your family is doing well.', provider: 'fish_audio' },
+      { responseType: 'arraybuffer' }
+    );
+    const audioPathFish = __dirname + '/nana_test_fishaudio.mp3';
+    fs.writeFileSync(audioPathFish, Buffer.from(speakFish.data));
+    console.log(`TEST5 (Fish Audio voice): received ${speakFish.data.byteLength} bytes of audio -> ${audioPathFish}`);
+  } catch (e) {
+    console.error('TEST5 Fish Audio failed:', e.response ? `${e.response.status} ${JSON.stringify(e.response.data).slice(0, 300)}` : e.message);
+  }
 
   await mongoose.disconnect();
   console.log('ALL TESTS DONE');

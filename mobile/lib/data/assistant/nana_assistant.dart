@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/nutrition_tips.dart';
 import '../api/api_client.dart';
@@ -72,31 +73,34 @@ class NanaAssistant {
   /// model thinks), then the on-device NLU if downloaded, then keywords.
   Future<NanaReply> localIntent(String text) async {
     final t = text.toLowerCase();
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('userName') ?? '';
+    final greetingName = name.isNotEmpty ? name : 'my daughter';
 
     const symptomWords = [
       'sick', 'fever', 'ill', 'vomit', 'bleed', 'convuls', 'fit',
       'diarrh', 'cough', 'pain', 'weak', 'not moving', 'unwell', 'hot body',
     ];
     if (symptomWords.any(t.contains)) {
-      return const NanaReply(
-        'I hear you, my daughter. Let us check this properly and safely right now.',
-        action: NanaAction('start_health_check', {}),
+      return NanaReply(
+        'I hear you, $greetingName. Let us check this properly and safely right now.',
+        action: const NanaAction('start_health_check', {}),
       );
     }
 
     final understood = _nlu?.classify(text);
     if (understood != null) {
-      final reply = await _replyForIntent(understood);
+      final reply = await _replyForIntent(understood, greetingName);
       if (reply != null) {
         return NanaReply(reply.say, action: reply.action, source: 'nlu');
       }
     }
 
-    return _keywordIntent(t);
+    return _keywordIntent(t, greetingName);
   }
 
   /// Curated (never generated) replies for what the NLU understood.
-  Future<NanaReply?> _replyForIntent(NluResult r) async {
+  Future<NanaReply?> _replyForIntent(NluResult r, String greetingName) async {
     switch (r.intent) {
       case 'start_health_check':
         return NanaReply(
@@ -135,8 +139,8 @@ class NanaAssistant {
           'your clinic visits are already in the Calendar tab.',
         );
       case 'greeting':
-        return const NanaReply(
-          'Hello, my daughter. I am here. Ask me about food, your visits, '
+        return NanaReply(
+          'Hello, $greetingName. I am here. Ask me about food, your visits, '
           'or tell me if someone is unwell.',
         );
       // v2 intents — curated GHS-based teaching, available fully offline.
@@ -169,9 +173,9 @@ class NanaAssistant {
           'will continue from where you stopped.',
         );
       case 'open_calendar':
-        return const NanaReply(
-          'Here is your calendar, my daughter — all your visits in one place.',
-          action: NanaAction('open_calendar', {}),
+        return NanaReply(
+          'Here is your calendar, $greetingName — all your visits in one place.',
+          action: const NanaAction('open_calendar', {}),
         );
       case 'open_tips':
         return const NanaReply(
@@ -196,7 +200,7 @@ class NanaAssistant {
   }
 
   /// Last-resort keyword matching — the pre-NLU behavior, kept as the floor.
-  Future<NanaReply> _keywordIntent(String t) async {
+  Future<NanaReply> _keywordIntent(String t, String greetingName) async {
     if (t.contains('child') && (t.contains('add') || t.contains('new') || t.contains('register'))) {
       return const NanaReply(
         'Let us add your child together. I will open the form for you.',
@@ -215,8 +219,8 @@ class NanaAssistant {
     if (t.contains('tip') || t.contains('food') || t.contains('feed') || t.contains('eat')) {
       return NanaReply(await _tipText());
     }
-    return const NanaReply(
-      'I am Nana, your care helper. You can ask me to add a child, track a '
+    return NanaReply(
+      'I am Nana, $greetingName. You can ask me to add a child, track a '
       'pregnancy, tell you today\'s visits, share a feeding tip, or check '
       'symptoms when someone is unwell.',
     );
@@ -270,6 +274,9 @@ class NanaAssistant {
   /// local database, so nothing extra is stored server-side.
   Future<String> buildContext() async {
     final now = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('userName') ?? '';
+
     final children = await (_db.select(_db.children)
           ..where((t) => t.deleted.equals(false)))
         .get();
@@ -284,6 +291,9 @@ class NanaAssistant {
         .get();
 
     final b = StringBuffer('Today: ${DateFormat('yyyy-MM-dd (EEEE)').format(now)}\n');
+    if (name.isNotEmpty) {
+      b.writeln('Caregiver Name: $name');
+    }
     b.writeln('Children:');
     if (children.isEmpty) b.writeln('- none registered yet');
     for (final c in children) {

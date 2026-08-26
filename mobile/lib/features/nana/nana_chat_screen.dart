@@ -484,6 +484,49 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           ],
         ),
         actions: [
+          PopupMenuButton<String>(
+            tooltip: 'Choose voice engine',
+            icon: const Icon(Icons.settings_voice),
+            onSelected: (String choice) async {
+              await ref.read(voiceProviderProvider.notifier).setProvider(choice);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Voice engine switched to ${choice == 'elevenlabs' ? 'ElevenLabs' : 'Fish Audio'}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            itemBuilder: (BuildContext context) {
+              final activeProvider = ref.watch(voiceProviderProvider).value ?? 'elevenlabs';
+              return [
+                PopupMenuItem<String>(
+                  value: 'elevenlabs',
+                  child: Row(
+                    children: [
+                      const Text('ElevenLabs'),
+                      if (activeProvider == 'elevenlabs') ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.check, color: Colors.green),
+                      ],
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'fish_audio',
+                  child: Row(
+                    children: [
+                      const Text('Fish Audio'),
+                      if (activeProvider == 'fish_audio') ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.check, color: Colors.green),
+                      ],
+                    ],
+                  ),
+                ),
+              ];
+            },
+          ),
           // Offline-brain status: green chip = the on-device NLU model is
           // downloaded and Nana understands speech without internet.
           // Tap for details (versions, sizes, how to test).
