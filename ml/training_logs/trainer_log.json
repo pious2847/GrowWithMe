@@ -1,0 +1,107 @@
+[
+  {
+    "loss": 2.576,
+    "learning_rate": 0.000182,
+    "epoch": 0.003062,
+    "step": 10,
+    "mean_token_accuracy": 0.5895
+  },
+  {
+    "loss": 0.9565,
+    "learning_rate": 0.000162,
+    "epoch": 0.006124,
+    "step": 20,
+    "mean_token_accuracy": 0.8321
+  },
+  {
+    "eval_loss": 0.6762,
+    "eval_runtime": 300.6,
+    "epoch": 0.006124,
+    "step": 20,
+    "eval_mean_token_accuracy": 0.8825
+  },
+  {
+    "loss": 0.5745,
+    "learning_rate": 0.000142,
+    "epoch": 0.009186,
+    "step": 30,
+    "mean_token_accuracy": 0.9029
+  },
+  {
+    "loss": 0.4698,
+    "learning_rate": 0.000122,
+    "epoch": 0.01225,
+    "step": 40,
+    "mean_token_accuracy": 0.918
+  },
+  {
+    "eval_loss": 0.4469,
+    "eval_runtime": 301.7,
+    "epoch": 0.01225,
+    "step": 40,
+    "eval_mean_token_accuracy": 0.9212
+  },
+  {
+    "loss": 0.4205,
+    "learning_rate": 0.000102,
+    "epoch": 0.01531,
+    "step": 50,
+    "mean_token_accuracy": 0.9239
+  },
+  {
+    "loss": 0.3831,
+    "learning_rate": 8.2e-05,
+    "epoch": 0.01837,
+    "step": 60,
+    "mean_token_accuracy": 0.9291
+  },
+  {
+    "eval_loss": 0.3837,
+    "eval_runtime": 302.7,
+    "epoch": 0.01837,
+    "step": 60,
+    "eval_mean_token_accuracy": 0.9294
+  },
+  {
+    "loss": 0.3765,
+    "learning_rate": 6.2e-05,
+    "epoch": 0.02143,
+    "step": 70,
+    "mean_token_accuracy": 0.9317
+  },
+  {
+    "loss": 0.3628,
+    "learning_rate": 4.2e-05,
+    "epoch": 0.0245,
+    "step": 80,
+    "mean_token_accuracy": 0.9302
+  },
+  {
+    "eval_loss": 0.3509,
+    "eval_runtime": 302.2,
+    "epoch": 0.0245,
+    "step": 80,
+    "eval_mean_token_accuracy": 0.9357
+  },
+  {
+    "loss": 0.338,
+    "learning_rate": 2.2e-05,
+    "epoch": 0.02756,
+    "step": 90,
+    "mean_token_accuracy": 0.9366
+  },
+  {
+    "loss": 0.349,
+    "learning_rate": 2e-06,
+    "epoch": 0.03062,
+    "step": 100,
+    "mean_token_accuracy": 0.9359
+  },
+  {
+    "eval_loss": 0.3375,
+    "eval_runtime": 300.2,
+    "epoch": 0.03062,
+    "step": 100,
+    "eval_mean_token_accuracy": 0.9365
+  }
+]
