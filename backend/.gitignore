@@ -4,3 +4,9 @@ node_modules/
 logs/
 
 atlas-credentials.env
+*.zip
+*.rar
+*.tar
+*.gz
+*.7z
+*.tar.gz

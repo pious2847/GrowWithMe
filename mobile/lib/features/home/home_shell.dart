@@ -51,6 +51,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       // no-op when offline; features hide/fall back until they exist.
       ref.read(modelServiceProvider).ensureLatest();
       ref.read(nluServiceProvider).ensureLatest();
+      ref.read(slmServiceProvider).ensureLatest();
       // Re-arm phone alerts for upcoming personal reminders (e.g. after a
       // reinstall or on a new device — they ride the sync).
       final custom = await ref.read(dbProvider).upcomingCustomReminders();
@@ -73,6 +74,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ref.read(tipsUpdaterProvider).ensureTodayTips();
         ref.read(modelServiceProvider).ensureLatest();
         ref.read(nluServiceProvider).ensureLatest();
+        ref.read(slmServiceProvider).ensureLatest();
       }
     });
     // Nana widget tap → open Nana and speak the day's briefing.

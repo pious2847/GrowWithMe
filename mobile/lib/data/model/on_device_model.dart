@@ -42,8 +42,8 @@ class OnDeviceModel {
 
   /// Loads a previously downloaded model from disk (offline path), then — if
   /// online — checks the registry and downloads a newer version if published.
-  /// Never throws; call fire-and-forget on app start.
-  Future<void> ensureLatest() async {
+  /// Never throws unless [throwOnError] is true.
+  Future<bool> ensureLatest({bool throwOnError = false}) async {
     try {
       await _loadFromDisk();
     } catch (_) {}
@@ -55,8 +55,10 @@ class OnDeviceModel {
         await _download(remote);
         await _loadFromDisk();
       }
-    } catch (_) {
-      // Offline or registry unreachable — keep whatever we have (or nothing).
+      return true;
+    } catch (e) {
+      if (throwOnError) rethrow;
+      return false;
     }
   }
 
@@ -80,8 +82,9 @@ class OnDeviceModel {
       final tmpZip = File('${file.path}.zip');
       await tmpZip.writeAsBytes(bytes, flush: true);
 
-      // 2. Unzip into folder models/$name/
-      final folderPath = '${file.parent.path}/$name';
+      // 2. Unzip into folder models/$targetName/
+      final targetName = name.startsWith('nana-slm') ? 'nana-slm' : name;
+      final folderPath = '${file.parent.path}/$targetName';
       final archive = ZipDecoder().decodeBytes(bytes);
       for (final archiveFile in archive) {
         final filename = archiveFile.name;
@@ -115,7 +118,8 @@ class OnDeviceModel {
     final isLlm = manifest['kind'] == 'llm';
 
     if (isLlm) {
-      final folder = Directory('${file.parent.path}/$name');
+      final targetName = name.startsWith('nana-slm') ? 'nana-slm' : name;
+      final folder = Directory('${file.parent.path}/$targetName');
       if (!await folder.exists()) return;
       _manifest = manifest;
     } else {

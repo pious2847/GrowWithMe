@@ -1,0 +1,18 @@
+date_sent,org,contact_email,contact_name,template,channel,status,deadline,first_bump_date,reply_received,next_action,notes
+10/25/2026,UNICEF Femtech Ventures,corporate-partnerships@unicef.org,,T0-grant,email,sent,11/4/2026,11/2/2026,,,USER MUST APPLY VIA PORTAL unicef.org/innovation/FemTechCall before Nov 4; email asked eligibility (registration timing + young-founder route)
+10/25/2026,GHS CIP,innovation@ghs.gov.gh,,T0-pilot,email,sent,,,11/2/2026,,,asked if next CIP round open + demo to desk in Accra
+10/25/2026,UNFPA Ghana,ghana.info@unfpa.org,,T0-grant,email,sent,,,11/2/2026,,,asked inclusion in next innovation sprint/cohort + seed pilot
+10/25/2026,UNDP AccLab,allen.anie@undp.org; seth.akumani@undp.org,,T0-partner,email,sent,,,11/2/2026,,,named humans; To: Allen + Cc: Seth; asked 20-min call + which district. NOTE fatima.farouta@undp.org BOUNCED (550 5.4.1, mailbox gone) — do not use; fallback accelerator.labs@undp.org
+10/25/2026,RAINS Tamale,info@rainsgha.org,,T0-partner,email,sent,,,11/2/2026,,,implementation collab not money; joint proposals; Tamale visit offered
+10/25/2026,Moving Health,info@moving.health,,T0-partner,email,sent,,,11/2/2026,,,tricycle ambulance + alert dispatch joint proposal
+10/25/2026,Gates Grand Challenges,grandchallenges@gatesfoundation.org,,T1-watchlist,email,sent,,,11/2/2026,,,asked RFP notifications for MNCH/digital health
+10/25/2026,MSD for Mothers,CSTMFORMOTHERS@msdformothers.com,,T1-grant,email,sent,,,11/2/2026,,,asked route: Global Grant via local office vs Frazier Award
+10/25/2026,H2i / Mastercard AHC,h2i.international@utoronto.ca,,T1-ecosystem,email,sent,,,11/2/2026,,,HENT community + HIFest 2027 pitch
+10/25/2026,Ministry of Health (Ghana),info@moh.gov.gh,,T2-gov,email,sent,,,11/2/2026,,,asked MoU/research-pilot pathway; demo in Accra offered
+10/25/2026,WHO Ghana Country Office,afwcogh@who.int,,T2-gov,email,sent,,,11/2/2026,,,asked technical review of IMCI/EPI content alignment
+10/25/2026,UDS Tamale (via Registrar→CRIPS),registrar@uds.edu.gh,,T2-research,email,sent,,,11/2/2026,,,joint research/evaluation partnership; Tamale visit offered
+10/25/2026,AfriKids Ghana,infogh@afrikids.org,,T3-partner,email,sent,,,11/2/2026,,,explicitly NO funding ask; program cooperation framing
+10/25/2026,STAR-Ghana Foundation,info@star-ghana.org,,T3-partner,email,sent,,,11/2/2026,,,co-design concept note when next call opens; asked call notifications
+10/25/2026,MTN Ghana Foundation,mtnghanafoundation@mtn.com,,T4-sponsor,email,bounced,,,manual,,,550 5.7.133 group rejects external senders (verified 10/25/2026) — apply via mtn.com.gh/foundation/sponsorship-form; pitch text ready in MTN_form_pitch.txt
+10/25/2026,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,,T6-cohort,email,sent,,,11/2/2026,,,intro ahead of cohort 7 (~spring 2027); asked what strengthens application
+pending,US Embassy PDS / CFLI / Japan GGHSP / Telecel / KIC / Red Cross / Google.org / Gavi,,,,manual,,,,,no verified email or window closed — see funders_partners.md manual list + Tier 5 cycles

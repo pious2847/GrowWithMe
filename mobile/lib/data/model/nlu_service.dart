@@ -34,7 +34,7 @@ class NluService {
   bool get ready => _model.ready;
   int? get version => _model.version;
   int? get sizeBytes => _model.sizeBytes;
-  Future<void> ensureLatest() => _model.ensureLatest();
+  Future<bool> ensureLatest({bool throwOnError = false}) => _model.ensureLatest(throwOnError: throwOnError);
 
   /// Public for the contract test in test/nlu_featurizer_test.dart, which
   /// pins these against the numbers the training notebook prints.

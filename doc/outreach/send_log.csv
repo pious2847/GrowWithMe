@@ -1,0 +1,19 @@
+timestamp,id,org,to,status,detail
+2026-10-25T05:27:51,1,UNICEF Femtech Ventures,corporate-partnerships@unicef.org,sent,
+2026-10-25T05:30:58,2,Ghana Health Service — CIP,innovation@ghs.gov.gh,sent,
+2026-10-25T05:34:07,3,UNFPA Ghana,ghana.info@unfpa.org,sent,
+2026-10-25T05:37:16,4,UNDP Ghana Accelerator Lab,allen.anie@undp.org,sent,
+2026-10-25T05:40:42,5,RAINS (Tamale),info@rainsgha.org,sent,
+2026-10-25T05:43:50,6,Moving Health Foundation,info@moving.health,sent,
+2026-10-25T05:46:58,7,Grand Challenges (Gates Foundation),grandchallenges@gatesfoundation.org,sent,
+2026-10-25T05:50:03,8,MSD for Mothers,CSTMFORMOTHERS@msdformothers.com,sent,
+2026-10-25T05:53:10,9,H2i / Mastercard AHC,h2i.international@utoronto.ca,sent,
+2026-10-25T05:56:18,10,Ministry of Health (Ghana),info@moh.gov.gh,sent,
+2026-10-25T06:00:18,11,WHO Ghana Country Office,afwcogh@who.int,sent,
+2026-10-25T06:03:30,12,University for Development Studies (Tamale),registrar@uds.edu.gh,sent,
+2026-10-25T06:06:37,13,AfriKids Ghana,infogh@afrikids.org,sent,
+2026-10-25T06:09:55,14,STAR-Ghana Foundation,info@star-ghana.org,sent,
+2026-10-25T06:13:12,15,MTN Ghana Foundation,mtnghanafoundation@mtn.com,sent,
+2026-10-25T06:16:30,16,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,sent,
+2026-10-25T06:13:14,15,MTN Ghana Foundation,mtnghanafoundation@mtn.com,bounced,550 5.7.133 SenderNotAuthenticatedForGroup — Microsoft 365 group rejects external senders; reroute via sponsorship form mtn.com.gh/foundation/sponsorship-form
+2026-10-25T05:37:17,4,UNDP Ghana Accelerator Lab,fatima.farouta@undp.org,bounced,550 5.4.1 Recipient address rejected — mailbox no longer exists (Cc only; To: allen.anie and Cc: seth.akumani delivered)

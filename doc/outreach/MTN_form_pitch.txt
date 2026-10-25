@@ -1,0 +1,26 @@
+MTN GHANA FOUNDATION — SPONSORSHIP FORM (mtn.com.gh/foundation/sponsorship-form)
+Field-by-field paste-ready text. Attach the PDF: MTN_GrowWithMe_Sponsorship_Proposal.pdf
+
+──────────────────────────────────────────────────────────────
+Project/Initiative Title ....... GrowWithMe
+Focus Area ..................... Health
+Type of Sponsorship ............ Financial Support
+Amount Requested ............... GHS 150,000
+──────────────────────────────────────────────────────────────
+
+PROJECT SUMMARY
+(brief overview field)
+
+GrowWithMe is an offline-first mobile health platform built by TOVO LABs for mothers and children under five in Northern Ghana, where distance, poor connectivity and low literacy keep families from timely care. The app works fully without data: IMCI-aligned child and pregnancy triage, WHO growth monitoring with malnutrition flags, a care calendar synced to Ghana's EPI immunization schedule with spoken reminders, a voice-first AI educator ("Nana"), and one-tap urgent SMS alerts that send the mother's risk report to the nearest CHPS compound, volunteer responders and referral hospital — with every referral tracked to closure. MTN's network carries the life-critical leg: SMS. The platform is built and working today; this sponsorship funds a 12-month supervised district pilot.
+
+EXPECTED IMPACT
+
+1,500–2,000 mothers and children under five registered and actively followed in one district. Every urgent alert time-stamped from danger sign to facility arrival — the referral loop measured and closed for the first time. A measurable lift in EPI immunization-schedule completion and ANC/PNC attendance against the district baseline, driven by SMS reminders. Growth faltering caught early through WHO −2 SD flags with catch-up visits scheduled automatically. A full pilot report with KPIs delivered to the Foundation — positioning MTN as the connectivity partner powering closed-loop maternal and child referrals in Northern Ghana.
+
+DESCRIBE YOUR PROPOSAL
+
+We are requesting GHS 150,000 to fund a 12-month supervised district pilot of GrowWithMe in one Northern Region district, with about 40 community health workers and 5 CHPS/facility sites, run in cooperation with the district health directorate. Use of funds: SMS gateway costs for referral alerts and care reminders (GHS 18,000); 40 Android phones for CHWs (GHS 40,000); monthly MTN data bundles for CHWs and facility staff (GHS 24,000); training, refresher sessions and field supervision (GHS 48,000); pilot KPI tracking and the final impact report to the Foundation (GHS 20,000). Beyond funding, we would welcome zero-rating of the app's traffic so no mother pays data to be heard. The Foundation receives named recognition in the pilot report and communications, a site visit to the pilot district, and a live demo of the working product at any time. Full details in the attached one-page proposal.
+
+FILE UPLOAD
+
+Attach: MTN_GrowWithMe_Sponsorship_Proposal.pdf (in this same folder — 1 page, under 10 MB)

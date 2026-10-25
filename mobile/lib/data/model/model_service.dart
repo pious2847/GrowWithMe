@@ -32,7 +32,7 @@ class ModelService {
   Map<String, dynamic> get meta => _model.meta;
   int? get version => _model.version;
   int? get sizeBytes => _model.sizeBytes;
-  Future<void> ensureLatest() => _model.ensureLatest();
+  Future<bool> ensureLatest({bool throwOnError = false}) => _model.ensureLatest(throwOnError: throwOnError);
 
   /// Runs the model on partially-filled vitals. [values] keys follow
   /// meta.features (age, systolic_bp, ...); null = not measured.

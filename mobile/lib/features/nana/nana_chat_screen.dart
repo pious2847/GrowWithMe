@@ -415,43 +415,314 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     );
   }
 
+  Widget _buildModelStatusRow(
+    BuildContext context, {
+    required String title,
+    required String filename,
+    required bool ready,
+    required int? version,
+    required int? size,
+  }) {
+    final theme = Theme.of(context);
+    final isDownloaded = ready;
+    
+    String formatSize(int? bytes) {
+      if (bytes == null) return '0 KB';
+      if (bytes >= 1024 * 1024) {
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+      }
+      return '${(bytes / 1024).round()} KB';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDownloaded
+            ? theme.colorScheme.primaryContainer.withAlpha(31)
+            : theme.colorScheme.surfaceContainerHighest.withAlpha(77),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDownloaded
+              ? theme.colorScheme.primary.withAlpha(51)
+              : theme.colorScheme.outline.withAlpha(38),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isDownloaded ? Icons.check_circle : Icons.cloud_download_outlined,
+            color: isDownloaded ? Colors.green.shade600 : theme.colorScheme.primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  filename,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurfaceVariant.withAlpha(179),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDownloaded
+                  ? theme.colorScheme.primary.withAlpha(26)
+                  : theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              isDownloaded ? 'v$version • ${formatSize(size)}' : 'Not Loaded',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isDownloaded ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showOfflineStatus() {
     final nlu = ref.read(nluServiceProvider);
     final risk = ref.read(modelServiceProvider);
-    String line(String name, bool ready, int? version, int? size) => ready
-        ? '✅ $name — v$version, ${((size ?? 0) / 1024).round()} KB, on this phone'
-        : '⬇️ $name — not downloaded yet (opens with internet once)';
+    final slm = ref.read(slmServiceProvider);
+    
+    bool isChecking = false;
+    String statusMessage = '';
+
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Offline AI on this phone'),
-        content: Text(
-          '${line('Nana understanding (nana-nlu)', nlu.ready, nlu.version, nlu.sizeBytes)}\n\n'
-          '${line('Risk model (maternal-risk)', risk.ready, risk.version, risk.sizeBytes)}\n\n'
-          'When the green bolt shows, turn on airplane mode and try: '
-          '"I just delivered a boy" or "what should I cook with small money" — '
-          'Nana will understand and open the right screen with no internet. '
-          'Replies under an offline answer say which helper produced them.',
-          style: const TextStyle(height: 1.45),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Manual re-check, e.g. right after turning data on.
-              nlu.ensureLatest();
-              risk.ensureLatest();
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(
-                  content: Text('Checking for models… reopen this dialog in a '
-                      'few seconds.')));
-            },
-            child: const Text('Check now'),
-          ),
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close')),
-        ],
-      ),
+      builder: (dialogContext) {
+        final theme = Theme.of(context);
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+              contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+              title: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withAlpha(26),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.offline_bolt,
+                      color: theme.colorScheme.primary,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Offline AI Status',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildModelStatusRow(
+                      context,
+                      title: 'Nana Understanding',
+                      filename: 'nana-nlu',
+                      ready: nlu.ready,
+                      version: nlu.version,
+                      size: nlu.sizeBytes,
+                    ),
+                    _buildModelStatusRow(
+                      context,
+                      title: 'Vitals Risk Model',
+                      filename: 'maternal-risk',
+                      ready: risk.ready,
+                      version: risk.version,
+                      size: risk.sizeBytes,
+                    ),
+                    _buildModelStatusRow(
+                      context,
+                      title: 'Nana SLM Adapter',
+                      filename: 'nana-slm',
+                      ready: slm.ready,
+                      version: slm.version,
+                      size: slm.sizeBytes,
+                    ),
+                    const SizedBox(height: 12),
+                    if (isChecking) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withAlpha(13),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.colorScheme.primary.withAlpha(26)),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                statusMessage,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ] else if (statusMessage.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: statusMessage.startsWith('Error')
+                              ? Colors.red.shade50
+                              : Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: statusMessage.startsWith('Error')
+                                ? Colors.red.shade200
+                                : Colors.green.shade200,
+                          ),
+                        ),
+                        child: Text(
+                          statusMessage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: statusMessage.startsWith('Error')
+                                ? Colors.red.shade800
+                                : Colors.green.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest.withAlpha(102),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.lightbulb_outline,
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'When the green bolt shows in the chat header, you can use Nana completely offline! Open airplane mode and try asking maternal questions—replies will show which local helper produced them.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isChecking ? null : () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: isChecking
+                      ? null
+                      : () async {
+                          setState(() {
+                            isChecking = true;
+                            statusMessage = 'Checking Nana NLU...';
+                          });
+                          try {
+                            await nlu.ensureLatest(throwOnError: true);
+                            setState(() {
+                              statusMessage = 'Checking Vitals Risk...';
+                            });
+                            await risk.ensureLatest(throwOnError: true);
+                            setState(() {
+                              statusMessage = 'Checking Nana SLM...';
+                            });
+                            await slm.ensureLatest(throwOnError: true);
+                            setState(() {
+                              statusMessage = 'All models updated successfully!';
+                              isChecking = false;
+                            });
+                          } catch (e) {
+                            setState(() {
+                              statusMessage = 'Error: ${e.toString().split('\n').first}';
+                              isChecking = false;
+                            });
+                          }
+                        },
+                  icon: isChecking
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Icon(Icons.refresh, size: 16),
+                  label: const Text('Check now'),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
