@@ -9,22 +9,22 @@ import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
 
 double _riskY(String risk) => switch (risk) {
-      'urgent' => 3,
-      'moderate' => 2,
-      _ => 1,
-    };
+  'urgent' => 3,
+  'moderate' => 2,
+  _ => 1,
+};
 
 Color _riskColor(String risk) => switch (risk) {
-      'urgent' => const Color(0xFFD32F2F),
-      'moderate' => const Color(0xFFF57C00),
-      _ => const Color(0xFF2E7D32),
-    };
+  'urgent' => const Color(0xFFD32F2F),
+  'moderate' => const Color(0xFFF57C00),
+  _ => const Color(0xFF2E7D32),
+};
 
 String _riskLabel(String risk) => switch (risk) {
-      'urgent' => 'High risk',
-      'moderate' => 'Watch',
-      _ => 'All well',
-    };
+  'urgent' => 'High risk',
+  'moderate' => 'Watch',
+  _ => 'All well',
+};
 
 /// The pregnancy health record: a "risk wave" of every check-in and health
 /// check over time, plus the full assessment history — the picture a midwife
@@ -35,7 +35,8 @@ class PregnancyRecordsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final records = ref.watch(pregnancyAssessmentsProvider).value ??
+    final records =
+        ref.watch(pregnancyAssessmentsProvider).value ??
         const <AssessmentRow>[];
 
     return Scaffold(
@@ -65,9 +66,12 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 12),
-                          child: Text('Risk over time',
-                              style: theme.textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          child: Text(
+                            'Risk over time',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -77,9 +81,10 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                               minY: 0.5,
                               maxY: 3.5,
                               minX: 0,
-                              maxX: (records.length - 1)
-                                  .toDouble()
-                                  .clamp(1, double.infinity),
+                              maxX: (records.length - 1).toDouble().clamp(
+                                1,
+                                double.infinity,
+                              ),
                               gridData: FlGridData(
                                 drawVerticalLine: false,
                                 horizontalInterval: 1,
@@ -100,21 +105,30 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                                     reservedSize: 52,
                                     getTitlesWidget: (v, meta) =>
                                         switch (v.toInt()) {
-                                      3 => const Text('High',
-                                          style: TextStyle(
+                                          3 => const Text(
+                                            'High',
+                                            style: TextStyle(
                                               fontSize: 10,
                                               color: Color(0xFFD32F2F),
-                                              fontWeight: FontWeight.bold)),
-                                      2 => const Text('Watch',
-                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          2 => const Text(
+                                            'Watch',
+                                            style: TextStyle(
                                               fontSize: 10,
-                                              color: Color(0xFFF57C00))),
-                                      1 => const Text('Well',
-                                          style: TextStyle(
+                                              color: Color(0xFFF57C00),
+                                            ),
+                                          ),
+                                          1 => const Text(
+                                            'Well',
+                                            style: TextStyle(
                                               fontSize: 10,
-                                              color: Color(0xFF2E7D32))),
-                                      _ => const SizedBox.shrink(),
-                                    },
+                                              color: Color(0xFF2E7D32),
+                                            ),
+                                          ),
+                                          _ => const SizedBox.shrink(),
+                                        },
                                   ),
                                 ),
                                 bottomTitles: AxisTitles(
@@ -131,10 +145,10 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Text(
-                                          DateFormat('d MMM').format(
-                                              records[i].completedAt),
-                                          style:
-                                              const TextStyle(fontSize: 10),
+                                          DateFormat(
+                                            'd MMM',
+                                          ).format(records[i].completedAt),
+                                          style: const TextStyle(fontSize: 10),
                                         ),
                                       );
                                     },
@@ -145,8 +159,10 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                                 LineChartBarData(
                                   spots: [
                                     for (var i = 0; i < records.length; i++)
-                                      FlSpot(i.toDouble(),
-                                          _riskY(records[i].riskLevel)),
+                                      FlSpot(
+                                        i.toDouble(),
+                                        _riskY(records[i].riskLevel),
+                                      ),
                                   ],
                                   isCurved: true,
                                   preventCurveOverShooting: true,
@@ -158,10 +174,12 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        theme.colorScheme.primary
-                                            .withValues(alpha: 0.25),
-                                        theme.colorScheme.primary
-                                            .withValues(alpha: 0.0),
+                                        theme.colorScheme.primary.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        theme.colorScheme.primary.withValues(
+                                          alpha: 0.0,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -169,12 +187,13 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                                     show: true,
                                     getDotPainter: (spot, _, _, i) =>
                                         FlDotCirclePainter(
-                                      radius: 5,
-                                      color: _riskColor(
-                                          records[spot.x.toInt()].riskLevel),
-                                      strokeWidth: 2,
-                                      strokeColor: Colors.white,
-                                    ),
+                                          radius: 5,
+                                          color: _riskColor(
+                                            records[spot.x.toInt()].riskLevel,
+                                          ),
+                                          strokeWidth: 2,
+                                          strokeColor: Colors.white,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -188,8 +207,10 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
 
                 // ---- History list ----
-                Text('All check-ins & health checks',
-                    style: theme.textTheme.titleMedium),
+                Text(
+                  'All check-ins & health checks',
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 for (final r in records.reversed)
                   Card(
@@ -199,16 +220,21 @@ class PregnancyRecordsScreen extends ConsumerWidget {
                         backgroundColor: _riskColor(r.riskLevel),
                       ),
                       title: Text(
-                          '${_riskLabel(r.riskLevel)} — ${DateFormat('EEE d MMM, HH:mm').format(r.completedAt)}'),
-                      subtitle: Builder(builder: (context) {
-                        List<dynamic> signs = const [];
-                        try {
-                          signs = jsonDecode(r.dangerSignsJson) as List;
-                        } catch (_) {}
-                        return Text(signs.isEmpty
-                            ? 'No signs reported'
-                            : signs.join(' · '));
-                      }),
+                        '${_riskLabel(r.riskLevel)} — ${DateFormat('EEE d MMM, HH:mm').format(r.completedAt)}',
+                      ),
+                      subtitle: Builder(
+                        builder: (context) {
+                          List<dynamic> signs = const [];
+                          try {
+                            signs = jsonDecode(r.dangerSignsJson) as List;
+                          } catch (_) {}
+                          return Text(
+                            signs.isEmpty
+                                ? 'No signs reported'
+                                : signs.join(' · '),
+                          );
+                        },
+                      ),
                     ),
                   ),
               ],

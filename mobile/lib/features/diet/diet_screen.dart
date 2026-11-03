@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/config/regions.dart';
 import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
 import '../../domain/diet_guide.dart';
@@ -56,8 +57,11 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     );
     if (!available) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Microphone is not available on this phone')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone is not available on this phone'),
+        ),
+      );
       return;
     }
     setState(() => _listening = true);
@@ -80,7 +84,9 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     setState(() => _building = true);
 
     final latest = await ref.read(dbProvider).latestDietPlan();
-    final plan = await ref.read(dietPlannerProvider).generate(
+    final plan = await ref
+        .read(dietPlannerProvider)
+        .generate(
           budget: latest?.budget ?? 'low',
           pantry: latest?.pantry ?? '',
           household: '4',
@@ -97,7 +103,9 @@ class _DietScreenState extends ConsumerState<DietScreen> {
   /// the day and auto-ticks its food groups on the Daily Plate — following
   /// the plan IS the tracking.
   Future<void> _markMealEaten(
-      List<DietLogRow> logs, Map<String, dynamic> meal) async {
+    List<DietLogRow> logs,
+    Map<String, dynamic> meal,
+  ) async {
     final label = '${meal['time']} — ${meal['name']}';
     final today = _todayState(logs);
     if (today.eaten.contains(label)) return;
@@ -110,8 +118,11 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     await _writeToday(logs, groups: groups, eaten: eaten);
     ref.read(syncControllerProvider.notifier).sync();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Well done! ${meal['name']} added to today\'s plate.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Well done! ${meal['name']} added to today\'s plate.'),
+      ),
+    );
   }
 
   Future<void> _newPlan() async {
@@ -124,7 +135,9 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     if (answers == null) return;
     setState(() => _building = true);
 
-    final plan = await ref.read(dietPlannerProvider).generate(
+    final plan = await ref
+        .read(dietPlannerProvider)
+        .generate(
           budget: answers['budget']!,
           pantry: answers['pantry']!,
           household: answers['household']!,
@@ -139,7 +152,8 @@ class _DietScreenState extends ConsumerState<DietScreen> {
   /// Union of a day's rows (duplicates can exist from an earlier bug — they
   /// are merged into the first row and tombstoned on the next write).
   ({DietLogRow? canonical, List<int> groups, List<String> eaten}) _todayState(
-      List<DietLogRow> logs) {
+    List<DietLogRow> logs,
+  ) {
     final dayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final rows = logs.where((l) => l.day == dayKey).toList();
     final groups = <int>{};
@@ -161,8 +175,11 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     );
   }
 
-  Future<void> _writeToday(List<DietLogRow> logs,
-      {required List<int> groups, required List<String> eaten}) async {
+  Future<void> _writeToday(
+    List<DietLogRow> logs, {
+    required List<int> groups,
+    required List<String> eaten,
+  }) async {
     final db = ref.read(dbProvider);
     final now = DateTime.now();
     final dayKey = DateFormat('yyyy-MM-dd').format(now);
@@ -170,32 +187,40 @@ class _DietScreenState extends ConsumerState<DietScreen> {
     final score = diversityScore(groups);
 
     if (rows.isEmpty) {
-      await db.into(db.dietLogs).insert(DietLogsCompanion.insert(
-            id: const Uuid().v4(),
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            day: dayKey,
-            groupsJson: jsonEncode(groups),
-            score: score,
-            eatenMealsJson: Value(jsonEncode(eaten)),
-          ));
+      await db
+          .into(db.dietLogs)
+          .insert(
+            DietLogsCompanion.insert(
+              id: const Uuid().v4(),
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              day: dayKey,
+              groupsJson: jsonEncode(groups),
+              score: score,
+              eatenMealsJson: Value(jsonEncode(eaten)),
+            ),
+          );
       return;
     }
-    await (db.update(db.dietLogs)..where((t) => t.id.equals(rows.first.id)))
-        .write(DietLogsCompanion(
-      groupsJson: Value(jsonEncode(groups)),
-      score: Value(score),
-      eatenMealsJson: Value(jsonEncode(eaten)),
-      clientUpdatedAt: Value(now.millisecondsSinceEpoch),
-      synced: const Value(false),
-    ));
-    // Tombstone accidental duplicates so they stop confusing the charts.
-    for (final dup in rows.skip(1)) {
-      await (db.update(db.dietLogs)..where((t) => t.id.equals(dup.id)))
-          .write(DietLogsCompanion(
-        deleted: const Value(true),
+    await (db.update(
+      db.dietLogs,
+    )..where((t) => t.id.equals(rows.first.id))).write(
+      DietLogsCompanion(
+        groupsJson: Value(jsonEncode(groups)),
+        score: Value(score),
+        eatenMealsJson: Value(jsonEncode(eaten)),
         clientUpdatedAt: Value(now.millisecondsSinceEpoch),
         synced: const Value(false),
-      ));
+      ),
+    );
+    // Tombstone accidental duplicates so they stop confusing the charts.
+    for (final dup in rows.skip(1)) {
+      await (db.update(db.dietLogs)..where((t) => t.id.equals(dup.id))).write(
+        DietLogsCompanion(
+          deleted: const Value(true),
+          clientUpdatedAt: Value(now.millisecondsSinceEpoch),
+          synced: const Value(false),
+        ),
+      );
     }
   }
 
@@ -213,6 +238,10 @@ class _DietScreenState extends ConsumerState<DietScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final countryCode =
+        (ref.watch(regionProvider).value ?? RegionSettings.defaults)
+            .countryCode;
+    final groups = foodGroupsFor(countryCode);
     final latestPlan = ref.watch(latestDietPlanProvider).value;
     final logs =
         ref.watch(recentDietLogsProvider).value ?? const <DietLogRow>[];
@@ -241,43 +270,51 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                 children: [
                   Row(
                     children: [
-                      Text('Today\'s plate',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Today\'s plate',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const Spacer(),
                       Chip(
                         visualDensity: VisualDensity.compact,
                         backgroundColor: todayScore >= 5
                             ? Colors.green.shade100
                             : theme.colorScheme.surfaceContainerHighest,
-                        label: Text('$todayScore / ${foodGroups.length}',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                        label: Text(
+                          '$todayScore / ${groups.length}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text('Tap what you (or your child) ate today',
-                      style: theme.textTheme.bodySmall),
+                  Text(
+                    'Tap what you (or your child) ate today',
+                    style: theme.textTheme.bodySmall,
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (var i = 0; i < foodGroups.length; i++)
+                      for (var i = 0; i < groups.length; i++)
                         FilterChip(
                           selected: todayGroups.contains(i),
                           onSelected: (_) => _toggleGroup(logs, i),
-                          label: Text(
-                              '${foodGroups[i].emoji} ${foodGroups[i].name}'),
-                          tooltip: foodGroups[i].examples,
+                          label: Text('${groups[i].emoji} ${groups[i].name}'),
+                          tooltip: groups[i].examples,
                         ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(scoreMessage(todayScore),
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontStyle: FontStyle.italic)),
+                  Text(
+                    scoreMessage(todayScore),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -296,7 +333,7 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                       height: 120,
                       child: BarChart(
                         BarChartData(
-                          maxY: foodGroups.length.toDouble(),
+                          maxY: groups.length.toDouble(),
                           gridData: const FlGridData(show: false),
                           borderData: FlBorderData(show: false),
                           titlesData: FlTitlesData(
@@ -312,30 +349,34 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                                     return const SizedBox.shrink();
                                   }
                                   final d = DateTime.parse(
-                                      logs.reversed.toList()[i].day);
-                                  return Text(DateFormat('E').format(d),
-                                      style: const TextStyle(fontSize: 10));
+                                    logs.reversed.toList()[i].day,
+                                  );
+                                  return Text(
+                                    DateFormat('E').format(d),
+                                    style: const TextStyle(fontSize: 10),
+                                  );
                                 },
                               ),
                             ),
                           ),
                           barGroups: [
-                            for (var i = 0;
-                                i < logs.reversed.length;
-                                i++)
-                              BarChartGroupData(x: i, barRods: [
-                                BarChartRodData(
-                                  toY: logs.reversed
-                                      .toList()[i]
-                                      .score
-                                      .toDouble(),
-                                  width: 14,
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: logs.reversed.toList()[i].score >= 5
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                              ]),
+                            for (var i = 0; i < logs.reversed.length; i++)
+                              BarChartGroupData(
+                                x: i,
+                                barRods: [
+                                  BarChartRodData(
+                                    toY: logs.reversed
+                                        .toList()[i]
+                                        .score
+                                        .toDouble(),
+                                    width: 14,
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: logs.reversed.toList()[i].score >= 5
+                                        ? Colors.green
+                                        : Colors.orange,
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ),
@@ -357,7 +398,8 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                     ? const SizedBox(
                         height: 16,
                         width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2))
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.restaurant_menu, size: 18),
                 label: Text(_building ? 'Cooking…' : '3 questions'),
               ),
@@ -378,11 +420,13 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                         ? '🎙️ Nana is listening… just talk'
                         : 'Or just tell Nana — she picks out what matters',
                     style: theme.textTheme.bodySmall?.copyWith(
-                        color: _listening
-                            ? Colors.red
-                            : theme.colorScheme.onSurfaceVariant,
-                        fontWeight:
-                            _listening ? FontWeight.bold : FontWeight.normal),
+                      color: _listening
+                          ? Colors.red
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: _listening
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
                   Row(
                     children: [
@@ -410,8 +454,10 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                         child: IconButton(
                           tooltip: 'Talk to Nana',
                           onPressed: _building ? null : _toggleMic,
-                          icon: Icon(_listening ? Icons.mic : Icons.mic_none,
-                              color: _listening ? Colors.white : null),
+                          icon: Icon(
+                            _listening ? Icons.mic : Icons.mic_none,
+                            color: _listening ? Colors.white : null,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -423,8 +469,11 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                           onPressed: _building
                               ? null
                               : () => _tellNana(_tellController.text),
-                          icon: const Icon(Icons.send,
-                              color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ],
@@ -444,7 +493,7 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                   child: Text(
                     'No plan yet. Tap the microphone and tell Nana about your '
                     'food and money — or type it above. She will use foods in '
-                    'season now (${seasonalFoodsHint(currentSeason())}).',
+                    'season now (${seasonalFoodsHint(currentSeason(null, countryCode), countryCode: countryCode)}).',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ),
@@ -459,7 +508,8 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                 subtitle: latestPlan == null
                     ? null
                     : Text(
-                        '${latestPlan.source == 'ai' ? 'Personalized by Nana' : 'From Nana\'s cookbook'} · ${DateFormat('EEE d MMM').format(latestPlan.plannedFor)}'),
+                        '${latestPlan.source == 'ai' ? 'Personalized by Nana' : 'From Nana\'s cookbook'} · ${DateFormat('EEE d MMM').format(latestPlan.plannedFor)}',
+                      ),
                 trailing: IconButton(
                   icon: const Icon(Icons.volume_up),
                   tooltip: 'Read the whole plan aloud',
@@ -486,15 +536,16 @@ class _DietScreenState extends ConsumerState<DietScreen> {
                     'Evening' => '🌙',
                     _ => '🍌',
                   }} ${slot['time']}${(slot['options'] as List).length > 1 ? ' — choose one' : ''}',
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               _MealSlotCarousel(
                 slot: slot,
                 eatenLabels: today.eaten,
-                onMadeThis: (meal) => _markMealEaten(
-                    logs, {...meal, 'time': slot['time']}),
+                onMadeThis: (meal) =>
+                    _markMealEaten(logs, {...meal, 'time': slot['time']}),
               ),
             ],
             if ((plan['tips'] as List? ?? []).isNotEmpty)
@@ -539,8 +590,9 @@ class _MealSlotCarousel extends StatefulWidget {
 }
 
 class _MealSlotCarouselState extends State<_MealSlotCarousel> {
-  late final PageController _controller =
-      PageController(viewportFraction: 0.94);
+  late final PageController _controller = PageController(
+    viewportFraction: 0.94,
+  );
   Timer? _autoTimer;
   DateTime _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
   bool _autoJump = false;
@@ -551,8 +603,9 @@ class _MealSlotCarouselState extends State<_MealSlotCarousel> {
 
   int _eatenIndex() {
     for (var i = 0; i < _options.length; i++) {
-      if (widget.eatenLabels
-          .contains('${widget.slot['time']} — ${_options[i]['name']}')) {
+      if (widget.eatenLabels.contains(
+        '${widget.slot['time']} — ${_options[i]['name']}',
+      )) {
         return i;
       }
     }
@@ -609,8 +662,7 @@ class _MealSlotCarouselState extends State<_MealSlotCarousel> {
                 _autoJump = false;
               } else {
                 // Manual swipe — give her time to read before flipping again.
-                _pausedUntil =
-                    DateTime.now().add(const Duration(seconds: 10));
+                _pausedUntil = DateTime.now().add(const Duration(seconds: 10));
               }
             },
             itemBuilder: (context, i) => Padding(
@@ -669,23 +721,31 @@ class _OptionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${meal['name']}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 15)),
+            Text(
+              '${meal['name']}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
             const SizedBox(height: 6),
-            Text('${meal['ingredients']}',
-                maxLines: 2, overflow: TextOverflow.ellipsis),
-            Text('Portion: ${meal['portion']}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              '${meal['ingredients']}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              'Portion: ${meal['portion']}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
             Expanded(
-              child: Text('${meal['prep']}',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
-                  style: theme.textTheme.bodySmall),
+              child: Text(
+                '${meal['prep']}',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+                style: theme.textTheme.bodySmall,
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -726,7 +786,11 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
   final _householdController = TextEditingController(text: '4');
 
   Widget _budgetOption(
-      BuildContext context, String value, String emoji, String label) {
+    BuildContext context,
+    String value,
+    String emoji,
+    String label,
+  ) {
     final theme = Theme.of(context);
     final selected = _budget == value;
     return InkWell(
@@ -752,11 +816,13 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
             Text(emoji, style: const TextStyle(fontSize: 22)),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(label,
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight:
-                          selected ? FontWeight.bold : FontWeight.normal)),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
             if (selected)
               Icon(Icons.check_circle, color: theme.colorScheme.primary),
@@ -771,8 +837,9 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
     final theme = Theme.of(context);
     return Padding(
       // Keep the sheet above the keyboard.
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -791,17 +858,26 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Plan my meals',
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Plan my meals',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 16),
-              Text('Can you buy extra foods from the market this week?',
-                  style: theme.textTheme.titleSmall),
+              Text(
+                'Can you buy extra foods from the market this week?',
+                style: theme.textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               _budgetOption(context, 'ok', '🛒', 'Yes, I can buy some extras'),
               const SizedBox(height: 8),
               _budgetOption(
-                  context, 'low', '🪙', 'Money is tight — use what I have'),
+                context,
+                'low',
+                '🪙',
+                'Money is tight — use what I have',
+              ),
               const SizedBox(height: 18),
               TextField(
                 controller: _pantryController,
@@ -824,7 +900,8 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                 width: double.infinity,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   onPressed: () => Navigator.pop(context, {
                     'budget': _budget,
                     'pantry': _pantryController.text.trim(),
@@ -839,8 +916,9 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
               const SizedBox(height: 4),
               Center(
                 child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel')),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
               ),
             ],
           ),

@@ -34,13 +34,11 @@ class NanaVoice {
     // 1. Try to obtain natural speech audio. Fetch ONLY — nothing audible yet.
     Uint8List? bytes;
     try {
-      final voiceProvider = _ref.read(voiceProviderProvider).value ?? 'elevenlabs';
+      final voiceProvider =
+          _ref.read(voiceProviderProvider).value ?? 'elevenlabs';
       final res = await _api.dio.post<List<int>>(
         '/assistant/speak',
-        data: {
-          'text': text,
-          'provider': voiceProvider,
-        },
+        data: {'text': text, 'provider': voiceProvider},
         options: Options(
           responseType: ResponseType.bytes,
           receiveTimeout: const Duration(seconds: 30),
@@ -79,8 +77,9 @@ class NanaVoice {
       await _player.play(DeviceFileSource(file.path));
       debugPrint('[nana_voice] playback started');
       try {
-        await _player.onPlayerComplete.first
-            .timeout(const Duration(seconds: 90));
+        await _player.onPlayerComplete.first.timeout(
+          const Duration(seconds: 90),
+        );
       } on TimeoutException {
         debugPrint('[nana_voice] gave up waiting for completion');
       }

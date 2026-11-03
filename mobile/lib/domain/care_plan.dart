@@ -30,26 +30,35 @@ const _childSchedule = <_PlanItem>[
 /// Generates the offline care calendar for a child from their date of birth.
 /// Only future items (and those due within the last 30 days, still worth
 /// catching up on) are created. Monthly growth monitoring runs to 24 months.
-List<RemindersCompanion> generateChildCarePlan(String childId, DateTime dateOfBirth) {
+List<RemindersCompanion> generateChildCarePlan(
+  String childId,
+  DateTime dateOfBirth,
+) {
   final now = DateTime.now();
   final cutoff = now.subtract(const Duration(days: 30));
   final items = <RemindersCompanion>[];
 
   void add(DateTime due, String type, String title, [String? description]) {
     if (due.isBefore(cutoff)) return;
-    items.add(RemindersCompanion.insert(
-      id: _uuid.v4(),
-      clientUpdatedAt: now.millisecondsSinceEpoch,
-      childId: Value(childId),
-      type: type,
-      title: title,
-      description: Value(description),
-      dueDate: due,
-    ));
+    items.add(
+      RemindersCompanion.insert(
+        id: _uuid.v4(),
+        clientUpdatedAt: now.millisecondsSinceEpoch,
+        childId: Value(childId),
+        type: type,
+        title: title,
+        description: Value(description),
+        dueDate: due,
+      ),
+    );
   }
 
   for (final item in _childSchedule) {
-    add(dateOfBirth.add(Duration(days: item.daysFromBirth)), item.type, item.title);
+    add(
+      dateOfBirth.add(Duration(days: item.daysFromBirth)),
+      item.type,
+      item.title,
+    );
   }
   for (var month = 1; month <= 24; month++) {
     add(
@@ -66,7 +75,9 @@ List<RemindersCompanion> generateChildCarePlan(String childId, DateTime dateOfBi
 /// Postnatal care for the mother after delivery: WHO-recommended PNC contacts
 /// plus a family-planning counselling reminder.
 List<RemindersCompanion> generatePostnatalCarePlan(
-    String pregnancyId, DateTime deliveryDate) {
+  String pregnancyId,
+  DateTime deliveryDate,
+) {
   final now = DateTime.now();
   const contacts = [
     (days: 3, title: 'Postnatal check for mother & baby (day 3)'),
@@ -90,7 +101,9 @@ List<RemindersCompanion> generatePostnatalCarePlan(
 /// ANC contact schedule (simplified WHO 8-contact model) from the expected due
 /// date, assuming a 280-day term.
 List<RemindersCompanion> generatePregnancyCarePlan(
-    String pregnancyId, DateTime expectedDueDate) {
+  String pregnancyId,
+  DateTime expectedDueDate,
+) {
   final now = DateTime.now();
   final conception = expectedDueDate.subtract(const Duration(days: 280));
   const contactWeeks = [12, 20, 26, 30, 34, 36, 38, 40];
@@ -99,14 +112,16 @@ List<RemindersCompanion> generatePregnancyCarePlan(
   for (var i = 0; i < contactWeeks.length; i++) {
     final due = conception.add(Duration(days: contactWeeks[i] * 7));
     if (due.isBefore(now.subtract(const Duration(days: 14)))) continue;
-    items.add(RemindersCompanion.insert(
-      id: _uuid.v4(),
-      clientUpdatedAt: now.millisecondsSinceEpoch,
-      pregnancyId: Value(pregnancyId),
-      type: 'anc',
-      title: 'Antenatal visit ${i + 1} (week ${contactWeeks[i]})',
-      dueDate: due,
-    ));
+    items.add(
+      RemindersCompanion.insert(
+        id: _uuid.v4(),
+        clientUpdatedAt: now.millisecondsSinceEpoch,
+        pregnancyId: Value(pregnancyId),
+        type: 'anc',
+        title: 'Antenatal visit ${i + 1} (week ${contactWeeks[i]})',
+        dueDate: due,
+      ),
+    );
   }
   return items;
 }

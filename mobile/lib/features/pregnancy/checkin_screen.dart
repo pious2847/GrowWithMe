@@ -63,10 +63,10 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
       final context = await ref
           .read(nanaAssistantProvider)
           .buildCheckinContext(widget.pregnancy);
-      final res = await ref.read(apiClientProvider).dio.post(
-        '/assistant/checkin-questions',
-        data: {'context': context},
-      );
+      final res = await ref
+          .read(apiClientProvider)
+          .dio
+          .post('/assistant/checkin-questions', data: {'context': context});
       final ai = (res.data['questions'] as List? ?? [])
           .map((q) => CheckinQuestion.fromJson(q as Map<String, dynamic>))
           .toList();
@@ -103,8 +103,9 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     } else {
       if (_voiceSession) {
         await _speech.stop();
-        await _voice
-            .speak('Thank you, my daughter. Let me look at your answers.');
+        await _voice.speak(
+          'Thank you, my daughter. Let me look at your answers.',
+        );
       }
       await _finish();
     }
@@ -123,7 +124,8 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     }
     setState(() => _voiceSession = true);
     await _voice.speak(
-        'I will ask you the questions myself. After each one, answer me with YES or NO.');
+      'I will ask you the questions myself. After each one, answer me with YES or NO.',
+    );
     if (mounted && _voiceSession) _askCurrent();
   }
 
@@ -145,11 +147,28 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
   static bool? _interpret(String words) {
     final tokens = words.toLowerCase().split(RegExp(r'[^a-z]+'));
     const noWords = [
-      'no', 'not', 'nope', 'nah', 'na', 'never', 'nothing', 'don', 'dont'
+      'no',
+      'not',
+      'nope',
+      'nah',
+      'na',
+      'never',
+      'nothing',
+      'don',
+      'dont',
     ];
     const yesWords = [
-      'yes', 'yeah', 'yep', 'yah', 'yea', 'ya', 'sure', 'okay', 'ok',
-      'correct', 'true'
+      'yes',
+      'yeah',
+      'yep',
+      'yah',
+      'yea',
+      'ya',
+      'sure',
+      'okay',
+      'ok',
+      'correct',
+      'true',
     ];
     if (tokens.any(noWords.contains)) return false;
     if (tokens.any(yesWords.contains)) return true;
@@ -179,9 +198,11 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     if (!available) {
       if (!mounted) return;
       setState(() => _voiceSession = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text('Microphone is not available — tap YES or NO instead')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone is not available — tap YES or NO instead'),
+        ),
+      );
       return;
     }
     if (!mounted || !_voiceSession || gen != _listenGeneration) return;
@@ -269,9 +290,11 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
             permission == LocationPermission.whileInUse) {
           try {
             final pos = await Geolocator.getCurrentPosition(
-                locationSettings: const LocationSettings(
-                    accuracy: LocationAccuracy.medium,
-                    timeLimit: Duration(seconds: 20)));
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.medium,
+                timeLimit: Duration(seconds: 20),
+              ),
+            );
             lng = pos.longitude;
             lat = pos.latitude;
           } catch (_) {}
@@ -292,38 +315,56 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
     final assessmentId = const Uuid().v4();
     final now = DateTime.now();
     await db.transaction(() async {
-      await db.into(db.assessments).insert(AssessmentsCompanion.insert(
-            id: assessmentId,
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            subjectType: 'pregnancy',
-            pregnancyId: Value(widget.pregnancy.id),
-            answersJson: Value(jsonEncode([
-              for (final q in questions)
-                {'questionId': q.id, 'question': q.text, 'answer': _answers[q.id] ?? false}
-            ])),
-            dangerSignsJson: Value(jsonEncode(result.dangerSigns)),
-            riskLevel: result.riskLevel,
-            guidance: Value(result.guidance),
-            lng: Value(lng),
-            lat: Value(lat),
-            completedAt: now,
-          ));
-      await (db.update(db.pregnancies)
-            ..where((t) => t.id.equals(widget.pregnancy.id)))
-          .write(PregnanciesCompanion(
-        lastCheckinAt: Value(now),
-        lastRiskLevel: Value(result.riskLevel),
-        clientUpdatedAt: Value(now.millisecondsSinceEpoch),
-        synced: const Value(false),
-      ));
+      await db
+          .into(db.assessments)
+          .insert(
+            AssessmentsCompanion.insert(
+              id: assessmentId,
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              subjectType: 'pregnancy',
+              pregnancyId: Value(widget.pregnancy.id),
+              answersJson: Value(
+                jsonEncode([
+                  for (final q in questions)
+                    {
+                      'questionId': q.id,
+                      'question': q.text,
+                      'answer': _answers[q.id] ?? false,
+                    },
+                ]),
+              ),
+              dangerSignsJson: Value(jsonEncode(result.dangerSigns)),
+              riskLevel: result.riskLevel,
+              guidance: Value(result.guidance),
+              lng: Value(lng),
+              lat: Value(lat),
+              completedAt: now,
+            ),
+          );
+      await (db.update(
+        db.pregnancies,
+      )..where((t) => t.id.equals(widget.pregnancy.id))).write(
+        PregnanciesCompanion(
+          lastCheckinAt: Value(now),
+          lastRiskLevel: Value(result.riskLevel),
+          clientUpdatedAt: Value(now.millisecondsSinceEpoch),
+          synced: const Value(false),
+        ),
+      );
     });
 
     final synced = await ref.read(syncControllerProvider.notifier).sync();
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
         builder: (_) => ResultScreen(
-            result: result, assessmentId: assessmentId, synced: synced)));
+          result: result,
+          assessmentId: assessmentId,
+          synced: synced,
+        ),
+      ),
+    );
   }
 
   @override
@@ -362,7 +403,8 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(
-              value: (_index + 1) / questions.length),
+            value: (_index + 1) / questions.length,
+          ),
         ),
       ),
       body: Padding(
@@ -388,7 +430,9 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFD32F2F),
                   textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () => _answer(true),
                 icon: const Icon(Icons.check_circle, size: 30),
@@ -402,7 +446,9 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () => _answer(false),
                 icon: const Icon(Icons.cancel, size: 30),
@@ -412,8 +458,10 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
             const Spacer(),
             if (_voiceSession)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
@@ -444,7 +492,8 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
             else
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
                 onPressed: _toggleVoiceSession,
                 icon: const Icon(Icons.support_agent),
                 label: const Text('Let Nana ask me aloud'),

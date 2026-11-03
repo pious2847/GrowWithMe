@@ -42,22 +42,23 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
   }
 
   Color _color(BuildContext context) => switch (result.riskLevel) {
-        'urgent' => Colors.red.shade700,
-        'moderate' => Colors.orange.shade800,
-        _ => Colors.green.shade700,
-      };
+    'urgent' => Colors.red.shade700,
+    'moderate' => Colors.orange.shade800,
+    _ => Colors.green.shade700,
+  };
 
   String _title() => switch (result.riskLevel) {
-        'urgent' => 'URGENT — get help now',
-        'moderate' => 'Visit a clinic within 24 hours',
-        _ => 'No danger signs found',
-      };
+    'urgent' => 'URGENT — get help now',
+    'moderate' => 'Visit a clinic within 24 hours',
+    _ => 'No danger signs found',
+  };
 
   @override
   Widget build(BuildContext context) {
     final alerts = ref.watch(alertsProvider).value ?? const [];
-    final alert =
-        alerts.where((a) => a.assessmentId == assessmentId).firstOrNull;
+    final alert = alerts
+        .where((a) => a.assessmentId == assessmentId)
+        .firstOrNull;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Result')),
@@ -65,14 +66,23 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           if (result.riskLevel == 'urgent')
-            Lottie.asset('assets/lottie/alert_pulse.json',
-                height: 160, repeat: true)
+            Lottie.asset(
+              'assets/lottie/alert_pulse.json',
+              height: 160,
+              repeat: true,
+            )
           else if (result.riskLevel == 'low')
-            Lottie.asset('assets/lottie/success_check.json',
-                height: 160, repeat: false)
+            Lottie.asset(
+              'assets/lottie/success_check.json',
+              height: 160,
+              repeat: false,
+            )
           else
-            Lottie.asset('assets/lottie/health_check.json',
-                height: 160, repeat: false),
+            Lottie.asset(
+              'assets/lottie/health_check.json',
+              height: 160,
+              repeat: false,
+            ),
           const SizedBox(height: 8),
           Card(
             color: _color(context),
@@ -81,10 +91,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               child: Text(
                 _title(),
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -102,7 +112,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           ],
           Row(
             children: [
-              Text('What to do', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'What to do',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const Spacer(),
               TextButton.icon(
                 onPressed: () => ref.read(ttsProvider).speak(result.guidance),
@@ -120,9 +133,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           if (result.riskLevel != 'urgent' &&
               ref.watch(modelServiceProvider).ready) ...[
             OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
                   builder: (_) =>
-                      MeasurementsScreen(rulesRiskLevel: result.riskLevel))),
+                      MeasurementsScreen(rulesRiskLevel: result.riskLevel),
+                ),
+              ),
               icon: const Icon(Icons.monitor_heart),
               label: const Text('Add measurements (optional)'),
             ),
@@ -131,7 +147,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               'Know your blood pressure from your ANC card? The offline '
               'helper can give a second opinion — even without internet.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
           ],
@@ -148,11 +165,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                         const Icon(Icons.healing, color: Colors.brown),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text('While help comes — do this now',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                          child: Text(
+                            'While help comes — do this now',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ),
                         IconButton(
                           tooltip: 'Read aloud',
@@ -170,12 +187,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(step.emoji,
-                                style: const TextStyle(fontSize: 22)),
+                            Text(
+                              step.emoji,
+                              style: const TextStyle(fontSize: 22),
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
-                                child: Text(step.text,
-                                    style: const TextStyle(height: 1.3))),
+                              child: Text(
+                                step.text,
+                                style: const TextStyle(height: 1.3),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -204,8 +226,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                             synced
                                 ? 'Alert sent to the nearest volunteer and facility.'
                                 : 'No connection right now — the alert will be sent '
-                                    'automatically as soon as you are online. '
-                                    'Do not wait: start moving to the nearest facility.',
+                                      'automatically as soon as you are online. '
+                                      'Do not wait: start moving to the nearest facility.',
                           ),
                         ),
                       ],
@@ -243,8 +265,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline,
-                    size: 20, color: Colors.blueGrey.shade700),
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: Colors.blueGrey.shade700,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -253,9 +278,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                     'worker. If you are worried, go to a clinic — even if the '
                     'result looks fine.',
                     style: TextStyle(
-                        fontSize: 13,
-                        height: 1.35,
-                        color: Colors.blueGrey.shade800),
+                      fontSize: 13,
+                      height: 1.35,
+                      color: Colors.blueGrey.shade800,
+                    ),
                   ),
                 ),
               ],

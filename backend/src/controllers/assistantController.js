@@ -3,6 +3,7 @@ const ApiError = require('../utils/apiError');
 const nana = require('../services/nanaService');
 const voice = require('../services/voiceService');
 const logger = require('../utils/logger');
+const { userRef } = require('../utils/privacy');
 
 // POST /api/v1/assistant/chat { messages: [{role, content}], context: string }
 // The app builds `context` locally (children, ages, today's visits) so the
@@ -21,7 +22,7 @@ const chat = asyncHandler(async (req, res) => {
 
   const reply = await nana.chat(safeMessages, String(context).slice(0, 4000));
   logger.info(
-    `[nana] user=${req.user.phone} action=${reply.action ? reply.action.name : 'none'}`
+    `[nana] user=${userRef(req.user)} action=${reply.action ? reply.action.name : 'none'}`
   );
   res.json({ success: true, reply });
 });
@@ -60,7 +61,7 @@ const checkinQuestions = asyncHandler(async (req, res) => {
   }
   const context = String(req.body?.context || '').slice(0, 4000);
   const questions = await nana.checkinQuestions(context);
-  logger.info(`[nana] check-in questions generated for ${req.user.phone}: ${questions.length}`);
+  logger.info(`[nana] check-in questions generated for ${userRef(req.user)}: ${questions.length}`);
   res.json({ success: true, questions });
 });
 
@@ -71,7 +72,7 @@ const dietPlan = asyncHandler(async (req, res) => {
   }
   const context = String(req.body?.context || '').slice(0, 4000);
   const plan = await nana.dietPlan(context);
-  logger.info(`[nana] diet plan generated for ${req.user.phone} (${plan.meals.length} meals)`);
+  logger.info(`[nana] diet plan generated for ${userRef(req.user)} (${plan.meals.length} meals)`);
   res.json({ success: true, plan });
 });
 
@@ -82,7 +83,7 @@ const dailyTips = asyncHandler(async (req, res) => {
   }
   const context = String(req.body?.context || '').slice(0, 4000);
   const tips = await nana.dailyTips(context);
-  logger.info(`[nana] daily tips generated for ${req.user.phone}: ${tips.length}`);
+  logger.info(`[nana] daily tips generated for ${userRef(req.user)}: ${tips.length}`);
   res.json({ success: true, tips });
 });
 

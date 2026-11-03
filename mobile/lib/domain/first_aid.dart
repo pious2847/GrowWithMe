@@ -13,45 +13,93 @@ class FirstAidStep {
 
 const _bySign = <String, List<FirstAidStep>>{
   'Convulsions or fits': [
-    FirstAidStep('🛏️', 'Lay the child on their side on a soft surface, away from fire and sharp things.'),
-    FirstAidStep('🚫', 'Do not put anything in the mouth. Do not hold the child down.'),
-    FirstAidStep('🌡️', 'If the body is hot, remove extra clothing and sponge with lukewarm water.'),
+    FirstAidStep(
+      '🛏️',
+      'Lay the child on their side on a soft surface, away from fire and sharp things.',
+    ),
+    FirstAidStep(
+      '🚫',
+      'Do not put anything in the mouth. Do not hold the child down.',
+    ),
+    FirstAidStep(
+      '🌡️',
+      'If the body is hot, remove extra clothing and sponge with lukewarm water.',
+    ),
   ],
   'Unconscious or very sleepy': [
     FirstAidStep('🛏️', 'Lay the child on their side. Keep the airway clear.'),
     FirstAidStep('🧣', 'Keep the child warm but not covered over the face.'),
   ],
   'Unable to drink or breastfeed': [
-    FirstAidStep('🥄', 'If the child can swallow, give small sips of breast milk or clean water with a spoon.'),
-    FirstAidStep('🚫', 'Never force liquid into the mouth of a child who cannot swallow.'),
+    FirstAidStep(
+      '🥄',
+      'If the child can swallow, give small sips of breast milk or clean water with a spoon.',
+    ),
+    FirstAidStep(
+      '🚫',
+      'Never force liquid into the mouth of a child who cannot swallow.',
+    ),
   ],
   'Vomits everything': [
-    FirstAidStep('🥄', 'Give very small sips of fluid — one spoon every few minutes.'),
-    FirstAidStep('🧂', 'If you have ORS, mix one full packet in one large water bottle (1 litre) of clean water.'),
+    FirstAidStep(
+      '🥄',
+      'Give very small sips of fluid — one spoon every few minutes.',
+    ),
+    FirstAidStep(
+      '🧂',
+      'If you have ORS, mix one full packet in one large water bottle (1 litre) of clean water.',
+    ),
   ],
   'Signs of dehydration': [
-    FirstAidStep('🧂', 'Give ORS: small frequent sips. No ORS? Mix 6 level teaspoons sugar + half teaspoon salt in 1 litre clean water.'),
+    FirstAidStep(
+      '🧂',
+      'Give ORS: small frequent sips. No ORS? Mix 6 level teaspoons sugar + half teaspoon salt in 1 litre clean water.',
+    ),
     FirstAidStep('🤱', 'Keep breastfeeding — more often than usual.'),
   ],
   'Blood in stool': [
-    FirstAidStep('💧', 'Keep giving fluids and breast milk on the way to the facility.'),
+    FirstAidStep(
+      '💧',
+      'Keep giving fluids and breast milk on the way to the facility.',
+    ),
   ],
   'Vaginal bleeding': [
-    FirstAidStep('🛏️', 'Lie down on your left side while transport is arranged.'),
-    FirstAidStep('🩸', 'Keep any soaked cloths to show the nurse how much bleeding there was.'),
+    FirstAidStep(
+      '🛏️',
+      'Lie down on your left side while transport is arranged.',
+    ),
+    FirstAidStep(
+      '🩸',
+      'Keep any soaked cloths to show the nurse how much bleeding there was.',
+    ),
   ],
   'Convulsions or fits (pregnancy)': [
-    FirstAidStep('🛏️', 'Lie on the left side, away from anything sharp. Do not restrain.'),
+    FirstAidStep(
+      '🛏️',
+      'Lie on the left side, away from anything sharp. Do not restrain.',
+    ),
   ],
   'Reduced baby movement': [
-    FirstAidStep('🥤', 'Drink something cold and sweet, lie on your left side, and count movements while traveling.'),
+    FirstAidStep(
+      '🥤',
+      'Drink something cold and sweet, lie on your left side, and count movements while traveling.',
+    ),
   ],
 };
 
 const _general = <FirstAidStep>[
-  FirstAidStep('🚶', 'Start moving toward the facility now — do not wait for symptoms to improve.'),
-  FirstAidStep('🤱', 'Keep the child close to your body for warmth (skin-to-skin for babies).'),
-  FirstAidStep('📱', 'Keep your phone with you — the volunteer or clinic may call.'),
+  FirstAidStep(
+    '🚶',
+    'Start moving toward the facility now — do not wait for symptoms to improve.',
+  ),
+  FirstAidStep(
+    '🤱',
+    'Keep the child close to your body for warmth (skin-to-skin for babies).',
+  ),
+  FirstAidStep(
+    '📱',
+    'Keep your phone with you — the volunteer or clinic may call.',
+  ),
 ];
 
 /// Steps for the given danger signs, deduplicated, with general steps last.

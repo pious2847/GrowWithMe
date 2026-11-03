@@ -14,5 +14,11 @@ date_sent,org,contact_email,contact_name,template,channel,status,deadline,first_
 10/25/2026,AfriKids Ghana,infogh@afrikids.org,,T3-partner,email,sent,,,11/2/2026,,,explicitly NO funding ask; program cooperation framing
 10/25/2026,STAR-Ghana Foundation,info@star-ghana.org,,T3-partner,email,sent,,,11/2/2026,,,co-design concept note when next call opens; asked call notifications
 10/25/2026,MTN Ghana Foundation,mtnghanafoundation@mtn.com,,T4-sponsor,email,bounced,,,manual,,,550 5.7.133 group rejects external senders (verified 10/25/2026) — apply via mtn.com.gh/foundation/sponsorship-form; pitch text ready in MTN_form_pitch.txt
-10/25/2026,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,,T6-cohort,email,sent,,,11/2/2026,,,intro ahead of cohort 7 (~spring 2027); asked what strengthens application
+10/25/2026,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,,T6-cohort,email,temp-deferred,,,watch,,4xx temp fail — Gmail retrying up to 47h (until ~Oct 27); if permanent failure arrives reroute via startuplab.unglobal.org contact page; watchlist item (cohort 7 ~spring 2027) — not deadline-critical
 pending,US Embassy PDS / CFLI / Japan GGHSP / Telecel / KIC / Red Cross / Google.org / Gavi,,,,manual,,,,,no verified email or window closed — see funders_partners.md manual list + Tier 5 cycles
+10/27/2026,Medic (CHT) - global partner,hello@medic.org,,G3-collab,email,sent,,,11/5/2026,,,knowledge-exchange framing no money ask; video attached
+10/27/2026,Dimagi (CommCare) - global partner,info@dimagi.com,,G3-collab,email,sent,,,11/5/2026,,,knowledge-exchange framing no money ask; video attached
+pending,MIT Solve Global Health Challenge,,,G0-prize,portal,,,,,USER SUBMITS via solve.mit.edu ~Nov 2/6 deadline - draft answers in MIT_SOLVE_answers.md
+pending,Draper Richards Kaplan,,,G1-rolling,portal,,,,,USER SUBMITS LOI at drkfoundation.org/apply - letter ready in DRK_LOI.md ($300k ask)
+pending,Roddenberry Catalyst Fund,,,G1-rolling,portal,,,,,USER SUBMITS at roddenberryfoundation.org - answers ready in RODDENBERRY_catalyst.md ($15k ask)
+pending,GSMA Innovation Fund (Impactful AI),,,G1-watch,portal,,,,,register interest at gsma.com M4D innovation fund page - 5 min

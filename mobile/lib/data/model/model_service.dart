@@ -32,7 +32,8 @@ class ModelService {
   Map<String, dynamic> get meta => _model.meta;
   int? get version => _model.version;
   int? get sizeBytes => _model.sizeBytes;
-  Future<bool> ensureLatest({bool throwOnError = false}) => _model.ensureLatest(throwOnError: throwOnError);
+  Future<bool> ensureLatest({bool throwOnError = false}) =>
+      _model.ensureLatest(throwOnError: throwOnError);
 
   /// Runs the model on partially-filled vitals. [values] keys follow
   /// meta.features (age, systolic_bp, ...); null = not measured.
@@ -42,8 +43,12 @@ class ModelService {
     if (!ready) return null;
     final features = (meta['features'] as List).cast<String>();
     final classes = (meta['classes'] as List).cast<String>();
-    final mean = (meta['mean'] as List).map((e) => (e as num).toDouble()).toList();
-    final std = (meta['std'] as List).map((e) => (e as num).toDouble()).toList();
+    final mean = (meta['mean'] as List)
+        .map((e) => (e as num).toDouble())
+        .toList();
+    final std = (meta['std'] as List)
+        .map((e) => (e as num).toDouble())
+        .toList();
     final minInputs = (meta['minInputs'] as num?)?.toInt() ?? 4;
     final required = ((meta['requiredFeatures'] as List?) ?? []).cast<String>();
 

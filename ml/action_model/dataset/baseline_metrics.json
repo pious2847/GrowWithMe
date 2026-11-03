@@ -1,0 +1,10 @@
+{
+  "trainEpisodes": 963,
+  "testEpisodes": 115,
+  "testSteps": 509,
+  "actionTypeAccuracy": 0.78,
+  "targetTop1Accuracy": 0.3818,
+  "nextScreenAccuracy": 0.6444,
+  "testStepSuccessRate": 0.9902,
+  "baseline": "per-screen majority class (no context, no history)"
+}

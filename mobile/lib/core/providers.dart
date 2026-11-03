@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/action/action_logger.dart';
 import '../data/api/api_client.dart';
 import '../data/auth/auth_repository.dart';
 import '../data/db/app_database.dart';
@@ -20,8 +21,9 @@ import '../data/voice/tts_service.dart';
 import '../data/widget/widget_service.dart';
 import 'constants.dart';
 
-final secureStorageProvider =
-    Provider<FlutterSecureStorage>((ref) => const FlutterSecureStorage());
+final secureStorageProvider = Provider<FlutterSecureStorage>(
+  (ref) => const FlutterSecureStorage(),
+);
 
 final dbProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
@@ -29,67 +31,146 @@ final dbProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
-final apiClientProvider =
-    Provider<ApiClient>((ref) => ApiClient(ref.watch(secureStorageProvider)));
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(ref.watch(secureStorageProvider)),
+);
 
-final authRepositoryProvider =
-    Provider<AuthRepository>((ref) => AuthRepository(ref.watch(apiClientProvider)));
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => AuthRepository(ref.watch(apiClientProvider)),
+);
+
+final actionLoggerProvider = Provider<ActionLogger>(
+  (ref) => ActionLogger(ref.watch(apiClientProvider)),
+);
+
+/// Explicit opt-in for anonymous interaction logging (used to train the
+/// on-device action model). Off by default.
+class ActionConsentController extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() => ref.watch(actionLoggerProvider).hasConsent();
+
+  Future<void> set(bool consent) async {
+    await ref.read(actionLoggerProvider).setConsent(consent);
+    state = AsyncData(consent);
+    if (consent) {
+      await ref.read(actionLoggerProvider).flush();
+    }
+  }
+}
+
+final actionConsentProvider =
+    AsyncNotifierProvider<ActionConsentController, bool>(
+      ActionConsentController.new,
+    );
+
+/// Which bottom tab is showing. Lifted out of the shell so Nana's companion
+/// can take a caregiver straight to her calendar or alerts without duplicating
+/// navigation logic.
+class HomeTabController extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void open(int index) {
+    if (index < 0 || index > 3) return;
+    state = index;
+  }
+}
+
+final homeTabProvider = NotifierProvider<HomeTabController, int>(
+  HomeTabController.new,
+);
 
 final syncServiceProvider = Provider<SyncService>(
-    (ref) => SyncService(ref.watch(dbProvider), ref.watch(apiClientProvider)));
+  (ref) => SyncService(ref.watch(dbProvider), ref.watch(apiClientProvider)),
+);
 
-final widgetServiceProvider =
-    Provider<WidgetService>((ref) => WidgetService(ref.watch(dbProvider)));
+final widgetServiceProvider = Provider<WidgetService>(
+  (ref) => WidgetService(ref.watch(dbProvider)),
+);
 
 final ttsProvider = Provider<TtsService>((ref) => TtsService());
 
-final modelServiceProvider =
-    Provider<ModelService>((ref) => ModelService(ref.watch(apiClientProvider)));
+final modelServiceProvider = Provider<ModelService>(
+  (ref) => ModelService(ref.watch(apiClientProvider)),
+);
 
-final nluServiceProvider =
-    Provider<NluService>((ref) => NluService(ref.watch(apiClientProvider)));
+final nluServiceProvider = Provider<NluService>(
+  (ref) => NluService(ref.watch(apiClientProvider)),
+);
 
-final slmServiceProvider =
-    Provider<OnDeviceModel>((ref) => OnDeviceModel(ref.watch(apiClientProvider), 'nana-slm'));
+final slmServiceProvider = Provider<OnDeviceModel>(
+  (ref) => OnDeviceModel(ref.watch(apiClientProvider), 'nana-slm'),
+);
 
 final nanaVoiceProvider = Provider<NanaVoice>(
-    (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider), ref));
+  (ref) => NanaVoice(ref.watch(apiClientProvider), ref.watch(ttsProvider), ref),
+);
 
-final careActionsProvider =
-    Provider<CareActions>((ref) => CareActions(ref.watch(dbProvider)));
+final careActionsProvider = Provider<CareActions>(
+  (ref) => CareActions(ref.watch(dbProvider)),
+);
 
-final notificationServiceProvider =
-    Provider<NotificationService>((ref) => NotificationService.instance);
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NotificationService.instance,
+);
 
-final nanaAssistantProvider = Provider<NanaAssistant>((ref) => NanaAssistant(
+final nanaAssistantProvider = Provider<NanaAssistant>(
+  (ref) => NanaAssistant(
     ref.watch(dbProvider),
     ref.watch(apiClientProvider),
-    ref.watch(nluServiceProvider)));
+    ref.watch(nluServiceProvider),
+  ),
+);
 
-final dietPlannerProvider = Provider<DietPlanner>((ref) => DietPlanner(
+final dietPlannerProvider = Provider<DietPlanner>(
+  (ref) => DietPlanner(
     ref.watch(dbProvider),
     ref.watch(apiClientProvider),
-    ref.watch(nanaAssistantProvider)));
+    ref.watch(nanaAssistantProvider),
+  ),
+);
 
-final tipsUpdaterProvider = Provider<TipsUpdater>((ref) => TipsUpdater(
+final tipsUpdaterProvider = Provider<TipsUpdater>(
+  (ref) => TipsUpdater(
     ref.watch(dbProvider),
     ref.watch(apiClientProvider),
-    ref.watch(nanaAssistantProvider)));
+    ref.watch(nanaAssistantProvider),
+  ),
+);
 
-final dailyTipsProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchDailyTips());
+final dailyTipsProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchDailyTips(),
+);
 
-final latestDietPlanProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchLatestDietPlan());
+final latestDietPlanProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchLatestDietPlan(),
+);
 
-final recentDietLogsProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchRecentDietLogs(7));
+final recentDietLogsProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchRecentDietLogs(7),
+);
 
 final pregnancyAssessmentsProvider = StreamProvider(
-    (ref) => ref.watch(dbProvider).watchPregnancyAssessments());
+  (ref) => ref.watch(dbProvider).watchPregnancyAssessments(),
+);
+
+final assessmentsProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchAssessments(),
+);
 
 final growthRecordsProvider = StreamProvider.family(
-    (ref, String childId) => ref.watch(dbProvider).watchGrowthRecords(childId));
+  (ref, String childId) => ref.watch(dbProvider).watchGrowthRecords(childId),
+);
+
+final allGrowthRecordsProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchAllGrowthRecords(),
+);
+
+/// Diet logs from a given day (YYYY-MM-DD) onwards — the weekly report looks
+/// back over the last twelve weeks for Nana Plus members.
+final dietLogsSinceProvider = StreamProvider.family<List<DietLogRow>, String>(
+  (ref, dayKey) => ref.watch(dbProvider).watchDietLogsSince(dayKey),
+);
 
 /// Voice mode for non-literate users: when on, the app automatically reads
 /// each triage question and result aloud.
@@ -108,8 +189,9 @@ class AutoVoiceController extends AsyncNotifier<bool> {
   }
 }
 
-final autoVoiceProvider =
-    AsyncNotifierProvider<AutoVoiceController, bool>(AutoVoiceController.new);
+final autoVoiceProvider = AsyncNotifierProvider<AutoVoiceController, bool>(
+  AutoVoiceController.new,
+);
 
 /// Selected natural voice provider: 'elevenlabs' or 'fish_audio'.
 class VoiceProviderController extends AsyncNotifier<String> {
@@ -127,7 +209,9 @@ class VoiceProviderController extends AsyncNotifier<String> {
 }
 
 final voiceProviderProvider =
-    AsyncNotifierProvider<VoiceProviderController, String>(VoiceProviderController.new);
+    AsyncNotifierProvider<VoiceProviderController, String>(
+      VoiceProviderController.new,
+    );
 
 /// Display name saved at login/onboarding for the home-screen greeting.
 final userNameProvider = FutureProvider<String?>((ref) async {
@@ -139,8 +223,9 @@ final userNameProvider = FutureProvider<String?>((ref) async {
 class AuthController extends AsyncNotifier<bool> {
   @override
   Future<bool> build() async {
-    final token =
-        await ref.read(secureStorageProvider).read(key: kAccessTokenKey);
+    final token = await ref
+        .read(secureStorageProvider)
+        .read(key: kAccessTokenKey);
     return token != null;
   }
 
@@ -154,8 +239,9 @@ class AuthController extends AsyncNotifier<bool> {
   }
 }
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, bool>(AuthController.new);
+final authControllerProvider = AsyncNotifierProvider<AuthController, bool>(
+  AuthController.new,
+);
 
 /// Runs sync and exposes last successful sync time (null until first sync).
 ///
@@ -199,20 +285,26 @@ class SyncController extends AsyncNotifier<DateTime?> {
   }
 }
 
-final syncControllerProvider =
-    AsyncNotifierProvider<SyncController, DateTime?>(SyncController.new);
+final syncControllerProvider = AsyncNotifierProvider<SyncController, DateTime?>(
+  SyncController.new,
+);
 
-final childrenProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchChildren());
+final childrenProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchChildren(),
+);
 
-final remindersProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchUpcomingReminders());
+final remindersProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchUpcomingReminders(),
+);
 
-final allRemindersProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchAllReminders());
+final allRemindersProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchAllReminders(),
+);
 
-final pregnanciesProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchPregnancies());
+final pregnanciesProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchPregnancies(),
+);
 
-final alertsProvider =
-    StreamProvider((ref) => ref.watch(dbProvider).watchAlerts());
+final alertsProvider = StreamProvider(
+  (ref) => ref.watch(dbProvider).watchAlerts(),
+);

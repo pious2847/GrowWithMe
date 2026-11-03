@@ -37,64 +37,134 @@ class SyncService {
     final dirtyDietLogs = await _db.dirtyDietLogs();
     final dirtyDailyTips = await _db.dirtyDailyTips();
 
-    final res = await _api.dio.post('/sync', data: {
-      'lastPulledAt': lastPulledAt,
-      'push': {
-        'children': dirtyChildren.map(_childToJson).toList(),
-        'pregnancies': dirtyPregnancies.map(_pregnancyToJson).toList(),
-        'assessments': dirtyAssessments.map(_assessmentToJson).toList(),
-        'reminders': dirtyReminders.map(_reminderToJson).toList(),
-        'growthRecords': dirtyGrowthRecords.map(_growthToJson).toList(),
-        'chatMessages': dirtyChatMessages.map(_chatToJson).toList(),
-        'dietPlans': dirtyDietPlans.map(_dietPlanToJson).toList(),
-        'dietLogs': dirtyDietLogs.map(_dietLogToJson).toList(),
-        'dailyTips': dirtyDailyTips.map(_dailyTipToJson).toList(),
+    final res = await _api.dio.post(
+      '/sync',
+      data: {
+        'lastPulledAt': lastPulledAt,
+        'push': {
+          'children': dirtyChildren.map(_childToJson).toList(),
+          'pregnancies': dirtyPregnancies.map(_pregnancyToJson).toList(),
+          'assessments': dirtyAssessments.map(_assessmentToJson).toList(),
+          'reminders': dirtyReminders.map(_reminderToJson).toList(),
+          'growthRecords': dirtyGrowthRecords.map(_growthToJson).toList(),
+          'chatMessages': dirtyChatMessages.map(_chatToJson).toList(),
+          'dietPlans': dirtyDietPlans.map(_dietPlanToJson).toList(),
+          'dietLogs': dirtyDietLogs.map(_dietLogToJson).toList(),
+          'dailyTips': dirtyDailyTips.map(_dailyTipToJson).toList(),
+        },
       },
-    });
+    );
 
     final data = res.data as Map<String, dynamic>;
     final pull = data['pull'] as Map<String, dynamic>;
 
     await _db.transaction(() async {
       // Everything we pushed is now on the server.
-      await _db.markSynced(_db.children, dirtyChildren.map((r) => r.id).toList());
-      await _db.markSynced(_db.pregnancies, dirtyPregnancies.map((r) => r.id).toList());
-      await _db.markSynced(_db.assessments, dirtyAssessments.map((r) => r.id).toList());
-      await _db.markSynced(_db.reminders, dirtyReminders.map((r) => r.id).toList());
       await _db.markSynced(
-          _db.growthRecords, dirtyGrowthRecords.map((r) => r.id).toList());
+        _db.children,
+        dirtyChildren.map((r) => r.id).toList(),
+      );
       await _db.markSynced(
-          _db.chatMessages, dirtyChatMessages.map((r) => r.id).toList());
+        _db.pregnancies,
+        dirtyPregnancies.map((r) => r.id).toList(),
+      );
       await _db.markSynced(
-          _db.dietPlans, dirtyDietPlans.map((r) => r.id).toList());
+        _db.assessments,
+        dirtyAssessments.map((r) => r.id).toList(),
+      );
       await _db.markSynced(
-          _db.dietLogs, dirtyDietLogs.map((r) => r.id).toList());
+        _db.reminders,
+        dirtyReminders.map((r) => r.id).toList(),
+      );
       await _db.markSynced(
-          _db.dailyTips, dirtyDailyTips.map((r) => r.id).toList());
+        _db.growthRecords,
+        dirtyGrowthRecords.map((r) => r.id).toList(),
+      );
+      await _db.markSynced(
+        _db.chatMessages,
+        dirtyChatMessages.map((r) => r.id).toList(),
+      );
+      await _db.markSynced(
+        _db.dietPlans,
+        dirtyDietPlans.map((r) => r.id).toList(),
+      );
+      await _db.markSynced(
+        _db.dietLogs,
+        dirtyDietLogs.map((r) => r.id).toList(),
+      );
+      await _db.markSynced(
+        _db.dailyTips,
+        dirtyDailyTips.map((r) => r.id).toList(),
+      );
 
       // One malformed document must never take down the whole pull (it used
       // to roll back the entire transaction, leaving a fresh install empty
       // forever) — apply per-doc, log and skip failures.
-      await _applyAll('children', pull['children'],
-          (d) => _db.into(_db.children).insertOnConflictUpdate(_childFromJson(d)));
-      await _applyAll('pregnancies', pull['pregnancies'],
-          (d) => _db.into(_db.pregnancies).insertOnConflictUpdate(_pregnancyFromJson(d)));
-      await _applyAll('assessments', pull['assessments'],
-          (d) => _db.into(_db.assessments).insertOnConflictUpdate(_assessmentFromJson(d)));
-      await _applyAll('reminders', pull['reminders'],
-          (d) => _db.into(_db.reminders).insertOnConflictUpdate(_reminderFromJson(d)));
-      await _applyAll('growthRecords', pull['growthRecords'],
-          (d) => _db.into(_db.growthRecords).insertOnConflictUpdate(_growthFromJson(d)));
-      await _applyAll('chatMessages', pull['chatMessages'],
-          (d) => _db.into(_db.chatMessages).insertOnConflictUpdate(_chatFromJson(d)));
-      await _applyAll('dietPlans', pull['dietPlans'],
-          (d) => _db.into(_db.dietPlans).insertOnConflictUpdate(_dietPlanFromJson(d)));
-      await _applyAll('dietLogs', pull['dietLogs'],
-          (d) => _db.into(_db.dietLogs).insertOnConflictUpdate(_dietLogFromJson(d)));
-      await _applyAll('dailyTips', pull['dailyTips'],
-          (d) => _db.into(_db.dailyTips).insertOnConflictUpdate(_dailyTipFromJson(d)));
-      await _applyAll('alerts', pull['alerts'],
-          (d) => _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(d)));
+      await _applyAll(
+        'children',
+        pull['children'],
+        (d) => _db.into(_db.children).insertOnConflictUpdate(_childFromJson(d)),
+      );
+      await _applyAll(
+        'pregnancies',
+        pull['pregnancies'],
+        (d) => _db
+            .into(_db.pregnancies)
+            .insertOnConflictUpdate(_pregnancyFromJson(d)),
+      );
+      await _applyAll(
+        'assessments',
+        pull['assessments'],
+        (d) => _db
+            .into(_db.assessments)
+            .insertOnConflictUpdate(_assessmentFromJson(d)),
+      );
+      await _applyAll(
+        'reminders',
+        pull['reminders'],
+        (d) => _db
+            .into(_db.reminders)
+            .insertOnConflictUpdate(_reminderFromJson(d)),
+      );
+      await _applyAll(
+        'growthRecords',
+        pull['growthRecords'],
+        (d) => _db
+            .into(_db.growthRecords)
+            .insertOnConflictUpdate(_growthFromJson(d)),
+      );
+      await _applyAll(
+        'chatMessages',
+        pull['chatMessages'],
+        (d) =>
+            _db.into(_db.chatMessages).insertOnConflictUpdate(_chatFromJson(d)),
+      );
+      await _applyAll(
+        'dietPlans',
+        pull['dietPlans'],
+        (d) => _db
+            .into(_db.dietPlans)
+            .insertOnConflictUpdate(_dietPlanFromJson(d)),
+      );
+      await _applyAll(
+        'dietLogs',
+        pull['dietLogs'],
+        (d) =>
+            _db.into(_db.dietLogs).insertOnConflictUpdate(_dietLogFromJson(d)),
+      );
+      await _applyAll(
+        'dailyTips',
+        pull['dailyTips'],
+        (d) => _db
+            .into(_db.dailyTips)
+            .insertOnConflictUpdate(_dailyTipFromJson(d)),
+      );
+      await _applyAll(
+        'alerts',
+        pull['alerts'],
+        (d) =>
+            _db.into(_db.alertsCache).insertOnConflictUpdate(_alertFromJson(d)),
+      );
     });
 
     await prefs.setInt(kLastPulledAtKey, data['serverTime'] as int);
@@ -103,7 +173,10 @@ class SyncService {
   /// Applies one pulled collection doc-by-doc; a failing document is logged
   /// (id + error) and skipped instead of aborting the sync.
   Future<void> _applyAll(
-      String key, dynamic docs, Future<void> Function(Map<String, dynamic>) apply) async {
+    String key,
+    dynamic docs,
+    Future<void> Function(Map<String, dynamic>) apply,
+  ) async {
     final list = (docs as List? ?? []);
     var failed = 0;
     for (final doc in list) {
@@ -112,73 +185,77 @@ class SyncService {
       } catch (e) {
         failed++;
         if (failed <= 3) {
-          debugPrint('[sync] $key doc ${doc is Map ? doc['_id'] : '?'} failed: $e');
+          debugPrint(
+            '[sync] $key doc ${doc is Map ? doc['_id'] : '?'} failed: $e',
+          );
         }
       }
     }
     if (failed > 0) {
-      debugPrint('[sync] $key: applied ${list.length - failed}/${list.length}, $failed skipped');
+      debugPrint(
+        '[sync] $key: applied ${list.length - failed}/${list.length}, $failed skipped',
+      );
     }
   }
 
   // ---- Row -> backend JSON ----
 
   Map<String, dynamic> _syncFields(dynamic r) => {
-        '_id': r.id,
-        'clientUpdatedAt': r.clientUpdatedAt,
-        'deleted': r.deleted,
-      };
+    '_id': r.id,
+    'clientUpdatedAt': r.clientUpdatedAt,
+    'deleted': r.deleted,
+  };
 
   Map<String, dynamic> _childToJson(ChildRow r) => {
-        ..._syncFields(r),
-        'name': r.name,
-        'sex': r.sex,
-        'dateOfBirth': _iso(r.dateOfBirth),
-        'photoUrl': r.photoUrl,
-        'birthWeightKg': r.birthWeightKg,
-        'notes': r.notes,
-      };
+    ..._syncFields(r),
+    'name': r.name,
+    'sex': r.sex,
+    'dateOfBirth': _iso(r.dateOfBirth),
+    'photoUrl': r.photoUrl,
+    'birthWeightKg': r.birthWeightKg,
+    'notes': r.notes,
+  };
 
   Map<String, dynamic> _pregnancyToJson(PregnancyRow r) => {
-        ..._syncFields(r),
-        'lastMenstrualPeriod': _iso(r.lastMenstrualPeriod),
-        'expectedDueDate': _iso(r.expectedDueDate),
-        'status': r.status,
-        'deliveredAt': _iso(r.deliveredAt),
-        'notes': r.notes,
-        'hospitalName': r.hospitalName,
-        'hospitalPhone': r.hospitalPhone,
-        'lastCheckinAt': _iso(r.lastCheckinAt),
-        'lastRiskLevel': r.lastRiskLevel,
-      };
+    ..._syncFields(r),
+    'lastMenstrualPeriod': _iso(r.lastMenstrualPeriod),
+    'expectedDueDate': _iso(r.expectedDueDate),
+    'status': r.status,
+    'deliveredAt': _iso(r.deliveredAt),
+    'notes': r.notes,
+    'hospitalName': r.hospitalName,
+    'hospitalPhone': r.hospitalPhone,
+    'lastCheckinAt': _iso(r.lastCheckinAt),
+    'lastRiskLevel': r.lastRiskLevel,
+  };
 
   Map<String, dynamic> _chatToJson(ChatMessageRow r) => {
-        ..._syncFields(r),
-        'role': r.role,
-        'content': r.content,
-        'sentAt': _iso(r.sentAt),
-      };
+    ..._syncFields(r),
+    'role': r.role,
+    'content': r.content,
+    'sentAt': _iso(r.sentAt),
+  };
 
   Map<String, dynamic> _dietPlanToJson(DietPlanRow r) => {
-        ..._syncFields(r),
-        'audience': r.audience,
-        'season': r.season,
-        'budget': r.budget,
-        'pantry': r.pantry,
-        'spokenText': r.spokenText,
-        'planJson': r.planJson,
-        'source': r.source,
-        'plannedFor': _iso(r.plannedFor),
-      };
+    ..._syncFields(r),
+    'audience': r.audience,
+    'season': r.season,
+    'budget': r.budget,
+    'pantry': r.pantry,
+    'spokenText': r.spokenText,
+    'planJson': r.planJson,
+    'source': r.source,
+    'plannedFor': _iso(r.plannedFor),
+  };
 
   Map<String, dynamic> _dailyTipToJson(DailyTipRow r) => {
-        ..._syncFields(r),
-        'audience': r.audience,
-        'title': r.title,
-        'body': r.body,
-        'forDay': r.forDay,
-        'source': r.source,
-      };
+    ..._syncFields(r),
+    'audience': r.audience,
+    'title': r.title,
+    'body': r.body,
+    'forDay': r.forDay,
+    'source': r.source,
+  };
 
   DailyTipsCompanion _dailyTipFromJson(Map<String, dynamic> d) =>
       DailyTipsCompanion(
@@ -194,50 +271,50 @@ class SyncService {
       );
 
   Map<String, dynamic> _dietLogToJson(DietLogRow r) => {
-        ..._syncFields(r),
-        'day': r.day,
-        'groupsJson': r.groupsJson,
-        'score': r.score,
-        'eatenMealsJson': r.eatenMealsJson,
-      };
+    ..._syncFields(r),
+    'day': r.day,
+    'groupsJson': r.groupsJson,
+    'score': r.score,
+    'eatenMealsJson': r.eatenMealsJson,
+  };
 
   Map<String, dynamic> _assessmentToJson(AssessmentRow r) => {
-        ..._syncFields(r),
-        'subjectType': r.subjectType,
-        'child': r.childId,
-        'pregnancy': r.pregnancyId,
-        'answers': jsonDecode(r.answersJson),
-        'dangerSigns': jsonDecode(r.dangerSignsJson),
-        'riskLevel': r.riskLevel,
-        'guidance': r.guidance,
-        if (r.lng != null && r.lat != null)
-          'location': {
-            'type': 'Point',
-            'coordinates': [r.lng, r.lat],
-          },
-        'startedAt': _iso(r.startedAt),
-        'completedAt': _iso(r.completedAt),
-      };
+    ..._syncFields(r),
+    'subjectType': r.subjectType,
+    'child': r.childId,
+    'pregnancy': r.pregnancyId,
+    'answers': jsonDecode(r.answersJson),
+    'dangerSigns': jsonDecode(r.dangerSignsJson),
+    'riskLevel': r.riskLevel,
+    'guidance': r.guidance,
+    if (r.lng != null && r.lat != null)
+      'location': {
+        'type': 'Point',
+        'coordinates': [r.lng, r.lat],
+      },
+    'startedAt': _iso(r.startedAt),
+    'completedAt': _iso(r.completedAt),
+  };
 
   Map<String, dynamic> _reminderToJson(ReminderRow r) => {
-        ..._syncFields(r),
-        'child': r.childId,
-        'pregnancy': r.pregnancyId,
-        'type': r.type,
-        'title': r.title,
-        'description': r.description,
-        'dueDate': _iso(r.dueDate),
-        'status': r.status,
-        'snoozedUntil': _iso(r.snoozedUntil),
-        'completedAt': _iso(r.completedAt),
-      };
+    ..._syncFields(r),
+    'child': r.childId,
+    'pregnancy': r.pregnancyId,
+    'type': r.type,
+    'title': r.title,
+    'description': r.description,
+    'dueDate': _iso(r.dueDate),
+    'status': r.status,
+    'snoozedUntil': _iso(r.snoozedUntil),
+    'completedAt': _iso(r.completedAt),
+  };
 
   Map<String, dynamic> _growthToJson(GrowthRecordRow r) => {
-        ..._syncFields(r),
-        'child': r.childId,
-        'weightKg': r.weightKg,
-        'measuredAt': _iso(r.measuredAt),
-      };
+    ..._syncFields(r),
+    'child': r.childId,
+    'weightKg': r.weightKg,
+    'measuredAt': _iso(r.measuredAt),
+  };
 
   // ---- Backend JSON -> companions (synced=true: they came from the server) ----
 
@@ -253,17 +330,17 @@ class SyncService {
       );
 
   ChildrenCompanion _childFromJson(Map<String, dynamic> d) => ChildrenCompanion(
-        id: Value(d['_id'] as String),
-        clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
-        deleted: Value(d['deleted'] as bool? ?? false),
-        synced: const Value(true),
-        name: Value(d['name'] as String? ?? ''),
-        sex: Value(d['sex'] as String?),
-        dateOfBirth: Value(_date(d['dateOfBirth']) ?? DateTime.now()),
-        photoUrl: Value(d['photoUrl'] as String?),
-        birthWeightKg: Value((d['birthWeightKg'] as num?)?.toDouble()),
-        notes: Value(d['notes'] as String?),
-      );
+    id: Value(d['_id'] as String),
+    clientUpdatedAt: Value((d['clientUpdatedAt'] as num).toInt()),
+    deleted: Value(d['deleted'] as bool? ?? false),
+    synced: const Value(true),
+    name: Value(d['name'] as String? ?? ''),
+    sex: Value(d['sex'] as String?),
+    dateOfBirth: Value(_date(d['dateOfBirth']) ?? DateTime.now()),
+    photoUrl: Value(d['photoUrl'] as String?),
+    birthWeightKg: Value((d['birthWeightKg'] as num?)?.toDouble()),
+    notes: Value(d['notes'] as String?),
+  );
 
   PregnanciesCompanion _pregnancyFromJson(Map<String, dynamic> d) =>
       PregnanciesCompanion(

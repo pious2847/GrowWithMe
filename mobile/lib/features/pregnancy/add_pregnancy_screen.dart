@@ -22,8 +22,7 @@ class _AddPregnancyScreenState extends ConsumerState<AddPregnancyScreen> {
   DateTime? _edd;
   bool _busy = false;
 
-  DateTime? get _effectiveEdd =>
-      _edd ?? _lmp?.add(const Duration(days: 280));
+  DateTime? get _effectiveEdd => _edd ?? _lmp?.add(const Duration(days: 280));
 
   Future<void> _pickLmp() async {
     final now = DateTime.now();
@@ -52,8 +51,11 @@ class _AddPregnancyScreenState extends ConsumerState<AddPregnancyScreen> {
   Future<void> _save() async {
     final edd = _effectiveEdd;
     if (edd == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Select your last period date or due date')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select your last period date or due date'),
+        ),
+      );
       return;
     }
     setState(() => _busy = true);
@@ -62,12 +64,16 @@ class _AddPregnancyScreenState extends ConsumerState<AddPregnancyScreen> {
     final now = DateTime.now();
 
     await db.transaction(() async {
-      await db.into(db.pregnancies).insert(PregnanciesCompanion.insert(
-            id: pregnancyId,
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            lastMenstrualPeriod: Value(_lmp),
-            expectedDueDate: edd,
-          ));
+      await db
+          .into(db.pregnancies)
+          .insert(
+            PregnanciesCompanion.insert(
+              id: pregnancyId,
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              lastMenstrualPeriod: Value(_lmp),
+              expectedDueDate: edd,
+            ),
+          );
       for (final r in generatePregnancyCarePlan(pregnancyId, edd)) {
         await db.into(db.reminders).insert(r);
       }
@@ -97,21 +103,25 @@ class _AddPregnancyScreenState extends ConsumerState<AddPregnancyScreen> {
           OutlinedButton.icon(
             onPressed: _pickLmp,
             icon: const Icon(Icons.calendar_today),
-            label: Text(_lmp == null
-                ? 'First day of last period'
-                : 'Last period: ${fmt.format(_lmp!)}'),
+            label: Text(
+              _lmp == null
+                  ? 'First day of last period'
+                  : 'Last period: ${fmt.format(_lmp!)}',
+            ),
           ),
           const SizedBox(height: 8),
           Center(
-              child: Text('or',
-                  style: Theme.of(context).textTheme.bodyMedium)),
+            child: Text('or', style: Theme.of(context).textTheme.bodyMedium),
+          ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: _pickEdd,
             icon: const Icon(Icons.event),
-            label: Text(_edd == null
-                ? 'Expected due date (from ANC card)'
-                : 'Due date: ${fmt.format(_edd!)}'),
+            label: Text(
+              _edd == null
+                  ? 'Expected due date (from ANC card)'
+                  : 'Due date: ${fmt.format(_edd!)}',
+            ),
           ),
           const SizedBox(height: 24),
           if (edd != null)
@@ -120,14 +130,17 @@ class _AddPregnancyScreenState extends ConsumerState<AddPregnancyScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Text('Baby expected around',
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    Text(
+                      'Baby expected around',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                     const SizedBox(height: 4),
-                    Text(fmt.format(edd),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      fmt.format(edd),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -58,6 +58,7 @@ dependencies:
   tflite_flutter: ^0.12.1
   crypto: ^3.0.7
   archive: ^4.0.9
+  share_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +88,15 @@ flutter:
   assets:
     - assets/lottie/
     - assets/icon/
+    - assets/illustrations/
+
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/Fraunces-Variable.ttf
 
 flutter_launcher_icons:
   android: true

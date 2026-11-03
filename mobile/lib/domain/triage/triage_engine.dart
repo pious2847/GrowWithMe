@@ -59,7 +59,11 @@ class TriageEngine {
         _noneOption,
       ],
     ),
-    TriageQuestion(id: 'fever', text: 'Does the child have a fever?', type: QuestionType.yesNo),
+    TriageQuestion(
+      id: 'fever',
+      text: 'Does the child have a fever?',
+      type: QuestionType.yesNo,
+    ),
     TriageQuestion(
       id: 'feverDays',
       text: 'For how many days has the fever lasted?',
@@ -72,7 +76,11 @@ class TriageEngine {
       type: QuestionType.yesNo,
       showIf: _hasFever,
     ),
-    TriageQuestion(id: 'cough', text: 'Does the child have a cough or difficulty breathing?', type: QuestionType.yesNo),
+    TriageQuestion(
+      id: 'cough',
+      text: 'Does the child have a cough or difficulty breathing?',
+      type: QuestionType.yesNo,
+    ),
     TriageQuestion(
       id: 'coughDays',
       text: 'For how many days has the cough lasted?',
@@ -91,7 +99,11 @@ class TriageEngine {
       type: QuestionType.yesNo,
       showIf: _hasCough,
     ),
-    TriageQuestion(id: 'diarrhoea', text: 'Does the child have diarrhoea?', type: QuestionType.yesNo),
+    TriageQuestion(
+      id: 'diarrhoea',
+      text: 'Does the child have diarrhoea?',
+      type: QuestionType.yesNo,
+    ),
     TriageQuestion(
       id: 'bloodInStool',
       text: 'Is there blood in the stool?',
@@ -106,7 +118,8 @@ class TriageEngine {
     ),
     TriageQuestion(
       id: 'eatingPoorly',
-      text: 'Has the child been eating much less than usual for more than a week?',
+      text:
+          'Has the child been eating much less than usual for more than a week?',
       type: QuestionType.yesNo,
     ),
   ];
@@ -125,7 +138,11 @@ class TriageEngine {
         _noneOption,
       ],
     ),
-    TriageQuestion(id: 'feverPreg', text: 'Do you have a fever?', type: QuestionType.yesNo),
+    TriageQuestion(
+      id: 'feverPreg',
+      text: 'Do you have a fever?',
+      type: QuestionType.yesNo,
+    ),
     TriageQuestion(
       id: 'reducedMovement',
       text: 'Has the baby been moving less than usual today?',
@@ -150,7 +167,10 @@ class TriageEngine {
   static List<TriageQuestion> questionsFor(String subjectType) =>
       subjectType == 'child' ? childQuestions : pregnancyQuestions;
 
-  static TriageResult evaluate(String subjectType, Map<String, dynamic> answers) {
+  static TriageResult evaluate(
+    String subjectType,
+    Map<String, dynamic> answers,
+  ) {
     return subjectType == 'child'
         ? _evaluateChild(answers)
         : _evaluatePregnancy(answers);

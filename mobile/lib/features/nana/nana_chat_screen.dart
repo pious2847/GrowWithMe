@@ -19,7 +19,12 @@ import '../pregnancy/checkin_screen.dart';
 import '../tips/tips_tab.dart';
 
 class _ChatMessage {
-  _ChatMessage(this.role, this.text, {this.offline = false, this.source = 'llm'});
+  _ChatMessage(
+    this.role,
+    this.text, {
+    this.offline = false,
+    this.source = 'llm',
+  });
 
   final String role; // user | assistant
   final String text;
@@ -35,14 +40,22 @@ class _ChatMessage {
 /// Nana — the voice-first AI care educator. Type or talk; Nana answers out
 /// loud, teaches, and can operate the app for you (with confirmation).
 class NanaChatScreen extends ConsumerStatefulWidget {
-  const NanaChatScreen(
-      {super.key, this.speakBriefingOnOpen = false, this.voiceMode = false});
+  const NanaChatScreen({
+    super.key,
+    this.speakBriefingOnOpen = false,
+    this.voiceMode = false,
+    this.initialPrompt,
+  });
 
   final bool speakBriefingOnOpen;
 
   /// Call-style companion: Nana listens as soon as she finishes talking, so
   /// the caregiver never touches the screen.
   final bool voiceMode;
+
+  /// A question Nana should answer as soon as the screen opens, used by the
+  /// floating companion's quick prompts.
+  final String? initialPrompt;
 
   @override
   ConsumerState<NanaChatScreen> createState() => _NanaChatScreenState();
@@ -73,7 +86,8 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
       if (mounted && saved.isNotEmpty) {
         setState(() {
           _messages.addAll(
-              saved.reversed.map((m) => _ChatMessage(m.role, m.content)));
+            saved.reversed.map((m) => _ChatMessage(m.role, m.content)),
+          );
         });
         _scrollDown();
       }
@@ -87,7 +101,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           speak: true,
           persist: false,
         );
-      } else if (saved.isEmpty) {
+      } else if (saved.isEmpty && widget.initialPrompt == null) {
         _addAssistant(
           'Hello, I am Nana. 🌼 How is the family today? You can ask me '
           'anything, or tap the microphone and just talk to me.',
@@ -95,18 +109,27 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           persist: false,
         );
       }
+      final prompt = widget.initialPrompt?.trim();
+      if (prompt != null && prompt.isNotEmpty) {
+        await Future.delayed(const Duration(milliseconds: 320));
+        if (mounted) await _send(prompt);
+      }
     });
   }
 
   void _persist(String role, String text) {
     final db = ref.read(dbProvider);
-    db.into(db.chatMessages).insert(ChatMessagesCompanion.insert(
-          id: const Uuid().v4(),
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          role: role,
-          content: text,
-          sentAt: DateTime.now(),
-        ));
+    db
+        .into(db.chatMessages)
+        .insert(
+          ChatMessagesCompanion.insert(
+            id: const Uuid().v4(),
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            role: role,
+            content: text,
+            sentAt: DateTime.now(),
+          ),
+        );
   }
 
   @override
@@ -118,13 +141,18 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     super.dispose();
   }
 
-  void _addAssistant(String text,
-      {bool speak = true,
-      bool persist = true,
-      bool offline = false,
-      String source = 'llm'}) {
-    setState(() => _messages
-        .add(_ChatMessage('assistant', text, offline: offline, source: source)));
+  void _addAssistant(
+    String text, {
+    bool speak = true,
+    bool persist = true,
+    bool offline = false,
+    String source = 'llm',
+  }) {
+    setState(
+      () => _messages.add(
+        _ChatMessage('assistant', text, offline: offline, source: source),
+      ),
+    );
     if (persist) _persist('assistant', text);
     if (speak) _speakReply(text);
     _scrollDown();
@@ -180,8 +208,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     if (reply.action != null) {
       await _handleAction(reply);
     } else {
-      _addAssistant(reply.say,
-          offline: !reply.fromLlm, source: reply.source);
+      _addAssistant(reply.say, offline: !reply.fromLlm, source: reply.source);
     }
   }
 
@@ -201,69 +228,95 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
         // not names).
         final subjectParam = action.params['subject'] as String?;
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
+        Navigator.of(context).push(
+          MaterialPageRoute(
             builder: (_) => AssessmentScreen(
-                subjectType:
-                    child != null ? 'child' : (subjectParam ?? 'pregnancy'),
-                childId: child?.id)));
+              subjectType: child != null
+                  ? 'child'
+                  : (subjectParam ?? 'pregnancy'),
+              childId: child?.id,
+            ),
+          ),
+        );
         return;
       case 'open_add_child':
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const AddChildScreen()));
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AddChildScreen()));
         return;
       case 'open_add_pregnancy':
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AddPregnancyScreen()));
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AddPregnancyScreen()));
         return;
       case 'plan_diet':
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const DietScreen()));
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const DietScreen()));
         return;
       case 'read_today':
-        _addAssistant(reply.say,
-            speak: false, offline: offline, source: reply.source);
+        _addAssistant(
+          reply.say,
+          speak: false,
+          offline: offline,
+          source: reply.source,
+        );
         final briefing = await ref.read(nanaAssistantProvider).buildBriefing();
         _addAssistant(briefing);
         return;
       case 'open_calendar':
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
+        Navigator.of(context).push(
+          MaterialPageRoute(
             builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('My calendar')),
-                body: const CalendarTab())));
+              appBar: AppBar(title: const Text('My calendar')),
+              body: const CalendarTab(),
+            ),
+          ),
+        );
         return;
       case 'open_tips':
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
+        Navigator.of(context).push(
+          MaterialPageRoute(
             builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('Tips & lessons')),
-                body: const TipsTab())));
+              appBar: AppBar(title: const Text('Tips & lessons')),
+              body: const TipsTab(),
+            ),
+          ),
+        );
         return;
       case 'start_checkin':
         final db = ref.read(dbProvider);
-        final pregnancy = await (db.select(db.pregnancies)
-              ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
-            .getSingleOrNull();
+        final pregnancy =
+            await (db.select(db.pregnancies)..where(
+                  (t) => t.deleted.equals(false) & t.status.equals('active'),
+                ))
+                .getSingleOrNull();
         if (pregnancy == null) {
           _addAssistant(
-              'You are not tracking a pregnancy yet. Tell me "I am pregnant" '
-              'and we will start together.',
-              offline: offline,
-              source: reply.source);
+            'You are not tracking a pregnancy yet. Tell me "I am pregnant" '
+            'and we will start together.',
+            offline: offline,
+            source: reply.source,
+          );
           return;
         }
         _addAssistant(reply.say, offline: offline, source: reply.source);
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => CheckinScreen(pregnancy: pregnancy)));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CheckinScreen(pregnancy: pregnancy),
+          ),
+        );
         return;
       // Mutating actions require a visible confirmation
       case 'add_child':
@@ -319,17 +372,20 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
             dateOfBirth: dob,
           );
           _addAssistant(
-              'Done! ${action.params['name']} is registered and their care '
-              'calendar is ready. I will remind you before every visit.');
+            'Done! ${action.params['name']} is registered and their care '
+            'calendar is ready. I will remind you before every visit.',
+          );
           break;
         case 'add_pregnancy':
-          final edd =
-              DateTime.parse(action.params['expectedDueDate'] as String);
+          final edd = DateTime.parse(
+            action.params['expectedDueDate'] as String,
+          );
           await actions.addPregnancy(expectedDueDate: edd);
           _addAssistant(
-              'Wonderful. Your antenatal visits are now on the calendar, '
-              'expecting baby around ${DateFormat('d MMMM').format(edd)}. '
-              'I am with you all the way.');
+            'Wonderful. Your antenatal visits are now on the calendar, '
+            'expecting baby around ${DateFormat('d MMMM').format(edd)}. '
+            'I am with you all the way.',
+          );
           break;
         case 'log_weight':
           final name = action.params['childName'] as String;
@@ -337,7 +393,8 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           final child = await actions.findChildByName(name);
           if (child == null) {
             _addAssistant(
-                'Hmm, I could not find a child called $name. Please check the name.');
+              'Hmm, I could not find a child called $name. Please check the name.',
+            );
             return;
           }
           await actions.logWeight(childId: child.id, weightKg: weight);
@@ -352,23 +409,32 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
           final time = (action.params['time'] as String?) ?? '09:00';
           final parts = time.split(':');
           final day = DateTime.parse(date);
-          final when = DateTime(day.year, day.month, day.day,
-              int.tryParse(parts[0]) ?? 9, int.tryParse(parts.elementAtOrNull(1) ?? '0') ?? 0);
+          final when = DateTime(
+            day.year,
+            day.month,
+            day.day,
+            int.tryParse(parts[0]) ?? 9,
+            int.tryParse(parts.elementAtOrNull(1) ?? '0') ?? 0,
+          );
           final id = await actions.addCustomReminder(title: title, when: when);
-          await ref.read(notificationServiceProvider).schedule(
+          await ref
+              .read(notificationServiceProvider)
+              .schedule(
                 reminderId: id,
                 title: 'GrowWithMe reminder',
                 body: title,
                 when: when,
               );
           _addAssistant(
-              'Done. I will remind you: "$title" on ${DateFormat('EEEE d MMMM').format(when)} at ${DateFormat.jm().format(when)}. It is on your calendar too.');
+            'Done. I will remind you: "$title" on ${DateFormat('EEEE d MMMM').format(when)} at ${DateFormat.jm().format(when)}. It is on your calendar too.',
+          );
           break;
       }
       ref.read(syncControllerProvider.notifier).sync();
     } catch (e) {
       _addAssistant(
-          'Sorry, I could not do that. Please try again or use the buttons.');
+        'Sorry, I could not do that. Please try again or use the buttons.',
+      );
     }
   }
 
@@ -387,8 +453,11 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     );
     if (!available) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Microphone is not available on this phone')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone is not available on this phone'),
+        ),
+      );
       return;
     }
     setState(() => _listening = true);
@@ -425,7 +494,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
   }) {
     final theme = Theme.of(context);
     final isDownloaded = ready;
-    
+
     String formatSize(int? bytes) {
       if (bytes == null) return '0 KB';
       if (bytes >= 1024 * 1024) {
@@ -452,7 +521,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
         children: [
           Icon(
             isDownloaded ? Icons.check_circle : Icons.cloud_download_outlined,
-            color: isDownloaded ? Colors.green.shade600 : theme.colorScheme.primary,
+            color: isDownloaded
+                ? Colors.green.shade600
+                : theme.colorScheme.primary,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -491,7 +562,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: isDownloaded ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                color: isDownloaded
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -504,7 +577,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
     final nlu = ref.read(nluServiceProvider);
     final risk = ref.read(modelServiceProvider);
     final slm = ref.read(slmServiceProvider);
-    
+
     bool isChecking = false;
     String statusMessage = '';
 
@@ -539,10 +612,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                   const Text(
                     'Offline AI Status',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                 ],
               ),
@@ -583,7 +653,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary.withAlpha(13),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.primary.withAlpha(26)),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withAlpha(26),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -637,7 +709,8 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withAlpha(102),
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withAlpha(102),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -652,10 +725,7 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                           const Expanded(
                             child: Text(
                               'When the green bolt shows in the chat header, you can use Nana completely offline! Open airplane mode and try asking maternal questions—replies will show which local helper produced them.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                height: 1.4,
-                              ),
+                              style: TextStyle(fontSize: 12, height: 1.4),
                             ),
                           ),
                         ],
@@ -666,7 +736,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: isChecking ? null : () => Navigator.of(context).pop(),
+                  onPressed: isChecking
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   child: const Text('Close'),
                 ),
                 ElevatedButton.icon(
@@ -688,12 +760,14 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                             });
                             await slm.ensureLatest(throwOnError: true);
                             setState(() {
-                              statusMessage = 'All models updated successfully!';
+                              statusMessage =
+                                  'All models updated successfully!';
                               isChecking = false;
                             });
                           } catch (e) {
                             setState(() {
-                              statusMessage = 'Error: ${e.toString().split('\n').first}';
+                              statusMessage =
+                                  'Error: ${e.toString().split('\n').first}';
                               isChecking = false;
                             });
                           }
@@ -704,7 +778,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                           height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Icon(Icons.refresh, size: 16),
@@ -742,17 +818,22 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
               if (_voiceMode) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.shade100,
                     borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Text('● on call',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green.shade900)),
+                  child: Text(
+                    '● on call',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade900,
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -763,17 +844,22 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
             tooltip: 'Choose voice engine',
             icon: const Icon(Icons.settings_voice),
             onSelected: (String choice) async {
-              await ref.read(voiceProviderProvider.notifier).setProvider(choice);
+              await ref
+                  .read(voiceProviderProvider.notifier)
+                  .setProvider(choice);
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Voice engine switched to ${choice == 'elevenlabs' ? 'ElevenLabs' : 'Fish Audio'}'),
+                  content: Text(
+                    'Voice engine switched to ${choice == 'elevenlabs' ? 'ElevenLabs' : 'Fish Audio'}',
+                  ),
                   duration: const Duration(seconds: 2),
                 ),
               );
             },
             itemBuilder: (BuildContext context) {
-              final activeProvider = ref.watch(voiceProviderProvider).value ?? 'elevenlabs';
+              final activeProvider =
+                  ref.watch(voiceProviderProvider).value ?? 'elevenlabs';
               return [
                 PopupMenuItem<String>(
                   value: 'elevenlabs',
@@ -821,8 +907,10 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
             tooltip: _voiceMode
                 ? 'End voice conversation'
                 : 'Start voice conversation',
-            icon: Icon(_voiceMode ? Icons.call_end : Icons.phone_in_talk,
-                color: _voiceMode ? Colors.red : null),
+            icon: Icon(
+              _voiceMode ? Icons.call_end : Icons.phone_in_talk,
+              color: _voiceMode ? Colors.red : null,
+            ),
             onPressed: () {
               setState(() => _voiceMode = !_voiceMode);
               if (_voiceMode) {
@@ -845,8 +933,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
             child: Text(
               'ℹ️ Nana is an AI helper and can make mistakes. For anything '
               'serious, always check with a nurse, midwife or doctor.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           Expanded(
@@ -858,27 +947,34 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                 if (i == _messages.length) {
                   return const Padding(
                     padding: EdgeInsets.all(12),
-                    child: Row(children: [
-                      SizedBox(
+                    child: Row(
+                      children: [
+                        SizedBox(
                           height: 18,
                           width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2)),
-                      SizedBox(width: 10),
-                      Text('Nana is thinking…'),
-                    ]),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 10),
+                        Text('Nana is thinking…'),
+                      ],
+                    ),
                   );
                 }
                 final m = _messages[i];
                 final isUser = m.role == 'user';
                 return Align(
-                  alignment:
-                      isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: isUser
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.78),
+                      maxWidth: MediaQuery.of(context).size.width * 0.78,
+                    ),
                     decoration: BoxDecoration(
                       color: isUser
                           ? theme.colorScheme.primary
@@ -897,8 +993,9 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                         Text(
                           m.text,
                           style: TextStyle(
-                              color: isUser ? Colors.white : null,
-                              height: 1.35),
+                            color: isUser ? Colors.white : null,
+                            height: 1.35,
+                          ),
                         ),
                         if (m.offline && m.source != 'quick')
                           Padding(
@@ -908,9 +1005,10 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                                   ? '📴 offline — understood by Nana\'s on-device AI'
                                   : '📴 offline basic helper — connect to reach Nana\'s full brain',
                               style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontStyle: FontStyle.italic,
-                                  color: theme.colorScheme.onSurfaceVariant),
+                                fontSize: 10.5,
+                                fontStyle: FontStyle.italic,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                       ],
@@ -929,9 +1027,12 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Shall I do this?',
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Shall I do this?',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(_pendingActionSummary ?? ''),
                     const SizedBox(height: 8),
@@ -969,24 +1070,72 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
-                _quickChip('🩺', 'Check sickness', () => _handleAction(const NanaReply(
-                    'Let us check together, step by step.',
-                    action: NanaAction('start_health_check', {}), source: 'quick'))),
-                _quickChip('🍲', 'Food', () => _handleAction(const NanaReply(
-                    'Let us plan good food that fits your pocket.',
-                    action: NanaAction('plan_diet', {}), source: 'quick'))),
-                _quickChip('📅', 'My visits', () => _handleAction(const NanaReply(
-                    'Let me tell you what is coming.',
-                    action: NanaAction('read_today', {}), source: 'quick'))),
-                _quickChip('🤰', 'Check-in', () => _handleAction(const NanaReply(
-                    'Let us check on you and the baby.',
-                    action: NanaAction('start_checkin', {}), source: 'quick'))),
-                _quickChip('👶', 'Add baby', () => _handleAction(const NanaReply(
-                    'Let us add your child together.',
-                    action: NanaAction('open_add_child', {}), source: 'quick'))),
-                _quickChip('🗓️', 'Calendar', () => _handleAction(const NanaReply(
-                    'Here is your calendar.',
-                    action: NanaAction('open_calendar', {}), source: 'quick'))),
+                _quickChip(
+                  '🩺',
+                  'Check sickness',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Let us check together, step by step.',
+                      action: NanaAction('start_health_check', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
+                _quickChip(
+                  '🍲',
+                  'Food',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Let us plan good food that fits your pocket.',
+                      action: NanaAction('plan_diet', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
+                _quickChip(
+                  '📅',
+                  'My visits',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Let me tell you what is coming.',
+                      action: NanaAction('read_today', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
+                _quickChip(
+                  '🤰',
+                  'Check-in',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Let us check on you and the baby.',
+                      action: NanaAction('start_checkin', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
+                _quickChip(
+                  '👶',
+                  'Add baby',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Let us add your child together.',
+                      action: NanaAction('open_add_child', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
+                _quickChip(
+                  '🗓️',
+                  'Calendar',
+                  () => _handleAction(
+                    const NanaReply(
+                      'Here is your calendar.',
+                      action: NanaAction('open_calendar', {}),
+                      source: 'quick',
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1001,10 +1150,13 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                       onSubmitted: (_) => _send(),
                       textInputAction: TextInputAction.send,
                       decoration: InputDecoration(
-                        hintText:
-                            _listening ? 'Listening…' : 'Ask Nana anything…',
+                        hintText: _listening
+                            ? 'Listening…'
+                            : 'Ask Nana anything…',
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -1017,8 +1169,10 @@ class _NanaChatScreenState extends ConsumerState<NanaChatScreen> {
                     child: IconButton(
                       tooltip: 'Talk to Nana',
                       onPressed: _toggleMic,
-                      icon: Icon(_listening ? Icons.mic : Icons.mic_none,
-                          color: _listening ? Colors.white : null),
+                      icon: Icon(
+                        _listening ? Icons.mic : Icons.mic_none,
+                        color: _listening ? Colors.white : null,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),

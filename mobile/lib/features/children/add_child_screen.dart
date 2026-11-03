@@ -37,7 +37,8 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty || _dateOfBirth == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Name and date of birth are required')));
+        const SnackBar(content: Text('Name and date of birth are required')),
+      );
       return;
     }
     setState(() => _busy = true);
@@ -48,13 +49,17 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
     // Save child + their generated care calendar in one transaction — all
     // offline; sync picks it up whenever a connection exists.
     await db.transaction(() async {
-      await db.into(db.children).insert(ChildrenCompanion.insert(
-            id: childId,
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            name: name,
-            sex: Value(_sex),
-            dateOfBirth: _dateOfBirth!,
-          ));
+      await db
+          .into(db.children)
+          .insert(
+            ChildrenCompanion.insert(
+              id: childId,
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              name: name,
+              sex: Value(_sex),
+              dateOfBirth: _dateOfBirth!,
+            ),
+          );
       for (final reminder in generateChildCarePlan(childId, _dateOfBirth!)) {
         await db.into(db.reminders).insert(reminder);
       }
@@ -77,13 +82,17 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
           TextField(
             controller: _nameController,
             decoration: const InputDecoration(
-                labelText: 'Child\'s name', border: OutlineInputBorder()),
+              labelText: 'Child\'s name',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _sex,
             decoration: const InputDecoration(
-                labelText: 'Sex', border: OutlineInputBorder()),
+              labelText: 'Sex',
+              border: OutlineInputBorder(),
+            ),
             items: const [
               DropdownMenuItem(value: 'female', child: Text('Girl')),
               DropdownMenuItem(value: 'male', child: Text('Boy')),
@@ -94,9 +103,11 @@ class _AddChildScreenState extends ConsumerState<AddChildScreen> {
           OutlinedButton.icon(
             onPressed: _pickDate,
             icon: const Icon(Icons.cake),
-            label: Text(_dateOfBirth == null
-                ? 'Date of birth'
-                : DateFormat.yMMMMd().format(_dateOfBirth!)),
+            label: Text(
+              _dateOfBirth == null
+                  ? 'Date of birth'
+                  : DateFormat.yMMMMd().format(_dateOfBirth!),
+            ),
           ),
           const SizedBox(height: 24),
           FilledButton(

@@ -24,7 +24,9 @@ class OnDeviceModel {
   Map<String, dynamic>? _manifest;
   Interpreter? _interpreter;
 
-  bool get ready => _manifest != null && (_manifest?['kind'] == 'llm' || _interpreter != null);
+  bool get ready =>
+      _manifest != null &&
+      (_manifest?['kind'] == 'llm' || _interpreter != null);
   Map<String, dynamic> get meta =>
       (_manifest?['meta'] as Map<String, dynamic>?) ?? {};
   int? get version => (_manifest?['version'] as num?)?.toInt();
@@ -68,8 +70,7 @@ class OnDeviceModel {
     final bytes = (await Dio().get<List<int>>(
       url,
       options: Options(responseType: ResponseType.bytes),
-    ))
-        .data!;
+    )).data!;
     final digest = sha256.convert(bytes).toString();
     if (digest != manifest['sha256']) {
       throw StateError('model checksum mismatch');
@@ -113,8 +114,9 @@ class OnDeviceModel {
     final file = await _modelFile();
     final mf = await _manifestFile();
     if (!await mf.exists()) return;
-    
-    final manifest = jsonDecode(await mf.readAsString()) as Map<String, dynamic>;
+
+    final manifest =
+        jsonDecode(await mf.readAsString()) as Map<String, dynamic>;
     final isLlm = manifest['kind'] == 'llm';
 
     if (isLlm) {

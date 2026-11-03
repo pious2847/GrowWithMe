@@ -27,10 +27,12 @@ class PregnancyCard extends ConsumerWidget {
   }
 
   Future<void> _editHospital(BuildContext context, WidgetRef ref) async {
-    final nameController =
-        TextEditingController(text: pregnancy.hospitalName ?? '');
-    final phoneController =
-        TextEditingController(text: pregnancy.hospitalPhone ?? '');
+    final nameController = TextEditingController(
+      text: pregnancy.hospitalName ?? '',
+    );
+    final phoneController = TextEditingController(
+      text: pregnancy.hospitalPhone ?? '',
+    );
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -40,7 +42,11 @@ class PregnancyCard extends ConsumerWidget {
         // Bottom padding tracks the keyboard so the fields stay visible.
         return Padding(
           padding: EdgeInsets.fromLTRB(
-              20, 0, 20, 24 + MediaQuery.of(sheetContext).viewInsets.bottom),
+            20,
+            0,
+            20,
+            24 + MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,15 +56,18 @@ class PregnancyCard extends ConsumerWidget {
                   CircleAvatar(
                     radius: 24,
                     backgroundColor: theme.colorScheme.primaryContainer,
-                    child: Icon(Icons.local_hospital,
-                        color: theme.colorScheme.primary),
+                    child: Icon(
+                      Icons.local_hospital,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'My check-up hospital',
-                      style: theme.textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -67,8 +76,9 @@ class PregnancyCard extends ConsumerWidget {
               Text(
                 'Where you go for your checks and scans. If a check-in finds '
                 'a risk, they receive your report.',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 20),
               TextField(
@@ -81,7 +91,8 @@ class PregnancyCard extends ConsumerWidget {
                   prefixIcon: const Icon(Icons.apartment),
                   filled: true,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -94,7 +105,8 @@ class PregnancyCard extends ConsumerWidget {
                   prefixIcon: const Icon(Icons.call),
                   filled: true,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -103,7 +115,8 @@ class PregnancyCard extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                       onPressed: () => Navigator.pop(sheetContext, false),
                       child: const Text('Cancel'),
                     ),
@@ -113,7 +126,8 @@ class PregnancyCard extends ConsumerWidget {
                     flex: 2,
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                       onPressed: () => Navigator.pop(sheetContext, true),
                       icon: const Icon(Icons.check),
                       label: const Text('Save'),
@@ -128,13 +142,16 @@ class PregnancyCard extends ConsumerWidget {
     );
     if (saved != true) return;
     final db = ref.read(dbProvider);
-    await (db.update(db.pregnancies)..where((t) => t.id.equals(pregnancy.id)))
-        .write(PregnanciesCompanion(
-      hospitalName: Value(nameController.text.trim()),
-      hospitalPhone: Value(phoneController.text.trim()),
-      clientUpdatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-      synced: const Value(false),
-    ));
+    await (db.update(
+      db.pregnancies,
+    )..where((t) => t.id.equals(pregnancy.id))).write(
+      PregnanciesCompanion(
+        hospitalName: Value(nameController.text.trim()),
+        hospitalPhone: Value(phoneController.text.trim()),
+        clientUpdatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        synced: const Value(false),
+      ),
+    );
     ref.read(syncControllerProvider.notifier).sync();
   }
 
@@ -151,24 +168,29 @@ class PregnancyCard extends ConsumerWidget {
     final db = ref.read(dbProvider);
     final now = DateTime.now();
     await db.transaction(() async {
-      await (db.update(db.pregnancies)
-            ..where((t) => t.id.equals(pregnancy.id)))
-          .write(PregnanciesCompanion(
-        status: const Value('delivered'),
-        deliveredAt: Value(delivered),
-        clientUpdatedAt: Value(now.millisecondsSinceEpoch),
-        synced: const Value(false),
-      ));
-      await (db.update(db.reminders)
-            ..where((t) =>
+      await (db.update(
+        db.pregnancies,
+      )..where((t) => t.id.equals(pregnancy.id))).write(
+        PregnanciesCompanion(
+          status: const Value('delivered'),
+          deliveredAt: Value(delivered),
+          clientUpdatedAt: Value(now.millisecondsSinceEpoch),
+          synced: const Value(false),
+        ),
+      );
+      await (db.update(db.reminders)..where(
+            (t) =>
                 t.pregnancyId.equals(pregnancy.id) &
                 t.status.equals('upcoming') &
-                t.type.equals('anc')))
-          .write(RemindersCompanion(
-        status: const Value('done'),
-        clientUpdatedAt: Value(now.millisecondsSinceEpoch),
-        synced: const Value(false),
-      ));
+                t.type.equals('anc'),
+          ))
+          .write(
+            RemindersCompanion(
+              status: const Value('done'),
+              clientUpdatedAt: Value(now.millisecondsSinceEpoch),
+              synced: const Value(false),
+            ),
+          );
       for (final r in generatePostnatalCarePlan(pregnancy.id, delivered)) {
         await db.into(db.reminders).insert(r);
       }
@@ -176,19 +198,25 @@ class PregnancyCard extends ConsumerWidget {
     ref.read(syncControllerProvider.notifier).sync();
 
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content:
-            Text('Congratulations! Postnatal visits added to your calendar.')));
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const AddChildScreen()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Congratulations! Postnatal visits added to your calendar.',
+        ),
+      ),
+    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AddChildScreen()));
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final conception =
-        pregnancy.expectedDueDate.subtract(const Duration(days: 280));
+    final conception = pregnancy.expectedDueDate.subtract(
+      const Duration(days: 280),
+    );
     final week = (now.difference(conception).inDays / 7).floor().clamp(1, 42);
     final progress = (week / 40).clamp(0.0, 1.0);
     final daysLeft = pregnancy.expectedDueDate.difference(now).inDays;
@@ -217,9 +245,13 @@ class PregnancyCard extends ConsumerWidget {
                         backgroundColor: Colors.white54,
                       ),
                       Center(
-                        child: Text('W$week',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 14)),
+                        child: Text(
+                          'W$week',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -229,12 +261,17 @@ class PregnancyCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('My pregnancy — week $week',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      Text(week >= 37
-                          ? 'Baby is full grown — ready to meet you 👶'
-                          : 'Baby is about the size of ${babySize(week)}'),
+                      Text(
+                        'My pregnancy — week $week',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        week >= 37
+                            ? 'Baby is full grown — ready to meet you 👶'
+                            : 'Baby is about the size of ${babySize(week)}',
+                      ),
                       Text(
                         daysLeft > 0
                             ? '~$daysLeft days to ${DateFormat.MMMMd().format(pregnancy.expectedDueDate)}'
@@ -278,8 +315,11 @@ class PregnancyCard extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => CheckinScreen(pregnancy: pregnancy))),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CheckinScreen(pregnancy: pregnancy),
+                    ),
+                  ),
                   icon: const Icon(Icons.favorite),
                   label: const Text('Check-in due — how are you feeling?'),
                 ),
@@ -297,9 +337,10 @@ class PregnancyCard extends ConsumerWidget {
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                CheckinScreen(pregnancy: pregnancy))),
+                      MaterialPageRoute(
+                        builder: (_) => CheckinScreen(pregnancy: pregnancy),
+                      ),
+                    ),
                     child: const Text('Check now'),
                   ),
                 ],
@@ -308,8 +349,10 @@ class PregnancyCard extends ConsumerWidget {
             // Week-aware do's and don'ts
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              title: Text('Do\'s & don\'ts for week $week',
-                  style: theme.textTheme.titleSmall),
+              title: Text(
+                'Do\'s & don\'ts for week $week',
+                style: theme.textTheme.titleSmall,
+              ),
               children: [
                 for (final d in guide.dos)
                   Padding(
@@ -367,9 +410,10 @@ class PregnancyCard extends ConsumerWidget {
                       backgroundColor: theme.colorScheme.surface,
                     ),
                     onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                const PregnancyRecordsScreen())),
+                      MaterialPageRoute(
+                        builder: (_) => const PregnancyRecordsScreen(),
+                      ),
+                    ),
                     icon: const Icon(Icons.show_chart, size: 20),
                     label: const Text('My records'),
                   ),

@@ -1,6 +1,7 @@
 const axios = require('axios');
 const env = require('../config/env');
 const logger = require('../utils/logger');
+const { maskPhone } = require('../utils/privacy');
 
 const ARKESEL_SMS_URL = 'https://sms.arkesel.com/api/v2/sms/send';
 
@@ -19,7 +20,7 @@ function normalizePhone(phone) {
 async function sendSms(to, message) {
   const recipient = normalizePhone(to);
   if (!env.arkesel.apiKey) {
-    logger.info(`[sms:dev] to=${recipient} :: ${message}`);
+    logger.info(`[sms:dev] to=${maskPhone(recipient)} :: ${message}`);
     return { ok: true, dev: true };
   }
   try {
@@ -29,8 +30,8 @@ async function sendSms(to, message) {
       { headers: { 'api-key': env.arkesel.apiKey }, timeout: 15000 }
     );
     const ok = res.data && res.data.status === 'success';
-    if (ok) logger.info(`[sms] sent to ${recipient} (${message.length} chars)`);
-    else logger.error(`[sms] Arkesel rejected send to ${recipient}:`, res.data);
+    if (ok) logger.info(`[sms] sent to ${maskPhone(recipient)} (${message.length} chars)`);
+    else logger.error(`[sms] Arkesel rejected send to ${maskPhone(recipient)}:`, res.data);
     return ok ? { ok: true } : { ok: false, error: JSON.stringify(res.data) };
   } catch (err) {
     const status = err.response && err.response.status;
@@ -38,11 +39,11 @@ async function sendSms(to, message) {
     if (status === 402) {
       // Payment Required — the Arkesel account has no SMS credit left.
       logger.error(
-        `[sms] Arkesel balance exhausted (402) sending to ${recipient} — top up at sms.arkesel.com. ${detail}`
+        `[sms] Arkesel balance exhausted (402) sending to ${maskPhone(recipient)} — top up at sms.arkesel.com. ${detail}`
       );
       return { ok: false, error: 'sms_balance_exhausted' };
     }
-    logger.error(`[sms] failed to ${recipient} (${status || 'no response'}): ${detail}`);
+    logger.error(`[sms] failed to ${maskPhone(recipient)} (${status || 'no response'}): ${detail}`);
     return { ok: false, error: err.message };
   }
 }

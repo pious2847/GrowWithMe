@@ -89,7 +89,8 @@ class GrowthRecords extends Table with SyncColumns {
 /// Saved one-day meal plans from Nana's Kitchen (AI or offline library).
 @DataClassName('DietPlanRow')
 class DietPlans extends Table with SyncColumns {
-  TextColumn get audience => text()(); // pregnancy | lactating | child | general
+  TextColumn get audience =>
+      text()(); // pregnancy | lactating | child | general
   TextColumn get season => text().nullable()();
   TextColumn get budget => text().nullable()(); // low | ok
   TextColumn get pantry => text().nullable()();
@@ -107,14 +108,16 @@ class DietLogs extends Table with SyncColumns {
   TextColumn get day => text()(); // YYYY-MM-DD
   TextColumn get groupsJson => text()(); // JSON array of group indexes
   IntColumn get score => integer()();
-  TextColumn get eatenMealsJson => text().nullable()(); // JSON array of meal labels
+  TextColumn get eatenMealsJson =>
+      text().nullable()(); // JSON array of meal labels
 }
 
 /// A day's feeding tip (AI-personalized or from the offline library) — kept
 /// forever so caregivers can browse past guidance.
 @DataClassName('DailyTipRow')
 class DailyTips extends Table with SyncColumns {
-  TextColumn get audience => text()(); // pregnancy | lactating | child | general
+  TextColumn get audience =>
+      text()(); // pregnancy | lactating | child | general
   TextColumn get title => text()();
   TextColumn get body => text()();
   TextColumn get forDay => text()(); // YYYY-MM-DD
@@ -138,18 +141,20 @@ class AlertsCache extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [
-  Children,
-  Pregnancies,
-  Assessments,
-  Reminders,
-  GrowthRecords,
-  ChatMessages,
-  DietPlans,
-  DietLogs,
-  DailyTips,
-  AlertsCache
-])
+@DriftDatabase(
+  tables: [
+    Children,
+    Pregnancies,
+    Assessments,
+    Reminders,
+    GrowthRecords,
+    ChatMessages,
+    DietPlans,
+    DietLogs,
+    DailyTips,
+    AlertsCache,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'growwithme'));
 
@@ -160,79 +165,93 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await m.createTable(growthRecords);
-          }
-          if (from < 3) {
-            await m.createTable(chatMessages);
-            await m.addColumn(pregnancies, pregnancies.hospitalName);
-            await m.addColumn(pregnancies, pregnancies.hospitalPhone);
-            await m.addColumn(pregnancies, pregnancies.lastCheckinAt);
-            await m.addColumn(pregnancies, pregnancies.lastRiskLevel);
-          }
-          if (from < 4) {
-            await m.createTable(dietPlans);
-            await m.createTable(dietLogs);
-          }
-          if (from < 5) {
-            await m.addColumn(dietPlans, dietPlans.spokenText);
-          }
-          if (from < 6) {
-            await m.addColumn(dietLogs, dietLogs.eatenMealsJson);
-          }
-          if (from < 7) {
-            await m.createTable(dailyTips);
-          }
-        },
-      );
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(growthRecords);
+      }
+      if (from < 3) {
+        await m.createTable(chatMessages);
+        await m.addColumn(pregnancies, pregnancies.hospitalName);
+        await m.addColumn(pregnancies, pregnancies.hospitalPhone);
+        await m.addColumn(pregnancies, pregnancies.lastCheckinAt);
+        await m.addColumn(pregnancies, pregnancies.lastRiskLevel);
+      }
+      if (from < 4) {
+        await m.createTable(dietPlans);
+        await m.createTable(dietLogs);
+      }
+      if (from < 5) {
+        await m.addColumn(dietPlans, dietPlans.spokenText);
+      }
+      if (from < 6) {
+        await m.addColumn(dietLogs, dietLogs.eatenMealsJson);
+      }
+      if (from < 7) {
+        await m.createTable(dailyTips);
+      }
+    },
+  );
 
   // ---- Watch queries for the UI ----
 
-  Stream<List<ChildRow>> watchChildren() => (select(children)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-      .watch();
+  Stream<List<ChildRow>> watchChildren() =>
+      (select(children)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+          .watch();
 
-  Stream<List<ReminderRow>> watchUpcomingReminders() => (select(reminders)
-        ..where((t) => t.deleted.equals(false) & t.status.isIn(['upcoming', 'snoozed']))
-        ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
-      .watch();
+  Stream<List<ReminderRow>> watchUpcomingReminders() =>
+      (select(reminders)
+            ..where(
+              (t) =>
+                  t.deleted.equals(false) &
+                  t.status.isIn(['upcoming', 'snoozed']),
+            )
+            ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
+          .watch();
 
-  Stream<List<ReminderRow>> watchAllReminders() => (select(reminders)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
-      .watch();
+  Stream<List<ReminderRow>> watchAllReminders() =>
+      (select(reminders)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
+          .watch();
 
-  Future<List<ReminderRow>> upcomingCustomReminders() => (select(reminders)
-        ..where((t) =>
-            t.deleted.equals(false) &
-            t.type.equals('custom') &
-            t.status.equals('upcoming') &
-            t.dueDate.isBiggerThanValue(DateTime.now())))
-      .get();
+  Future<List<ReminderRow>> upcomingCustomReminders() =>
+      (select(reminders)..where(
+            (t) =>
+                t.deleted.equals(false) &
+                t.type.equals('custom') &
+                t.status.equals('upcoming') &
+                t.dueDate.isBiggerThanValue(DateTime.now()),
+          ))
+          .get();
 
-  Stream<List<PregnancyRow>> watchPregnancies() => (select(pregnancies)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.expectedDueDate)]))
-      .watch();
+  Stream<List<PregnancyRow>> watchPregnancies() =>
+      (select(pregnancies)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.expectedDueDate)]))
+          .watch();
 
-  Stream<List<AlertRow>> watchAlerts() => (select(alertsCache)
-        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-      .watch();
+  Stream<List<AlertRow>> watchAlerts() => (select(
+    alertsCache,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
 
-  Stream<List<AssessmentRow>> watchAssessments() => (select(assessments)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.completedAt)]))
-      .watch();
+  Stream<List<AssessmentRow>> watchAssessments() =>
+      (select(assessments)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.completedAt)]))
+          .watch();
 
   /// All pregnancy-related assessments (check-ins + health checks), oldest
   /// first — feeds the risk wave chart.
-  Stream<List<AssessmentRow>> watchPregnancyAssessments() => (select(assessments)
-        ..where((t) =>
-            t.deleted.equals(false) & t.subjectType.equals('pregnancy'))
-        ..orderBy([(t) => OrderingTerm.asc(t.completedAt)]))
-      .watch();
+  Stream<List<AssessmentRow>> watchPregnancyAssessments() =>
+      (select(assessments)
+            ..where(
+              (t) =>
+                  t.deleted.equals(false) & t.subjectType.equals('pregnancy'),
+            )
+            ..orderBy([(t) => OrderingTerm.asc(t.completedAt)]))
+          .watch();
 
   // ---- Dirty rows for sync push ----
 
@@ -261,40 +280,63 @@ class AppDatabase extends _$AppDatabase {
   Future<List<DailyTipRow>> dirtyDailyTips() =>
       (select(dailyTips)..where((t) => t.synced.equals(false))).get();
 
-  Stream<List<DailyTipRow>> watchDailyTips() => (select(dailyTips)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.forDay)])
-        ..limit(60))
-      .watch();
+  Stream<List<DailyTipRow>> watchDailyTips() =>
+      (select(dailyTips)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.forDay)])
+            ..limit(60))
+          .watch();
 
-  Future<List<DailyTipRow>> tipsForDay(String dayKey) => (select(dailyTips)
-        ..where((t) => t.deleted.equals(false) & t.forDay.equals(dayKey)))
-      .get();
+  Future<List<DailyTipRow>> tipsForDay(String dayKey) => (select(
+    dailyTips,
+  )..where((t) => t.deleted.equals(false) & t.forDay.equals(dayKey))).get();
   Future<List<DietLogRow>> dirtyDietLogs() =>
       (select(dietLogs)..where((t) => t.synced.equals(false))).get();
 
-  Stream<DietPlanRow?> watchLatestDietPlan() => (select(dietPlans)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.plannedFor)])
-        ..limit(1))
-      .watchSingleOrNull();
+  Stream<DietPlanRow?> watchLatestDietPlan() =>
+      (select(dietPlans)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.plannedFor)])
+            ..limit(1))
+          .watchSingleOrNull();
 
-  Future<DietPlanRow?> latestDietPlan() => (select(dietPlans)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.plannedFor)])
-        ..limit(1))
-      .getSingleOrNull();
+  Future<DietPlanRow?> latestDietPlan() =>
+      (select(dietPlans)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.plannedFor)])
+            ..limit(1))
+          .getSingleOrNull();
 
-  Stream<List<DietLogRow>> watchRecentDietLogs(int days) => (select(dietLogs)
-        ..where((t) => t.deleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.day)])
-        ..limit(days))
-      .watch();
+  Stream<List<DietLogRow>> watchRecentDietLogs(int days) =>
+      (select(dietLogs)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.day)])
+            ..limit(days))
+          .watch();
 
   Stream<List<GrowthRecordRow>> watchGrowthRecords(String childId) =>
       (select(growthRecords)
             ..where((t) => t.deleted.equals(false) & t.childId.equals(childId))
             ..orderBy([(t) => OrderingTerm.asc(t.measuredAt)]))
+          .watch();
+
+  /// Every child's measurements — used by the weekly report to count growth
+  /// checks and show the latest weight per child in one pass.
+  Stream<List<GrowthRecordRow>> watchAllGrowthRecords() =>
+      (select(growthRecords)
+            ..where((t) => t.deleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.measuredAt)]))
+          .watch();
+
+  /// Diet logs from [dayKey] (YYYY-MM-DD) onwards. The weekly report can look
+  /// back over several weeks without loading the entire history.
+  Stream<List<DietLogRow>> watchDietLogsSince(String dayKey) =>
+      (select(dietLogs)
+            ..where(
+              (t) =>
+                  t.deleted.equals(false) & t.day.isBiggerOrEqualValue(dayKey),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.day)]))
           .watch();
 
   /// Marks every record as needing upload. Used when signing in against a

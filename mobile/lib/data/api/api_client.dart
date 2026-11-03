@@ -11,10 +11,12 @@ import '../../core/constants.dart';
 /// - access-token attach + one transparent refresh on 401.
 class ApiClient {
   ApiClient(this._storage)
-      : dio = Dio(BaseOptions(
+    : dio = Dio(
+        BaseOptions(
           baseUrl: kApiBaseCandidates.firstWhere((c) => c.isNotEmpty),
           connectTimeout: const Duration(seconds: 8),
-        )) {
+        ),
+      ) {
     dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -64,10 +66,12 @@ class ApiClient {
     if (_resolved) return;
     // Generous enough for a sleeping free-tier server to wake up; local
     // candidates fail instantly (connection refused) so dev stays fast.
-    final probe = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 8),
-    ));
+    final probe = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 8),
+      ),
+    );
     for (final base in kApiBaseCandidates.where((c) => c.isNotEmpty)) {
       final healthUrl =
           '${base.replaceFirst(RegExp(r'/api/v1/?$'), '')}/health';
@@ -91,8 +95,9 @@ class ApiClient {
     if (refreshToken == null) return false;
     try {
       // Bare client: the interceptor above must not run for the refresh call.
-      final res = await Dio(BaseOptions(baseUrl: dio.options.baseUrl))
-          .post('/auth/refresh', data: {'refreshToken': refreshToken});
+      final res = await Dio(
+        BaseOptions(baseUrl: dio.options.baseUrl),
+      ).post('/auth/refresh', data: {'refreshToken': refreshToken});
       final tokens = res.data['tokens'] as Map<String, dynamic>;
       await saveTokens(tokens);
       return true;
@@ -102,8 +107,14 @@ class ApiClient {
   }
 
   Future<void> saveTokens(Map<String, dynamic> tokens) async {
-    await _storage.write(key: kAccessTokenKey, value: tokens['accessToken'] as String);
-    await _storage.write(key: kRefreshTokenKey, value: tokens['refreshToken'] as String);
+    await _storage.write(
+      key: kAccessTokenKey,
+      value: tokens['accessToken'] as String,
+    );
+    await _storage.write(
+      key: kRefreshTokenKey,
+      value: tokens['refreshToken'] as String,
+    );
   }
 
   Future<void> clearTokens() async {

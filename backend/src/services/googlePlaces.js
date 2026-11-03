@@ -1,6 +1,7 @@
 const axios = require('axios');
 const env = require('../config/env');
 const logger = require('../utils/logger');
+const { maskPhone } = require('../utils/privacy');
 
 const configured = () => Boolean(process.env.GOOGLE_MAPS_API_KEY);
 
@@ -43,7 +44,7 @@ async function findNearestHospital(lng, lat) {
     );
     const d = details.data.result || {};
     const phone = d.international_phone_number || d.formatted_phone_number || null;
-    logger.info(`[places] nearest hospital: ${d.name || place.name} phone=${phone || 'none'}`);
+    logger.info(`[places] nearest hospital: ${d.name || place.name} phone=${phone ? maskPhone(phone) : 'none'}`);
     return {
       name: d.name || place.name,
       phone,

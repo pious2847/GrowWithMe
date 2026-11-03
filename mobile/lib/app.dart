@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
+import 'core/theme/app_colors.dart';
+import 'core/theme/app_theme.dart';
+import 'core/ui/app_widgets.dart';
 import 'features/home/home_shell.dart';
 import 'features/onboarding/welcome_screen.dart';
 
@@ -11,69 +14,97 @@ class GrowWithMeApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authControllerProvider);
-    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32));
 
     return MaterialApp(
       title: 'GrowWithMe',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: scheme,
-        useMaterial3: true,
-        scaffoldBackgroundColor: scheme.surface,
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          backgroundColor: scheme.surface,
-          foregroundColor: scheme.onSurface,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            color: scheme.onSurface,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+      themeMode: ThemeMode.light,
+      theme: AppTheme.light(),
+      builder: (context, child) {
+        // Extreme system font scaling breaks dense care screens; clamp it
+        // while still honouring accessibility preferences.
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: mq.textScaler.clamp(
+              minScaleFactor: 0.9,
+              maxScaleFactor: 1.25,
+            ),
           ),
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          color: scheme.surfaceContainerLow,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          margin: const EdgeInsets.symmetric(vertical: 6),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: scheme.surfaceContainerLow,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: scheme.primary, width: 2),
-          ),
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          indicatorColor: scheme.primaryContainer,
-          backgroundColor: scheme.surface,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 420),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        child: auth.when(
+          loading: () => const _BootSplash(key: ValueKey('boot')),
+          error: (_, _) => const WelcomeScreen(key: ValueKey('welcome')),
+          data: (signedIn) => signedIn
+              ? const HomeShell(key: ValueKey('home'))
+              : const WelcomeScreen(key: ValueKey('welcome')),
         ),
       ),
-      home: auth.when(
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (_, _) => const WelcomeScreen(),
-        data: (signedIn) =>
-            signedIn ? const HomeShell() : const WelcomeScreen(),
+    );
+  }
+}
+
+class _BootSplash extends StatefulWidget {
+  const _BootSplash({super.key});
+
+  @override
+  State<_BootSplash> createState() => _BootSplashState();
+}
+
+class _BootSplashState extends State<_BootSplash>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: AppColors.cream,
+      body: AmbientBackground(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedBuilder(
+                animation: _pulse,
+                builder: (context, child) => Transform.scale(
+                  scale: 1 + _pulse.value * 0.06,
+                  child: child,
+                ),
+                child: const BrandMark(size: 76),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                'GrowWithMe',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: AppColors.forestDeep,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Preparing your family\'s care…',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

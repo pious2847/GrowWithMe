@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/config/regions.dart';
 import '../../domain/diet_guide.dart';
 import '../api/api_client.dart';
 import '../assistant/nana_assistant.dart';
@@ -19,18 +20,20 @@ class DietPlanner {
   final NanaAssistant _assistant;
 
   Future<String> detectAudience() async {
-    final pregnancies = await (_db.select(_db.pregnancies)
-          ..where((t) => t.deleted.equals(false)))
-        .get();
+    final pregnancies = await (_db.select(
+      _db.pregnancies,
+    )..where((t) => t.deleted.equals(false))).get();
     if (pregnancies.any((p) => p.status == 'active')) return 'pregnancy';
-    final delivered = pregnancies.where((p) =>
-        p.status == 'delivered' &&
-        p.deliveredAt != null &&
-        DateTime.now().difference(p.deliveredAt!).inDays < 240);
+    final delivered = pregnancies.where(
+      (p) =>
+          p.status == 'delivered' &&
+          p.deliveredAt != null &&
+          DateTime.now().difference(p.deliveredAt!).inDays < 240,
+    );
     if (delivered.isNotEmpty) return 'lactating';
-    final children = await (_db.select(_db.children)
-          ..where((t) => t.deleted.equals(false)))
-        .get();
+    final children = await (_db.select(
+      _db.children,
+    )..where((t) => t.deleted.equals(false))).get();
     if (children.isNotEmpty) return 'child';
     return 'general';
   }
@@ -46,7 +49,8 @@ class DietPlanner {
     String? spokenText,
   }) async {
     final audience = await detectAudience();
-    final season = currentSeason();
+    final countryCode = await savedCountryCode();
+    final season = currentSeason(null, countryCode);
     Map<String, dynamic> plan;
     var source = 'offline';
     var savedBudget = budget;
@@ -57,40 +61,50 @@ class DietPlanner {
       final situation = spokenText != null && spokenText.trim().isNotEmpty
           ? 'She said, in her own words: "$spokenText"'
           : 'Can afford extra market foods: ${budget == 'ok' ? 'yes' : 'no, very limited money'}\n'
-              'Foodstuffs she has at home: ${pantry.isEmpty ? 'not specified' : pantry}\n'
-              'People to feed: $household';
-      final context = '$baseContext\n'
-          'Season: ${seasonLabel(season)} — cheap now: ${seasonalFoodsHint(season)}\n'
+                'Foodstuffs she has at home: ${pantry.isEmpty ? 'not specified' : pantry}\n'
+                'People to feed: $household';
+      final context =
+          '$baseContext\n'
+          'Season: ${seasonLabel(season, countryCode: countryCode)} — cheap now: ${seasonalFoodsHint(season, countryCode: countryCode)}\n'
           'Stage: $audience\n'
           '$situation';
-      final res = await _api.dio
-          .post('/assistant/diet-plan', data: {'context': context});
+      final res = await _api.dio.post(
+        '/assistant/diet-plan',
+        data: {'context': context},
+      );
       plan = res.data['plan'] as Map<String, dynamic>;
       source = 'ai';
       // Keep what the AI understood from her words for future auto-plans.
       final extracted = plan['extracted'] as Map<String, dynamic>?;
       if (extracted != null) {
-        if (extracted['budget'] is String) savedBudget = extracted['budget'] as String;
-        if (extracted['pantry'] is String && (extracted['pantry'] as String).isNotEmpty) {
+        if (extracted['budget'] is String) {
+          savedBudget = extracted['budget'] as String;
+        }
+        if (extracted['pantry'] is String &&
+            (extracted['pantry'] as String).isNotEmpty) {
           savedPantry = extracted['pantry'] as String;
         }
       }
     } catch (_) {
-      plan = offlinePlan(audience, season);
+      plan = offlinePlan(audience, season, countryCode: countryCode);
     }
 
-    await _db.into(_db.dietPlans).insert(DietPlansCompanion.insert(
-          id: const Uuid().v4(),
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          audience: audience,
-          season: Value(season),
-          budget: Value(savedBudget),
-          pantry: Value(savedPantry),
-          spokenText: Value(spokenText),
-          planJson: jsonEncode(plan),
-          source: Value(source),
-          plannedFor: DateTime.now(),
-        ));
+    await _db
+        .into(_db.dietPlans)
+        .insert(
+          DietPlansCompanion.insert(
+            id: const Uuid().v4(),
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            audience: audience,
+            season: Value(season),
+            budget: Value(savedBudget),
+            pantry: Value(savedPantry),
+            spokenText: Value(spokenText),
+            planJson: jsonEncode(plan),
+            source: Value(source),
+            plannedFor: DateTime.now(),
+          ),
+        );
     return plan;
   }
 
@@ -103,7 +117,8 @@ class DietPlanner {
     try {
       final latest = await _db.latestDietPlan();
       final now = DateTime.now();
-      final haveToday = latest != null &&
+      final haveToday =
+          latest != null &&
           latest.plannedFor.year == now.year &&
           latest.plannedFor.month == now.month &&
           latest.plannedFor.day == now.day;
@@ -127,40 +142,50 @@ class DietPlanner {
 
   Future<void> _tryAiUpgrade(DietPlanRow offlineToday) async {
     final audience = await detectAudience();
-    final season = currentSeason();
+    final countryCode = await savedCountryCode();
+    final season = currentSeason(null, countryCode);
     final budget = offlineToday.budget ?? 'low';
     final pantry = offlineToday.pantry ?? '';
     try {
       final baseContext = await _assistant.buildContext();
-      final context = '$baseContext\n'
-          'Season: ${seasonLabel(season)} — cheap now: ${seasonalFoodsHint(season)}\n'
+      final context =
+          '$baseContext\n'
+          'Season: ${seasonLabel(season, countryCode: countryCode)} — cheap now: ${seasonalFoodsHint(season, countryCode: countryCode)}\n'
           'Stage: $audience\n'
           'Can afford extra market foods: ${budget == 'ok' ? 'yes' : 'no, very limited money'}\n'
           'Foodstuffs she has at home: ${pantry.isEmpty ? 'not specified' : pantry}\n'
           'People to feed: 4';
-      final res = await _api.dio
-          .post('/assistant/diet-plan', data: {'context': context});
+      final res = await _api.dio.post(
+        '/assistant/diet-plan',
+        data: {'context': context},
+      );
       final plan = res.data['plan'] as Map<String, dynamic>;
 
       // AI succeeded — the richer plan replaces the cookbook one for today.
-      await _db.into(_db.dietPlans).insert(DietPlansCompanion.insert(
-            id: const Uuid().v4(),
-            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-            audience: audience,
-            season: Value(season),
-            budget: Value(budget),
-            pantry: Value(pantry),
-            planJson: jsonEncode(plan),
-            source: const Value('ai'),
-            plannedFor: DateTime.now(),
-          ));
-      await (_db.update(_db.dietPlans)
-            ..where((t) => t.id.equals(offlineToday.id)))
-          .write(DietPlansCompanion(
-        deleted: const Value(true),
-        clientUpdatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-        synced: const Value(false),
-      ));
+      await _db
+          .into(_db.dietPlans)
+          .insert(
+            DietPlansCompanion.insert(
+              id: const Uuid().v4(),
+              clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+              audience: audience,
+              season: Value(season),
+              budget: Value(budget),
+              pantry: Value(pantry),
+              planJson: jsonEncode(plan),
+              source: const Value('ai'),
+              plannedFor: DateTime.now(),
+            ),
+          );
+      await (_db.update(
+        _db.dietPlans,
+      )..where((t) => t.id.equals(offlineToday.id))).write(
+        DietPlansCompanion(
+          deleted: const Value(true),
+          clientUpdatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          synced: const Value(false),
+        ),
+      );
     } catch (_) {
       // Still offline — the cookbook plan stands until connectivity returns.
     }

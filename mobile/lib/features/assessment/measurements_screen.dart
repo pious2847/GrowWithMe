@@ -36,7 +36,8 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
   };
 
   ModelService get _model => ref.read(modelServiceProvider);
-  List<String> get _features => (_model.meta['features'] as List).cast<String>();
+  List<String> get _features =>
+      (_model.meta['features'] as List).cast<String>();
   List<String> get _labels =>
       (_model.meta['featureLabels'] as List).cast<String>();
 
@@ -67,11 +68,14 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
         continue;
       }
       final v = double.tryParse(raw);
-      final range = (ranges[f] as List).map((e) => (e as num).toDouble()).toList();
+      final range = (ranges[f] as List)
+          .map((e) => (e as num).toDouble())
+          .toList();
       if (v == null || v < range[0] || v > range[1]) {
         setState(() {
           _result = null;
-          _error = '${_labels[i]} looks wrong — expected a number between '
+          _error =
+              '${_labels[i]} looks wrong — expected a number between '
               '${range[0].toStringAsFixed(0)} and ${range[1].toStringAsFixed(0)}.';
         });
         return;
@@ -83,7 +87,7 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
     setState(() {
       _error = result == null
           ? 'Not enough measurements for a safe estimate. Enter at least your '
-              'age and both blood pressure numbers, plus one more.'
+                'age and both blood pressure numbers, plus one more.'
           : null;
       _result = result;
     });
@@ -92,10 +96,14 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
       final autoVoice = ref.read(autoVoiceProvider).value ?? false;
       final raised = result.label != 'low risk';
       if (raised || autoVoice) {
-        ref.read(ttsProvider).speak(raised
-            ? 'The numbers suggest extra caution. Please visit a clinic to be '
-                'checked, even if you feel well.'
-            : 'The numbers look okay. Still follow the advice from your check.');
+        ref
+            .read(ttsProvider)
+            .speak(
+              raised
+                  ? 'The numbers suggest extra caution. Please visit a clinic to be '
+                        'checked, even if you feel well.'
+                  : 'The numbers look okay. Still follow the advice from your check.',
+            );
       }
     }
   }
@@ -103,16 +111,25 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
   /// Shadow-mode data flywheel: de-identified vitals + prediction + the rules
   /// verdict go to the backend so the model can later be fine-tuned on local
   /// cases (covered by her data-processing consent). Best-effort only.
-  Future<void> _shadowLog(Map<String, double?> values, RiskAssessment result) async {
+  Future<void> _shadowLog(
+    Map<String, double?> values,
+    RiskAssessment result,
+  ) async {
     try {
-      await ref.read(apiClientProvider).dio.post('/models/maternal-risk/log', data: {
-        'source': 'caregiver',
-        'modelVersion': _model.version,
-        'values': values,
-        'usedInputs': result.usedInputs,
-        'prediction': {'label': result.label, 'probs': result.probs},
-        'rulesRiskLevel': widget.rulesRiskLevel,
-      });
+      await ref
+          .read(apiClientProvider)
+          .dio
+          .post(
+            '/models/maternal-risk/log',
+            data: {
+              'source': 'caregiver',
+              'modelVersion': _model.version,
+              'values': values,
+              'usedInputs': result.usedInputs,
+              'prediction': {'label': result.label, 'probs': result.probs},
+              'rulesRiskLevel': widget.rulesRiskLevel,
+            },
+          );
     } catch (_) {}
   }
 
@@ -127,15 +144,17 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
           Text(
             'If you know any of these numbers, the offline helper can give a '
             'second opinion. Skip anything you do not know.',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           for (var i = 0; i < _features.length; i++) ...[
             TextField(
               controller: _controllers[_features[i]],
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: _labels[i],
                 helperText: _hints[_features[i]],
@@ -148,20 +167,25 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
           const SizedBox(height: 4),
           FilledButton.icon(
             style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
             onPressed: _assess,
             icon: const Icon(Icons.monitor_heart),
             label: const Text('Check my numbers'),
           ),
           if (_error != null) ...[
             const SizedBox(height: 16),
-            Text(_error!,
-                style: TextStyle(color: theme.colorScheme.error, height: 1.4)),
+            Text(
+              _error!,
+              style: TextStyle(color: theme.colorScheme.error, height: 1.4),
+            ),
           ],
           if (_result != null) ...[
             const SizedBox(height: 20),
             _SecondOpinionCard(
-                result: _result!, rulesRiskLevel: widget.rulesRiskLevel),
+              result: _result!,
+              rulesRiskLevel: widget.rulesRiskLevel,
+            ),
           ],
         ],
       ),
@@ -170,7 +194,10 @@ class _MeasurementsScreenState extends ConsumerState<MeasurementsScreen> {
 }
 
 class _SecondOpinionCard extends StatelessWidget {
-  const _SecondOpinionCard({required this.result, required this.rulesRiskLevel});
+  const _SecondOpinionCard({
+    required this.result,
+    required this.rulesRiskLevel,
+  });
 
   final RiskAssessment result;
   final String rulesRiskLevel;
@@ -183,11 +210,11 @@ class _SecondOpinionCard extends StatelessWidget {
     // Never-downgrade: an AI "low" must not soften a moderate rules verdict.
     final message = raised
         ? 'Your numbers suggest extra caution. Please visit a clinic to be '
-            'checked, even if you feel well.'
+              'checked, even if you feel well.'
         : rulesRiskLevel == 'moderate'
-            ? 'Your numbers look okay — but your check found symptoms, so '
-                'still follow the advice you were given: visit the clinic.'
-            : 'Your numbers look okay. Keep your normal clinic visits.';
+        ? 'Your numbers look okay — but your check found symptoms, so '
+              'still follow the advice you were given: visit the clinic.'
+        : 'Your numbers look okay. Keep your normal clinic visits.';
     return Card(
       elevation: 0,
       color: color.withValues(alpha: 0.08),
@@ -202,14 +229,19 @@ class _SecondOpinionCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(raised ? Icons.report_problem : Icons.check_circle,
-                    color: color),
+                Icon(
+                  raised ? Icons.report_problem : Icons.check_circle,
+                  color: color,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                      raised ? 'Extra caution advised' : 'Numbers look okay',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                          color: color, fontWeight: FontWeight.bold)),
+                    raised ? 'Extra caution advised' : 'Numbers look okay',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -221,7 +253,9 @@ class _SecondOpinionCard extends StatelessWidget {
               'measurements. ⚠ This helper can be wrong — it never replaces '
               'your health check result or a nurse.',
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant, height: 1.4),
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
             ),
           ],
         ),

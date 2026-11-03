@@ -1,5 +1,9 @@
 allprojects {
     repositories {
+        // Offline-friendly engine mirror (see local_maven/README.md). Must be
+        // first so a slow/unreachable storage.googleapis.com cannot stall the
+        // build when the same artifact already exists in the SDK cache.
+        maven { url = uri(rootProject.file("local_maven")) }
         google()
         mavenCentral()
     }

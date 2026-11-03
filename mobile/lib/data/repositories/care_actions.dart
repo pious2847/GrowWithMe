@@ -22,13 +22,17 @@ class CareActions {
     final childId = _uuid.v4();
     final now = DateTime.now();
     await _db.transaction(() async {
-      await _db.into(_db.children).insert(ChildrenCompanion.insert(
-            id: childId,
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            name: name,
-            sex: Value(sex),
-            dateOfBirth: dateOfBirth,
-          ));
+      await _db
+          .into(_db.children)
+          .insert(
+            ChildrenCompanion.insert(
+              id: childId,
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              name: name,
+              sex: Value(sex),
+              dateOfBirth: dateOfBirth,
+            ),
+          );
       for (final reminder in generateChildCarePlan(childId, dateOfBirth)) {
         await _db.into(_db.reminders).insert(reminder);
       }
@@ -40,11 +44,15 @@ class CareActions {
     final pregnancyId = _uuid.v4();
     final now = DateTime.now();
     await _db.transaction(() async {
-      await _db.into(_db.pregnancies).insert(PregnanciesCompanion.insert(
-            id: pregnancyId,
-            clientUpdatedAt: now.millisecondsSinceEpoch,
-            expectedDueDate: expectedDueDate,
-          ));
+      await _db
+          .into(_db.pregnancies)
+          .insert(
+            PregnanciesCompanion.insert(
+              id: pregnancyId,
+              clientUpdatedAt: now.millisecondsSinceEpoch,
+              expectedDueDate: expectedDueDate,
+            ),
+          );
       for (final r in generatePregnancyCarePlan(pregnancyId, expectedDueDate)) {
         await _db.into(_db.reminders).insert(r);
       }
@@ -53,9 +61,9 @@ class CareActions {
   }
 
   Future<ChildRow?> findChildByName(String name) async {
-    final children = await (_db.select(_db.children)
-          ..where((t) => t.deleted.equals(false)))
-        .get();
+    final children = await (_db.select(
+      _db.children,
+    )..where((t) => t.deleted.equals(false))).get();
     final query = name.trim().toLowerCase();
     for (final c in children) {
       if (c.name.toLowerCase() == query) return c;
@@ -67,13 +75,17 @@ class CareActions {
   }
 
   Future<void> logWeight({required String childId, required double weightKg}) {
-    return _db.into(_db.growthRecords).insert(GrowthRecordsCompanion.insert(
-          id: _uuid.v4(),
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          childId: childId,
-          weightKg: weightKg,
-          measuredAt: DateTime.now(),
-        ));
+    return _db
+        .into(_db.growthRecords)
+        .insert(
+          GrowthRecordsCompanion.insert(
+            id: _uuid.v4(),
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            childId: childId,
+            weightKg: weightKg,
+            measuredAt: DateTime.now(),
+          ),
+        );
   }
 
   /// A personal reminder on any date & time — created from the calendar or by
@@ -85,14 +97,18 @@ class CareActions {
     String? note,
   }) async {
     final id = _uuid.v4();
-    await _db.into(_db.reminders).insert(RemindersCompanion.insert(
-          id: id,
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          type: 'custom',
-          title: title,
-          description: Value(note),
-          dueDate: when,
-        ));
+    await _db
+        .into(_db.reminders)
+        .insert(
+          RemindersCompanion.insert(
+            id: id,
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            type: 'custom',
+            title: title,
+            description: Value(note),
+            dueDate: when,
+          ),
+        );
     return id;
   }
 }

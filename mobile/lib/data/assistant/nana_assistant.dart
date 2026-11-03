@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/config/regions.dart';
 import '../../domain/nutrition_tips.dart';
 import '../api/api_client.dart';
 import '../db/app_database.dart';
@@ -40,25 +41,32 @@ class NanaAssistant {
   final ApiClient _api;
   final NluService? _nlu;
 
-  Future<NanaReply> send(
-      String text, List<Map<String, String>> history) async {
+  Future<NanaReply> send(String text, List<Map<String, String>> history) async {
     final context = await buildContext();
     // Two attempts: a failure re-probes the backend routes (USB bridge may
     // have just died — the Wi-Fi route can take over mid-conversation).
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        final res = await _api.dio.post('/assistant/chat', data: {
-          'messages': [...history, {'role': 'user', 'content': text}],
-          'context': context,
-        });
+        final res = await _api.dio.post(
+          '/assistant/chat',
+          data: {
+            'messages': [
+              ...history,
+              {'role': 'user', 'content': text},
+            ],
+            'context': context,
+          },
+        );
         final reply = res.data['reply'] as Map<String, dynamic>;
         final actionJson = reply['action'] as Map<String, dynamic>?;
         return NanaReply(
           reply['say'] as String? ?? '',
           action: actionJson == null
               ? null
-              : NanaAction(actionJson['name'] as String? ?? '',
-                  (actionJson['params'] as Map<String, dynamic>?) ?? {}),
+              : NanaAction(
+                  actionJson['name'] as String? ?? '',
+                  (actionJson['params'] as Map<String, dynamic>?) ?? {},
+                ),
           source: 'llm',
         );
       } catch (_) {
@@ -78,8 +86,20 @@ class NanaAssistant {
     final greetingName = name.isNotEmpty ? name : 'my daughter';
 
     const symptomWords = [
-      'sick', 'fever', 'ill', 'vomit', 'bleed', 'convuls', 'fit',
-      'diarrh', 'cough', 'pain', 'weak', 'not moving', 'unwell', 'hot body',
+      'sick',
+      'fever',
+      'ill',
+      'vomit',
+      'bleed',
+      'convuls',
+      'fit',
+      'diarrh',
+      'cough',
+      'pain',
+      'weak',
+      'not moving',
+      'unwell',
+      'hot body',
     ];
     if (symptomWords.any(t.contains)) {
       return NanaReply(
@@ -105,8 +125,9 @@ class NanaAssistant {
       case 'start_health_check':
         return NanaReply(
           'I hear you. Let us check this properly and safely right now.',
-          action: NanaAction('start_health_check',
-              {if (r.subject != 'unknown') 'subject': r.subject}),
+          action: NanaAction('start_health_check', {
+            if (r.subject != 'unknown') 'subject': r.subject,
+          }),
         );
       case 'open_add_child':
         return const NanaReply(
@@ -201,7 +222,8 @@ class NanaAssistant {
 
   /// Last-resort keyword matching — the pre-NLU behavior, kept as the floor.
   Future<NanaReply> _keywordIntent(String t, String greetingName) async {
-    if (t.contains('child') && (t.contains('add') || t.contains('new') || t.contains('register'))) {
+    if (t.contains('child') &&
+        (t.contains('add') || t.contains('new') || t.contains('register'))) {
       return const NanaReply(
         'Let us add your child together. I will open the form for you.',
         action: NanaAction('open_add_child', {}),
@@ -213,10 +235,16 @@ class NanaAssistant {
         action: NanaAction('open_add_pregnancy', {}),
       );
     }
-    if (t.contains('today') || t.contains('visit') || t.contains('remind') || t.contains('calendar')) {
+    if (t.contains('today') ||
+        t.contains('visit') ||
+        t.contains('remind') ||
+        t.contains('calendar')) {
       return NanaReply(await buildBriefing());
     }
-    if (t.contains('tip') || t.contains('food') || t.contains('feed') || t.contains('eat')) {
+    if (t.contains('tip') ||
+        t.contains('food') ||
+        t.contains('feed') ||
+        t.contains('eat')) {
       return NanaReply(await _tipText());
     }
     return NanaReply(
@@ -232,21 +260,27 @@ class NanaAssistant {
   /// instead of guessing.
   Future<String> buildCheckinContext(PregnancyRow pregnancy) async {
     final now = DateTime.now();
-    final conception =
-        pregnancy.expectedDueDate.subtract(const Duration(days: 280));
+    final conception = pregnancy.expectedDueDate.subtract(
+      const Duration(days: 280),
+    );
     final week = (now.difference(conception).inDays / 7).floor().clamp(1, 42);
 
     final b = StringBuffer()
-      ..writeln('Gestational week: $week of 40 '
-          '(due ${DateFormat('yyyy-MM-dd').format(pregnancy.expectedDueDate)})');
+      ..writeln(
+        'Gestational week: $week of 40 '
+        '(due ${DateFormat('yyyy-MM-dd').format(pregnancy.expectedDueDate)})',
+      );
 
-    final past = await (_db.select(_db.assessments)
-          ..where((t) =>
-              t.deleted.equals(false) &
-              t.pregnancyId.equals(pregnancy.id))
-          ..orderBy([(t) => OrderingTerm.desc(t.completedAt)])
-          ..limit(5))
-        .get();
+    final past =
+        await (_db.select(_db.assessments)
+              ..where(
+                (t) =>
+                    t.deleted.equals(false) &
+                    t.pregnancyId.equals(pregnancy.id),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.completedAt)])
+              ..limit(5))
+            .get();
     if (past.isEmpty) {
       b.writeln('Past check-ins: none yet — this is her first.');
     } else {
@@ -260,9 +294,11 @@ class NanaAssistant {
             }
           }
         } catch (_) {}
-        b.writeln('- ${DateFormat('yyyy-MM-dd').format(a.completedAt)}: '
-            'risk ${a.riskLevel}'
-            '${yes.isEmpty ? ', no symptoms reported' : ', answered YES to: ${yes.join('; ')}'}');
+        b.writeln(
+          '- ${DateFormat('yyyy-MM-dd').format(a.completedAt)}: '
+          'risk ${a.riskLevel}'
+          '${yes.isEmpty ? ', no symptoms reported' : ', answered YES to: ${yes.join('; ')}'}',
+        );
       }
     }
 
@@ -277,22 +313,45 @@ class NanaAssistant {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('userName') ?? '';
 
-    final children = await (_db.select(_db.children)
-          ..where((t) => t.deleted.equals(false)))
-        .get();
-    final pregnancies = await (_db.select(_db.pregnancies)
-          ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
-        .get();
-    final upcoming = await (_db.select(_db.reminders)
-          ..where((t) =>
-              t.deleted.equals(false) & t.status.isIn(['upcoming', 'snoozed']))
-          ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
-          ..limit(5))
-        .get();
+    final children = await (_db.select(
+      _db.children,
+    )..where((t) => t.deleted.equals(false))).get();
+    final pregnancies = await (_db.select(
+      _db.pregnancies,
+    )..where((t) => t.deleted.equals(false) & t.status.equals('active'))).get();
+    final upcoming =
+        await (_db.select(_db.reminders)
+              ..where(
+                (t) =>
+                    t.deleted.equals(false) &
+                    t.status.isIn(['upcoming', 'snoozed']),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
+              ..limit(5))
+            .get();
 
-    final b = StringBuffer('Today: ${DateFormat('yyyy-MM-dd (EEEE)').format(now)}\n');
+    final b = StringBuffer(
+      'Today: ${DateFormat('yyyy-MM-dd (EEEE)').format(now)}\n',
+    );
     if (name.isNotEmpty) {
       b.writeln('Caregiver Name: $name');
+    }
+    // Country/region/language keep Nana's food and emergency guidance local
+    // without hard-coding one market.
+    final rawRegion = prefs.getString('regionSettings');
+    if (rawRegion != null) {
+      try {
+        final m = jsonDecode(rawRegion) as Map<String, dynamic>;
+        final code = m['countryCode'] as String? ?? 'GH';
+        final region = m['region'] as String?;
+        final language = m['languageCode'] as String? ?? 'en';
+        final country = countryByCode(code);
+        b.writeln(
+          'Country: ${country.name} ($code)'
+          '${region == null ? '' : ' · $region'}',
+        );
+        b.writeln('Preferred language: $language');
+      } catch (_) {}
     }
     b.writeln('Children:');
     if (children.isEmpty) b.writeln('- none registered yet');
@@ -303,7 +362,8 @@ class NanaAssistant {
     if (pregnancies.isNotEmpty) {
       for (final p in pregnancies) {
         b.writeln(
-            'Active pregnancy, due ${DateFormat('yyyy-MM-dd').format(p.expectedDueDate)}');
+          'Active pregnancy, due ${DateFormat('yyyy-MM-dd').format(p.expectedDueDate)}',
+        );
       }
     }
     b.writeln('Next visits:');
@@ -316,30 +376,37 @@ class NanaAssistant {
     for (final p in pregnancies) {
       if (p.lastRiskLevel != null) {
         b.writeln(
-            'Last pregnancy check-in: ${p.lastRiskLevel}${p.lastCheckinAt != null ? ' on ${DateFormat('yyyy-MM-dd').format(p.lastCheckinAt!)}' : ''}');
+          'Last pregnancy check-in: ${p.lastRiskLevel}${p.lastCheckinAt != null ? ' on ${DateFormat('yyyy-MM-dd').format(p.lastCheckinAt!)}' : ''}',
+        );
       }
     }
-    final dietLogs = await (_db.select(_db.dietLogs)
-          ..where((t) => t.deleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.desc(t.day)])
-          ..limit(7))
-        .get();
+    final dietLogs =
+        await (_db.select(_db.dietLogs)
+              ..where((t) => t.deleted.equals(false))
+              ..orderBy([(t) => OrderingTerm.desc(t.day)])
+              ..limit(7))
+            .get();
     if (dietLogs.isNotEmpty) {
       b.writeln(
-          'Diet diversity last days (0-8 food groups, 5+ is good): ${dietLogs.reversed.map((l) => '${l.day.substring(5)}=${l.score}').join(', ')}');
+        'Diet diversity last days (0-8 food groups, 5+ is good): ${dietLogs.reversed.map((l) => '${l.day.substring(5)}=${l.score}').join(', ')}',
+      );
       final latestLog = dietLogs.first;
       if (latestLog.eatenMealsJson != null) {
-        b.writeln('Meals she prepared most recently: ${latestLog.eatenMealsJson}');
+        b.writeln(
+          'Meals she prepared most recently: ${latestLog.eatenMealsJson}',
+        );
       }
     }
-    final weights = await (_db.select(_db.growthRecords)
-          ..where((t) => t.deleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.desc(t.measuredAt)])
-          ..limit(3))
-        .get();
+    final weights =
+        await (_db.select(_db.growthRecords)
+              ..where((t) => t.deleted.equals(false))
+              ..orderBy([(t) => OrderingTerm.desc(t.measuredAt)])
+              ..limit(3))
+            .get();
     for (final w in weights) {
       b.writeln(
-          'Child weight: ${w.weightKg}kg on ${DateFormat('yyyy-MM-dd').format(w.measuredAt)}');
+        'Child weight: ${w.weightKg}kg on ${DateFormat('yyyy-MM-dd').format(w.measuredAt)}',
+      );
     }
     return b.toString();
   }
@@ -348,22 +415,35 @@ class NanaAssistant {
   Future<String> buildBriefing() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final soon = await (_db.select(_db.reminders)
-          ..where((t) =>
-              t.deleted.equals(false) & t.status.isIn(['upcoming', 'snoozed']))
-          ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
-          ..limit(10))
-        .get();
+    final soon =
+        await (_db.select(_db.reminders)
+              ..where(
+                (t) =>
+                    t.deleted.equals(false) &
+                    t.status.isIn(['upcoming', 'snoozed']),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
+              ..limit(10))
+            .get();
     final dueSoon = soon
-        .where((r) => !DateTime(r.dueDate.year, r.dueDate.month, r.dueDate.day)
-            .isAfter(today.add(const Duration(days: 7))))
+        .where(
+          (r) => !DateTime(
+            r.dueDate.year,
+            r.dueDate.month,
+            r.dueDate.day,
+          ).isAfter(today.add(const Duration(days: 7))),
+        )
         .toList();
 
     final b = StringBuffer();
     if (dueSoon.isEmpty) {
-      b.write('You have no clinic visits due this week. Well done, you are on track. ');
+      b.write(
+        'You have no clinic visits due this week. Well done, you are on track. ',
+      );
     } else {
-      b.write('You have ${dueSoon.length} visit${dueSoon.length == 1 ? '' : 's'} coming up. ');
+      b.write(
+        'You have ${dueSoon.length} visit${dueSoon.length == 1 ? '' : 's'} coming up. ',
+      );
       for (final r in dueSoon.take(3)) {
         b.write('${DateFormat('EEEE d MMMM').format(r.dueDate)}: ${r.title}. ');
       }
@@ -373,21 +453,22 @@ class NanaAssistant {
   }
 
   Future<String> _tipText() async {
-    final children = await (_db.select(_db.children)
-          ..where((t) => t.deleted.equals(false)))
-        .get();
-    final pregnancies = await (_db.select(_db.pregnancies)
-          ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
-        .get();
+    final countryCode = await savedCountryCode();
+    final children = await (_db.select(
+      _db.children,
+    )..where((t) => t.deleted.equals(false))).get();
+    final pregnancies = await (_db.select(
+      _db.pregnancies,
+    )..where((t) => t.deleted.equals(false) & t.status.equals('active'))).get();
     if (pregnancies.isNotEmpty) {
-      final t = dailyPregnancyTip();
+      final t = dailyPregnancyTip(countryCode: countryCode);
       return 'Today\'s tip for you: ${t.title}. ${t.body}';
     }
     if (children.isNotEmpty) {
       children.sort((a, b) => b.dateOfBirth.compareTo(a.dateOfBirth));
       final months =
           DateTime.now().difference(children.first.dateOfBirth).inDays ~/ 30;
-      final t = dailyChildTip(months);
+      final t = dailyChildTip(months, countryCode: countryCode);
       return 'Today\'s feeding tip: ${t.title}. ${t.body}';
     }
     return 'Add a child or pregnancy and I will give you a feeding tip every day.';

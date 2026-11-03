@@ -1,0 +1,33 @@
+{
+  "name": "growwithme-action-model",
+  "generatorVersion": "1.0.0",
+  "graphVersion": "2026.11.1",
+  "appVersion": "1.0.0",
+  "generatedAt": "2026-11-02T12:51:52.144864+00:00",
+  "seed": 20261102,
+  "requestedEpisodes": 1200,
+  "ratios": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "files": {
+    "train": {
+      "file": "train.jsonl",
+      "episodes": 963,
+      "sha256": "d6cd9252417d19b2363c8624cc6b181da99ad7ec0294d33d928b5120fd59fbe0"
+    },
+    "val": {
+      "file": "val.jsonl",
+      "episodes": 122,
+      "sha256": "497044c037487e3b3c26b69d45c2a19680c2109624f31abb1f50d96833943f3e"
+    },
+    "test": {
+      "file": "test.jsonl",
+      "episodes": 115,
+      "sha256": "15cf7340196abdf316101678b5d5c39e915ced84b290b3258a6f78c29366ea3e"
+    }
+  },
+  "stats": "stats.json",
+  "graph": "../schema/app_graph.json"
+}

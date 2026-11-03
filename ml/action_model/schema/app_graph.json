@@ -1,0 +1,3355 @@
+{
+  "app": "growwithme",
+  "appVersion": "1.0.0",
+  "graphVersion": "2026.11.1",
+  "platforms": [
+    "android"
+  ],
+  "actionSpace": [
+    "tap",
+    "long_press",
+    "type",
+    "scroll",
+    "swipe",
+    "back",
+    "speak",
+    "toggle",
+    "call",
+    "send_sms",
+    "set_alarm",
+    "share_location",
+    "open_app"
+  ],
+  "screens": {
+    "onboarding.welcome": {
+      "title": "Welcome",
+      "tab": null,
+      "elements": [
+        {
+          "id": "welcome.country_chip",
+          "label": "Choose country",
+          "kind": "button",
+          "box": [
+            0.3,
+            0.09,
+            0.44,
+            0.055
+          ],
+          "to": "onboarding.country_sheet",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "welcome.next",
+          "label": "Continue",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.84,
+            0.065
+          ],
+          "to": "onboarding.phone",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "welcome.listen",
+          "label": "Listen to this page",
+          "kind": "icon",
+          "box": [
+            0.85,
+            0.9,
+            0.12,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.country_sheet": {
+      "title": "Country & language",
+      "tab": null,
+      "elements": [
+        {
+          "id": "country.ghana",
+          "label": "Ghana",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.nigeria",
+          "label": "Nigeria",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.38,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.kenya",
+          "label": "Kenya",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.46,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.uganda",
+          "label": "Uganda",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.54,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.tanzania",
+          "label": "Tanzania",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.62,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.language_en",
+          "label": "English",
+          "kind": "chip",
+          "box": [
+            0.24,
+            0.74,
+            0.28,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.language_tw",
+          "label": "Twi · soon",
+          "kind": "chip",
+          "box": [
+            0.52,
+            0.74,
+            0.28,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.language_sw",
+          "label": "Kiswahili",
+          "kind": "chip",
+          "box": [
+            0.8,
+            0.74,
+            0.28,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "country.save",
+          "label": "Save",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.9,
+            0.86,
+            0.06
+          ],
+          "to": "onboarding.welcome",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.phone": {
+      "title": "Your phone number",
+      "tab": null,
+      "elements": [
+        {
+          "id": "phone.field",
+          "label": "Phone number",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.065
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "phone.continue",
+          "label": "Send my code",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.45,
+            0.86,
+            0.065
+          ],
+          "to": "onboarding.otp",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "phone.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "phone.trust_card",
+          "label": "Private by design",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.72,
+            0.86,
+            0.1
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.otp": {
+      "title": "Enter code",
+      "tab": null,
+      "elements": [
+        {
+          "id": "otp.field",
+          "label": "6-digit code",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.3,
+            0.72,
+            0.09
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "otp.verify",
+          "label": "Verify",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.5,
+            0.86,
+            0.065
+          ],
+          "to": "onboarding.privacy",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "otp.resend",
+          "label": "Resend code",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.6,
+            0.44,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "otp.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.privacy": {
+      "title": "Your data is protected",
+      "tab": null,
+      "elements": [
+        {
+          "id": "privacy.listen",
+          "label": "Listen to this page",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.31,
+            0.62,
+            0.055
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "privacy.next",
+          "label": "I understand — continue",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.91,
+            0.86,
+            0.065
+          ],
+          "to": "onboarding.profile",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.profile": {
+      "title": "Tell us about you",
+      "tab": null,
+      "elements": [
+        {
+          "id": "profile.name",
+          "label": "Your name",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.22,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.district",
+          "label": "District",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.33,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.community",
+          "label": "Community",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.44,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.language",
+          "label": "Language",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.55,
+            0.86,
+            0.06
+          ],
+          "to": "onboarding.profile.language_sheet",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.consent_data",
+          "label": "I agree to data use",
+          "kind": "checkbox",
+          "box": [
+            0.2,
+            0.68,
+            0.1,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.consent_location",
+          "label": "Share location in emergencies",
+          "kind": "checkbox",
+          "box": [
+            0.2,
+            0.75,
+            0.1,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "profile.start",
+          "label": "Start caring",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.9,
+            0.86,
+            0.065
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "onboarding.profile.language_sheet": {
+      "title": "Language",
+      "tab": null,
+      "elements": [
+        {
+          "id": "lang.en",
+          "label": "English",
+          "kind": "chip",
+          "box": [
+            0.3,
+            0.35,
+            0.28,
+            0.05
+          ],
+          "to": "onboarding.profile",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "lang.tw",
+          "label": "Twi",
+          "kind": "chip",
+          "box": [
+            0.62,
+            0.35,
+            0.28,
+            0.05
+          ],
+          "to": "onboarding.profile",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "lang.dag",
+          "label": "Dagbani",
+          "kind": "chip",
+          "box": [
+            0.3,
+            0.45,
+            0.28,
+            0.05
+          ],
+          "to": "onboarding.profile",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "lang.ha",
+          "label": "Hausa",
+          "kind": "chip",
+          "box": [
+            0.62,
+            0.45,
+            0.28,
+            0.05
+          ],
+          "to": "onboarding.profile",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "home": {
+      "title": "GrowWithMe",
+      "tab": "home",
+      "elements": [
+        {
+          "id": "home.nana.ask",
+          "label": "Ask Nana",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.26,
+            0.86,
+            0.13
+          ],
+          "to": "nana.chat",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.nana.speak",
+          "label": "Hear today's briefing",
+          "kind": "icon",
+          "box": [
+            0.74,
+            0.31,
+            0.1,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.quick.health_check",
+          "label": "Health check",
+          "kind": "button",
+          "box": [
+            0.26,
+            0.44,
+            0.44,
+            0.075
+          ],
+          "to": "assessment.picker",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.quick.ask_nana",
+          "label": "Ask Nana",
+          "kind": "button",
+          "box": [
+            0.74,
+            0.44,
+            0.44,
+            0.075
+          ],
+          "to": "nana.chat",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.quick.calendar",
+          "label": "Care calendar",
+          "kind": "button",
+          "box": [
+            0.26,
+            0.54,
+            0.44,
+            0.075
+          ],
+          "to": "tab.calendar",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.quick.family",
+          "label": "My family",
+          "kind": "button",
+          "box": [
+            0.74,
+            0.54,
+            0.44,
+            0.075
+          ],
+          "to": "children.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.pregnancy.card",
+          "label": "Pregnancy care",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.66,
+            0.86,
+            0.1
+          ],
+          "to": "pregnancy.detail",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.visit.next",
+          "label": "Next visit",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.78,
+            0.86,
+            0.055
+          ],
+          "to": "tab.calendar",
+          "action": "tap",
+          "requiresScroll": true
+        },
+        {
+          "id": "home.child.rail",
+          "label": "Child card",
+          "kind": "card",
+          "box": [
+            0.3,
+            0.86,
+            0.3,
+            0.09
+          ],
+          "to": "children.detail",
+          "action": "tap",
+          "requiresScroll": true
+        },
+        {
+          "id": "home.meals.card",
+          "label": "Today's meals",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.93,
+            0.86,
+            0.1
+          ],
+          "to": "diet.plan",
+          "action": "tap",
+          "requiresScroll": true
+        },
+        {
+          "id": "home.settings",
+          "label": "Settings",
+          "kind": "icon",
+          "box": [
+            0.94,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "settings",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.sync",
+          "label": "Sync now",
+          "kind": "icon",
+          "box": [
+            0.86,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.companion",
+          "label": "Nana companion",
+          "kind": "avatar",
+          "box": [
+            0.87,
+            0.62,
+            0.16,
+            0.12
+          ],
+          "to": "companion.sheet",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.pregnancy.add",
+          "label": "Add pregnancy",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.72,
+            0.4,
+            0.045
+          ],
+          "to": "pregnancy.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.nav.calendar",
+          "label": "Calendar tab",
+          "kind": "nav",
+          "box": [
+            0.38,
+            0.97,
+            0.16,
+            0.05
+          ],
+          "to": "tab.calendar",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.nav.tips",
+          "label": "Tips tab",
+          "kind": "nav",
+          "box": [
+            0.62,
+            0.97,
+            0.16,
+            0.05
+          ],
+          "to": "tab.tips",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "home.nav.alerts",
+          "label": "Alerts tab",
+          "kind": "nav",
+          "box": [
+            0.86,
+            0.97,
+            0.16,
+            0.05
+          ],
+          "to": "tab.alerts",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "companion.sheet": {
+      "title": "Nana",
+      "tab": null,
+      "elements": [
+        {
+          "id": "companion.chat",
+          "label": "Chat with Nana",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.52,
+            0.86,
+            0.06
+          ],
+          "to": "nana.chat",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "companion.talk",
+          "label": "Talk to Nana",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.61,
+            0.86,
+            0.06
+          ],
+          "to": "nana.chat",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "companion.hide",
+          "label": "Hide Nana",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.7,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "companion.settings",
+          "label": "Companion settings",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.79,
+            0.86,
+            0.06
+          ],
+          "to": "settings",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "tab.calendar": {
+      "title": "Care calendar",
+      "tab": "calendar",
+      "elements": [
+        {
+          "id": "calendar.add",
+          "label": "Add reminder",
+          "kind": "fab",
+          "box": [
+            0.86,
+            0.8,
+            0.12,
+            0.06
+          ],
+          "to": "calendar.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "calendar.visit_anc",
+          "label": "ANC visit",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.34,
+            0.86,
+            0.06
+          ],
+          "to": "calendar.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "calendar.visit_immunization",
+          "label": "Immunization",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.43,
+            0.86,
+            0.06
+          ],
+          "to": "calendar.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "calendar.filter",
+          "label": "Filter",
+          "kind": "icon",
+          "box": [
+            0.92,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "calendar.add": {
+      "title": "New reminder",
+      "tab": null,
+      "elements": [
+        {
+          "id": "reminder.title",
+          "label": "Reminder title",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.28,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "reminder.date",
+          "label": "Date",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.4,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "reminder.time",
+          "label": "Time",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.5,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "reminder.save",
+          "label": "Save reminder",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "tab.calendar",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "reminder.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "tab.tips": {
+      "title": "Food & tips",
+      "tab": "tips",
+      "elements": [
+        {
+          "id": "tips.diet",
+          "label": "Today's meal plan",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.12
+          ],
+          "to": "diet.plan",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "tips.tip_card",
+          "label": "Daily tip",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.45,
+            0.86,
+            0.1
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "tips.listen",
+          "label": "Listen",
+          "kind": "icon",
+          "box": [
+            0.82,
+            0.31,
+            0.12,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "tips.share",
+          "label": "Share this tip",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.56,
+            0.62,
+            0.05
+          ],
+          "to": "device.share",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "tab.alerts": {
+      "title": "Alerts",
+      "tab": "alerts",
+      "elements": [
+        {
+          "id": "alerts.item_urgent",
+          "label": "Urgent: danger sign",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.08
+          ],
+          "to": "alerts.detail",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alerts.item_followup",
+          "label": "Follow-up check",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.42,
+            0.86,
+            0.08
+          ],
+          "to": "alerts.detail",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alerts.call_chw",
+          "label": "Call health worker",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.56,
+            0.86,
+            0.06
+          ],
+          "to": "device.dialer",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "alerts.detail": {
+      "title": "Alert",
+      "tab": null,
+      "elements": [
+        {
+          "id": "alert.accept",
+          "label": "Request help now",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.66,
+            0.86,
+            0.065
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alert.call",
+          "label": "Call health worker",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.75,
+            0.86,
+            0.065
+          ],
+          "to": "device.dialer",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alert.share_location",
+          "label": "Share my location",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.84,
+            0.86,
+            0.065
+          ],
+          "to": "device.share",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alert.message_chw",
+          "label": "Message my health worker",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.9,
+            0.6,
+            0.045
+          ],
+          "to": "device.sms",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alert.close",
+          "label": "Close alert",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.94,
+            0.4,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "assessment.picker": {
+      "title": "Who needs a check?",
+      "tab": null,
+      "elements": [
+        {
+          "id": "check.pick_mother",
+          "label": "Me",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.34,
+            0.86,
+            0.07
+          ],
+          "to": "assessment.questions",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.pick_child",
+          "label": "My child",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.44,
+            0.86,
+            0.07
+          ],
+          "to": "assessment.questions",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.pick_pregnancy",
+          "label": "My pregnancy",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.54,
+            0.86,
+            0.07
+          ],
+          "to": "assessment.questions",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.cancel",
+          "label": "Cancel",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.8,
+            0.36,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "assessment.questions": {
+      "title": "Health check",
+      "tab": null,
+      "elements": [
+        {
+          "id": "check.yes",
+          "label": "Yes",
+          "kind": "chip",
+          "box": [
+            0.3,
+            0.66,
+            0.34,
+            0.07
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.no",
+          "label": "No",
+          "kind": "chip",
+          "box": [
+            0.7,
+            0.66,
+            0.34,
+            0.07
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.next",
+          "label": "Next question",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.8,
+            0.86,
+            0.065
+          ],
+          "to": "assessment.questions",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "check.listen",
+          "label": "Read aloud",
+          "kind": "icon",
+          "box": [
+            0.86,
+            0.1,
+            0.1,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "assessment.measurements": {
+      "title": "Vitals",
+      "tab": null,
+      "elements": [
+        {
+          "id": "vitals.systolic",
+          "label": "Systolic",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "vitals.diastolic",
+          "label": "Diastolic",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.4,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "vitals.weight",
+          "label": "Weight",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.5,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "vitals.save",
+          "label": "Save and see result",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "assessment.result",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "assessment.result": {
+      "title": "Your result",
+      "tab": null,
+      "elements": [
+        {
+          "id": "result.listen",
+          "label": "Listen to advice",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.58,
+            0.62,
+            0.055
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "result.call_facility",
+          "label": "Call clinic",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.68,
+            0.86,
+            0.065
+          ],
+          "to": "device.dialer",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "result.add_reminder",
+          "label": "Remind me to follow up",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.77,
+            0.86,
+            0.065
+          ],
+          "to": "calendar.add",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "result.done",
+          "label": "Done",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.9,
+            0.36,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "children.add": {
+      "title": "Add a child",
+      "tab": null,
+      "elements": [
+        {
+          "id": "child.name",
+          "label": "Child's name",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.24,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.dob",
+          "label": "Date of birth",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.35,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.sex_female",
+          "label": "Girl",
+          "kind": "chip",
+          "box": [
+            0.34,
+            0.47,
+            0.3,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.sex_male",
+          "label": "Boy",
+          "kind": "chip",
+          "box": [
+            0.66,
+            0.47,
+            0.3,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.save",
+          "label": "Save child",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "children.detail": {
+      "title": "Child",
+      "tab": null,
+      "elements": [
+        {
+          "id": "child.detail.log_growth",
+          "label": "Log weight & height",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.46,
+            0.86,
+            0.065
+          ],
+          "to": "growth.log",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.detail.vaccines",
+          "label": "Vaccination schedule",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.56,
+            0.86,
+            0.06
+          ],
+          "to": "tab.calendar",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.detail.growth_chart",
+          "label": "Growth chart",
+          "kind": "card",
+          "box": [
+            0.5,
+            0.68,
+            0.86,
+            0.12
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "child.detail.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "growth.log": {
+      "title": "Growth",
+      "tab": null,
+      "elements": [
+        {
+          "id": "growth.weight",
+          "label": "Weight in kg",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "growth.height",
+          "label": "Height in cm",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.41,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "growth.save",
+          "label": "Save",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "children.detail",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "pregnancy.add": {
+      "title": "Add pregnancy",
+      "tab": null,
+      "elements": [
+        {
+          "id": "pregnancy.lmp",
+          "label": "First day of last period",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.32,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.due",
+          "label": "Due date",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.44,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.save",
+          "label": "Save pregnancy",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "pregnancy.detail": {
+      "title": "Pregnancy care",
+      "tab": null,
+      "elements": [
+        {
+          "id": "pregnancy.checkin",
+          "label": "Weekly check-in",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.4,
+            0.86,
+            0.065
+          ],
+          "to": "pregnancy.checkin",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.records",
+          "label": "My records",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.5,
+            0.86,
+            0.06
+          ],
+          "to": "pregnancy.records",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.danger",
+          "label": "Danger signs",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.59,
+            0.86,
+            0.06
+          ],
+          "to": "assessment.picker",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.add_measurement",
+          "label": "Add vitals",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.68,
+            0.86,
+            0.06
+          ],
+          "to": "assessment.measurements",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "pregnancy.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "pregnancy.checkin": {
+      "title": "Weekly check-in",
+      "tab": null,
+      "elements": [
+        {
+          "id": "checkin.mood_good",
+          "label": "Feeling well",
+          "kind": "chip",
+          "box": [
+            0.3,
+            0.3,
+            0.36,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "checkin.mood_tired",
+          "label": "Tired",
+          "kind": "chip",
+          "box": [
+            0.7,
+            0.3,
+            0.36,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "checkin.symptom_none",
+          "label": "No warning signs",
+          "kind": "chip",
+          "box": [
+            0.3,
+            0.44,
+            0.4,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "checkin.symptom_bleeding",
+          "label": "Bleeding",
+          "kind": "chip",
+          "box": [
+            0.7,
+            0.44,
+            0.4,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "checkin.submit",
+          "label": "Send check-in",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.86,
+            0.065
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "pregnancy.records": {
+      "title": "My records",
+      "tab": null,
+      "elements": [
+        {
+          "id": "records.add_vitals",
+          "label": "Add vitals",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.5,
+            0.86,
+            0.065
+          ],
+          "to": "assessment.measurements",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "records.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "pregnancy.detail",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "diet.plan": {
+      "title": "Today's meals",
+      "tab": null,
+      "elements": [
+        {
+          "id": "diet.breakfast",
+          "label": "Breakfast",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.28,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "diet.lunch",
+          "label": "Lunch",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.38,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "diet.dinner",
+          "label": "Dinner",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.48,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "diet.swap",
+          "label": "Swap a meal",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.62,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "diet.listen",
+          "label": "Listen to meal plan",
+          "kind": "icon",
+          "box": [
+            0.84,
+            0.1,
+            0.12,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "diet.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "nana.chat": {
+      "title": "Nana",
+      "tab": null,
+      "elements": [
+        {
+          "id": "nana.field",
+          "label": "Message Nana",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.92,
+            0.62,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "nana.send",
+          "label": "Send",
+          "kind": "icon",
+          "box": [
+            0.9,
+            0.92,
+            0.1,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "nana.mic",
+          "label": "Speak",
+          "kind": "icon",
+          "box": [
+            0.8,
+            0.92,
+            0.1,
+            0.05
+          ],
+          "to": null,
+          "action": "speak",
+          "requiresScroll": false
+        },
+        {
+          "id": "nana.quick.health",
+          "label": "Health check",
+          "kind": "chip",
+          "box": [
+            0.22,
+            0.76,
+            0.34,
+            0.05
+          ],
+          "to": "assessment.picker",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "nana.quick.feeding",
+          "label": "Feeding help",
+          "kind": "chip",
+          "box": [
+            0.58,
+            0.76,
+            0.34,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "nana.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "settings": {
+      "title": "Settings",
+      "tab": null,
+      "elements": [
+        {
+          "id": "settings.region",
+          "label": "Country & language",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.3,
+            0.86,
+            0.06
+          ],
+          "to": "settings.region",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.companion_toggle",
+          "label": "Show Nana on screen",
+          "kind": "toggle",
+          "box": [
+            0.88,
+            0.4,
+            0.1,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.auto_voice",
+          "label": "Read every question aloud",
+          "kind": "toggle",
+          "box": [
+            0.88,
+            0.49,
+            0.1,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.voice",
+          "label": "Nana's voice",
+          "kind": "segmented",
+          "box": [
+            0.5,
+            0.6,
+            0.86,
+            0.07
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.privacy",
+          "label": "Your data is protected",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.7,
+            0.86,
+            0.06
+          ],
+          "to": "privacy.info",
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.analytics",
+          "label": "Help improve GrowWithMe",
+          "kind": "toggle",
+          "box": [
+            0.88,
+            0.79,
+            0.1,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.signout",
+          "label": "Sign out",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.9,
+            0.86,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "settings.back",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "home",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "settings.region": {
+      "title": "Country & language",
+      "tab": null,
+      "elements": [
+        {
+          "id": "region.ghana",
+          "label": "Ghana",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.28,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "region.nigeria",
+          "label": "Nigeria",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.36,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "region.kenya",
+          "label": "Kenya",
+          "kind": "row",
+          "box": [
+            0.5,
+            0.44,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "region.language",
+          "label": "Language",
+          "kind": "chip",
+          "box": [
+            0.4,
+            0.62,
+            0.34,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "region.save",
+          "label": "Save",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.9,
+            0.86,
+            0.06
+          ],
+          "to": "settings",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "privacy.info": {
+      "title": "Your data is protected",
+      "tab": null,
+      "elements": [
+        {
+          "id": "privacy_info.listen",
+          "label": "Listen to this page",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.3,
+            0.62,
+            0.055
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "privacy_info.close",
+          "label": "Back",
+          "kind": "icon",
+          "box": [
+            0.07,
+            0.06,
+            0.08,
+            0.05
+          ],
+          "to": "settings",
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "device.dialer": {
+      "title": "Dialer",
+      "tab": null,
+      "elements": [
+        {
+          "id": "dialer.call",
+          "label": "Call",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.88,
+            0.3,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "dialer.cancel",
+          "label": "Cancel",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.94,
+            0.24,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "device.sms": {
+      "title": "Messages",
+      "tab": null,
+      "elements": [
+        {
+          "id": "sms.recipient",
+          "label": "Recipient",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.16,
+            0.86,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "sms.body",
+          "label": "Message",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.32,
+            0.86,
+            0.1
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "sms.send",
+          "label": "Send message",
+          "kind": "button",
+          "box": [
+            0.86,
+            0.9,
+            0.12,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "sms.cancel",
+          "label": "Cancel",
+          "kind": "text",
+          "box": [
+            0.1,
+            0.06,
+            0.14,
+            0.05
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "device.alarm": {
+      "title": "Clock",
+      "tab": null,
+      "elements": [
+        {
+          "id": "alarm.time",
+          "label": "Time",
+          "kind": "select",
+          "box": [
+            0.5,
+            0.42,
+            0.6,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alarm.label",
+          "label": "Label",
+          "kind": "field",
+          "box": [
+            0.5,
+            0.54,
+            0.86,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "alarm.save",
+          "label": "Save alarm",
+          "kind": "button",
+          "box": [
+            0.5,
+            0.86,
+            0.5,
+            0.06
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    },
+    "device.share": {
+      "title": "Share location",
+      "tab": null,
+      "elements": [
+        {
+          "id": "share.whatsapp",
+          "label": "WhatsApp",
+          "kind": "app",
+          "box": [
+            0.4,
+            0.55,
+            0.3,
+            0.1
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "share.sms",
+          "label": "Messages",
+          "kind": "app",
+          "box": [
+            0.7,
+            0.55,
+            0.3,
+            0.1
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        },
+        {
+          "id": "share.cancel",
+          "label": "Cancel",
+          "kind": "text",
+          "box": [
+            0.5,
+            0.9,
+            0.24,
+            0.04
+          ],
+          "to": null,
+          "action": "tap",
+          "requiresScroll": false
+        }
+      ]
+    }
+  },
+  "goals": {
+    "onboarding_new_user": {
+      "description": "First launch to a ready home screen",
+      "start": "onboarding.welcome",
+      "intents": [
+        "I am new",
+        "set up my account"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "welcome.country_chip"
+        },
+        {
+          "type": "tap",
+          "target": "country.language_en"
+        },
+        {
+          "type": "tap",
+          "target": "country.save"
+        },
+        {
+          "type": "tap",
+          "target": "welcome.next"
+        },
+        {
+          "type": "type",
+          "target": "phone.field",
+          "valueKind": "phone_number"
+        },
+        {
+          "type": "tap",
+          "target": "phone.continue"
+        },
+        {
+          "type": "type",
+          "target": "otp.field",
+          "valueKind": "otp_code"
+        },
+        {
+          "type": "tap",
+          "target": "otp.verify"
+        },
+        {
+          "type": "tap",
+          "target": "privacy.next"
+        },
+        {
+          "type": "type",
+          "target": "profile.name",
+          "valueKind": "person_name"
+        },
+        {
+          "type": "type",
+          "target": "profile.district",
+          "valueKind": "district"
+        },
+        {
+          "type": "type",
+          "target": "profile.community",
+          "valueKind": "community"
+        },
+        {
+          "type": "tap",
+          "target": "profile.consent_data"
+        },
+        {
+          "type": "tap",
+          "target": "profile.start"
+        }
+      ]
+    },
+    "explore_welcome_slides": {
+      "description": "Swipe through the welcome carousel before starting",
+      "start": "onboarding.welcome",
+      "intents": [
+        "Show me around",
+        "What can this app do?"
+      ],
+      "steps": [
+        {
+          "type": "swipe",
+          "direction": "left",
+          "amount": 0.6
+        },
+        {
+          "type": "swipe",
+          "direction": "left",
+          "amount": 0.6
+        },
+        {
+          "type": "tap",
+          "target": "welcome.next"
+        }
+      ]
+    },
+    "onboarding_returning_user": {
+      "description": "Sign back in on a new phone",
+      "start": "onboarding.welcome",
+      "intents": [
+        "Sign in",
+        "I already have an account"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "welcome.next"
+        },
+        {
+          "type": "type",
+          "target": "phone.field",
+          "valueKind": "phone_number"
+        },
+        {
+          "type": "tap",
+          "target": "phone.continue"
+        },
+        {
+          "type": "type",
+          "target": "otp.field",
+          "valueKind": "otp_code"
+        },
+        {
+          "type": "tap",
+          "target": "otp.verify",
+          "next": "home"
+        }
+      ]
+    },
+    "add_child": {
+      "description": "Register a child under five",
+      "intents": [
+        "Add my child",
+        "My baby is not in the app"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.family"
+        },
+        {
+          "type": "type",
+          "target": "child.name",
+          "valueKind": "child_name"
+        },
+        {
+          "type": "tap",
+          "target": "child.dob"
+        },
+        {
+          "type": "tap",
+          "target": "child.sex_female"
+        },
+        {
+          "type": "tap",
+          "target": "child.save"
+        }
+      ]
+    },
+    "add_pregnancy": {
+      "description": "Start tracking a pregnancy",
+      "intents": [
+        "I am pregnant",
+        "Track my pregnancy"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.pregnancy.add"
+        },
+        {
+          "type": "tap",
+          "target": "pregnancy.lmp"
+        },
+        {
+          "type": "tap",
+          "target": "pregnancy.save"
+        }
+      ]
+    },
+    "log_weight": {
+      "description": "Log a child's growth measurement",
+      "intents": [
+        "Record my baby's weight",
+        "Log growth"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.child.rail"
+        },
+        {
+          "type": "tap",
+          "target": "child.detail.log_growth"
+        },
+        {
+          "type": "type",
+          "target": "growth.weight",
+          "valueKind": "child_weight_kg"
+        },
+        {
+          "type": "type",
+          "target": "growth.height",
+          "valueKind": "height_cm"
+        },
+        {
+          "type": "tap",
+          "target": "growth.save"
+        }
+      ]
+    },
+    "health_check": {
+      "description": "Run a symptom triage check",
+      "intents": [
+        "My child is sick",
+        "Check danger signs",
+        "I do not feel well"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.health_check"
+        },
+        {
+          "type": "tap",
+          "target": "check.pick_child"
+        },
+        {
+          "type": "tap",
+          "target": "check.no"
+        },
+        {
+          "type": "tap",
+          "target": "check.next"
+        },
+        {
+          "type": "tap",
+          "target": "check.yes"
+        },
+        {
+          "type": "tap",
+          "target": "check.next",
+          "next": "assessment.result"
+        }
+      ]
+    },
+    "call_clinic_from_result": {
+      "description": "Call the clinic straight from triage advice",
+      "intents": [
+        "Call the clinic",
+        "Speak to a nurse about this result"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.health_check"
+        },
+        {
+          "type": "tap",
+          "target": "check.pick_mother"
+        },
+        {
+          "type": "tap",
+          "target": "check.no"
+        },
+        {
+          "type": "tap",
+          "target": "check.next",
+          "next": "assessment.result"
+        },
+        {
+          "type": "tap",
+          "target": "result.call_facility"
+        },
+        {
+          "type": "tap",
+          "target": "dialer.call"
+        }
+      ]
+    },
+    "set_reminder": {
+      "description": "Add an ANC or immunization reminder",
+      "intents": [
+        "Remind me about my clinic visit",
+        "Set a vaccination reminder"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.calendar"
+        },
+        {
+          "type": "tap",
+          "target": "calendar.add"
+        },
+        {
+          "type": "type",
+          "target": "reminder.title",
+          "valueKind": "reminder_title"
+        },
+        {
+          "type": "tap",
+          "target": "reminder.date"
+        },
+        {
+          "type": "tap",
+          "target": "reminder.time"
+        },
+        {
+          "type": "tap",
+          "target": "reminder.save"
+        }
+      ]
+    },
+    "view_calendar": {
+      "description": "Check upcoming visits",
+      "intents": [
+        "When is my next visit?",
+        "Show my calendar"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.calendar"
+        }
+      ]
+    },
+    "view_alerts": {
+      "description": "Open the alerts inbox",
+      "intents": [
+        "Do I have any alerts?",
+        "Check messages"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.alerts"
+        }
+      ]
+    },
+    "respond_to_alert": {
+      "description": "Request help from a nearby responder",
+      "intents": [
+        "I need help now",
+        "Send a health worker to me"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.alerts"
+        },
+        {
+          "type": "tap",
+          "target": "alerts.item_urgent"
+        },
+        {
+          "type": "tap",
+          "target": "alert.accept"
+        }
+      ]
+    },
+    "emergency_call": {
+      "description": "Call the emergency number from an alert",
+      "intents": [
+        "Call an ambulance",
+        "This is an emergency"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.alerts"
+        },
+        {
+          "type": "tap",
+          "target": "alerts.item_urgent"
+        },
+        {
+          "type": "tap",
+          "target": "alert.call"
+        },
+        {
+          "type": "tap",
+          "target": "dialer.call"
+        }
+      ]
+    },
+    "share_location_emergency": {
+      "description": "Share live location during an emergency",
+      "intents": [
+        "Let them find me",
+        "Share my location with the nurse"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.alerts"
+        },
+        {
+          "type": "tap",
+          "target": "alerts.item_urgent"
+        },
+        {
+          "type": "tap",
+          "target": "alert.share_location"
+        },
+        {
+          "type": "tap",
+          "target": "share.whatsapp"
+        }
+      ]
+    },
+    "message_health_worker": {
+      "description": "Send an SMS update to a community health worker",
+      "intents": [
+        "Message my health worker",
+        "Tell the nurse I am coming"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.alerts"
+        },
+        {
+          "type": "tap",
+          "target": "alerts.item_followup"
+        },
+        {
+          "type": "tap",
+          "target": "alert.message_chw"
+        },
+        {
+          "type": "type",
+          "target": "sms.recipient",
+          "valueKind": "sms_recipient"
+        },
+        {
+          "type": "type",
+          "target": "sms.body",
+          "valueKind": "sms_body"
+        },
+        {
+          "type": "tap",
+          "target": "sms.send"
+        }
+      ]
+    },
+    "ask_nana_text": {
+      "description": "Ask Nana a care question in chat",
+      "intents": [
+        "Ask about fever",
+        "What should I feed my baby?"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.ask_nana"
+        },
+        {
+          "type": "type",
+          "target": "nana.field",
+          "valueKind": "chat_question"
+        },
+        {
+          "type": "tap",
+          "target": "nana.send"
+        }
+      ]
+    },
+    "ask_nana_voice": {
+      "description": "Speak a question to Nana hands-free",
+      "intents": [
+        "Talk to Nana",
+        "Ask by voice"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nana.ask"
+        },
+        {
+          "type": "speak",
+          "target": "nana.mic",
+          "valueKind": "chat_question_spoken"
+        }
+      ]
+    },
+    "companion_quick_health": {
+      "description": "Use the floating companion to start a check",
+      "intents": [
+        "Nana, check my baby",
+        "Start a health check from Nana"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.companion"
+        },
+        {
+          "type": "tap",
+          "target": "companion.chat"
+        },
+        {
+          "type": "tap",
+          "target": "nana.quick.health"
+        },
+        {
+          "type": "tap",
+          "target": "check.pick_child"
+        }
+      ]
+    },
+    "view_diet_plan": {
+      "description": "Read today's locally-sourced meal plan",
+      "intents": [
+        "What should I eat today?",
+        "Show my meal plan"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.meals.card"
+        },
+        {
+          "type": "tap",
+          "target": "diet.listen"
+        }
+      ]
+    },
+    "view_tips": {
+      "description": "Browse daily care tips",
+      "intents": [
+        "Give me a tip",
+        "Care advice for today"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.tips"
+        },
+        {
+          "type": "tap",
+          "target": "tips.tip_card"
+        },
+        {
+          "type": "tap",
+          "target": "tips.listen"
+        }
+      ]
+    },
+    "pregnancy_checkin": {
+      "description": "Complete the weekly pregnancy check-in",
+      "intents": [
+        "Weekly check-in",
+        "Report how I feel"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.pregnancy.card"
+        },
+        {
+          "type": "tap",
+          "target": "pregnancy.checkin"
+        },
+        {
+          "type": "tap",
+          "target": "checkin.mood_good"
+        },
+        {
+          "type": "tap",
+          "target": "checkin.symptom_none"
+        },
+        {
+          "type": "tap",
+          "target": "checkin.submit"
+        }
+      ]
+    },
+    "view_pregnancy_records": {
+      "description": "Review pregnancy vitals history",
+      "intents": [
+        "Show my records",
+        "What was my blood pressure?"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.pregnancy.card"
+        },
+        {
+          "type": "tap",
+          "target": "pregnancy.records"
+        },
+        {
+          "type": "tap",
+          "target": "records.back"
+        }
+      ]
+    },
+    "log_vitals": {
+      "description": "Record blood pressure and weight",
+      "intents": [
+        "Record my blood pressure",
+        "Log vitals"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.pregnancy.card"
+        },
+        {
+          "type": "tap",
+          "target": "pregnancy.add_measurement"
+        },
+        {
+          "type": "type",
+          "target": "vitals.systolic",
+          "valueKind": "systolic"
+        },
+        {
+          "type": "type",
+          "target": "vitals.diastolic",
+          "valueKind": "diastolic"
+        },
+        {
+          "type": "type",
+          "target": "vitals.weight",
+          "valueKind": "weight_kg"
+        },
+        {
+          "type": "tap",
+          "target": "vitals.save"
+        },
+        {
+          "type": "tap",
+          "target": "result.done"
+        }
+      ]
+    },
+    "child_growth_chart": {
+      "description": "Open a child's growth chart",
+      "intents": [
+        "Is my baby growing well?",
+        "Show the growth chart"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.child.rail"
+        },
+        {
+          "type": "scroll",
+          "direction": "down",
+          "amount": 0.35
+        },
+        {
+          "type": "tap",
+          "target": "child.detail.growth_chart"
+        }
+      ]
+    },
+    "change_language": {
+      "description": "Switch the app language from settings",
+      "intents": [
+        "Change language",
+        "Use Twi"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.settings"
+        },
+        {
+          "type": "tap",
+          "target": "settings.region"
+        },
+        {
+          "type": "tap",
+          "target": "region.language"
+        },
+        {
+          "type": "tap",
+          "target": "region.save"
+        }
+      ]
+    },
+    "review_privacy": {
+      "description": "Read the privacy explainer",
+      "intents": [
+        "How is my data used?",
+        "Show privacy"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.settings"
+        },
+        {
+          "type": "tap",
+          "target": "settings.privacy"
+        },
+        {
+          "type": "tap",
+          "target": "privacy_info.listen"
+        }
+      ]
+    },
+    "toggle_companion": {
+      "description": "Hide or restore the on-screen companion",
+      "intents": [
+        "Hide Nana",
+        "Turn the avatar off"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.settings"
+        },
+        {
+          "type": "tap",
+          "target": "settings.companion_toggle"
+        }
+      ]
+    },
+    "enable_analytics_optin": {
+      "description": "Opt in to anonymous interaction sharing",
+      "intents": [
+        "Help improve the app",
+        "Share usage data"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.settings"
+        },
+        {
+          "type": "tap",
+          "target": "settings.analytics"
+        }
+      ]
+    },
+    "sync_now": {
+      "description": "Force a sync after being offline",
+      "intents": [
+        "Sync my data",
+        "Upload when online"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.sync"
+        }
+      ]
+    },
+    "set_medication_alarm": {
+      "description": "Set a phone alarm for medication",
+      "intents": [
+        "Remind me to take my iron tablets",
+        "Set an alarm"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.quick.calendar"
+        },
+        {
+          "type": "tap",
+          "target": "calendar.add"
+        },
+        {
+          "type": "type",
+          "target": "reminder.title",
+          "valueKind": "reminder_title"
+        },
+        {
+          "type": "tap",
+          "target": "reminder.save"
+        }
+      ]
+    },
+    "open_whatsapp_tip": {
+      "description": "Share a care tip with family on WhatsApp",
+      "intents": [
+        "Share this tip",
+        "Send the tip to my sister"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.nav.tips"
+        },
+        {
+          "type": "tap",
+          "target": "tips.share"
+        },
+        {
+          "type": "tap",
+          "target": "share.whatsapp"
+        }
+      ]
+    },
+    "toggle_auto_voice": {
+      "description": "Turn on read-aloud for every question",
+      "intents": [
+        "Read questions aloud",
+        "Voice mode for my mother"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "home.settings"
+        },
+        {
+          "type": "tap",
+          "target": "settings.auto_voice"
+        }
+      ]
+    },
+    "hide_companion_gesture": {
+      "description": "Long-press the floating companion to tuck her away",
+      "intents": [
+        "Hide the avatar",
+        "Nana is covering the screen"
+      ],
+      "steps": [
+        {
+          "type": "long_press",
+          "target": "home.companion"
+        }
+      ]
+    },
+    "set_phone_alarm": {
+      "description": "Set a system alarm for medication (device intent)",
+      "start": "device.alarm",
+      "intents": [
+        "Set an alarm for my tablets",
+        "Wake me for my medicine"
+      ],
+      "steps": [
+        {
+          "type": "tap",
+          "target": "alarm.time"
+        },
+        {
+          "type": "type",
+          "target": "alarm.label",
+          "valueKind": "alarm_label"
+        },
+        {
+          "type": "tap",
+          "target": "alarm.save"
+        }
+      ]
+    },
+    "open_whatsapp_app": {
+      "description": "Open WhatsApp to message family (device intent)",
+      "start": "device.share",
+      "intents": [
+        "Open WhatsApp",
+        "Message my sister on WhatsApp"
+      ],
+      "steps": [
+        {
+          "type": "open_app",
+          "target": "share.whatsapp",
+          "value": "whatsapp"
+        }
+      ]
+    }
+  },
+  "deviceIntents": {
+    "dialer.call": {
+      "kind": "call",
+      "param": "phone_kind"
+    },
+    "alerts.call_chw": {
+      "kind": "call",
+      "param": "phone_kind"
+    },
+    "alert.call": {
+      "kind": "call",
+      "param": "phone_kind"
+    },
+    "sms.send": {
+      "kind": "send_sms",
+      "param": "sms_kind"
+    },
+    "alarm.save": {
+      "kind": "set_alarm",
+      "param": "alarm_kind"
+    },
+    "share.whatsapp": {
+      "kind": "share_location",
+      "param": "share_kind"
+    },
+    "share.sms": {
+      "kind": "share_location",
+      "param": "share_kind"
+    }
+  }
+}

@@ -66,8 +66,9 @@ void main() {
   });
 
   test('checkin: caution yes is moderate', () {
-    final result =
-        evaluateCheckin(coreCheckinQuestions, {'core_swelling': true});
+    final result = evaluateCheckin(coreCheckinQuestions, {
+      'core_swelling': true,
+    });
     expect(result.riskLevel, 'moderate');
   });
 
@@ -78,10 +79,14 @@ void main() {
     ]);
     // The AI's watered-down "bleeding" question (info!) must be dropped in
     // favour of the core danger version.
-    expect(merged.where((q) => q.text.toLowerCase().contains('bleed')).length, 1);
     expect(
-        merged.firstWhere((q) => q.text.toLowerCase().contains('bleed')).category,
-        'danger');
+      merged.where((q) => q.text.toLowerCase().contains('bleed')).length,
+      1,
+    );
+    expect(
+      merged.firstWhere((q) => q.text.toLowerCase().contains('bleed')).category,
+      'danger',
+    );
   });
 
   test('diet: seasons map to Northern Ghana calendar', () {
@@ -100,8 +105,11 @@ void main() {
     final slots = planSlots(plan);
     expect(slots.length, greaterThanOrEqualTo(4));
     for (final slot in slots) {
-      expect((slot['options'] as List).length, 2,
-          reason: '${slot['time']} should offer a choice');
+      expect(
+        (slot['options'] as List).length,
+        2,
+        reason: '${slot['time']} should offer a choice',
+      );
     }
     expect(plan['summary'], isNotEmpty);
   });

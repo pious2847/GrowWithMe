@@ -7,6 +7,7 @@ const Otp = require('../models/Otp');
 const User = require('../models/User');
 const { sendSms, normalizePhone } = require('../services/arkesel');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
+const { maskPhone } = require('../utils/privacy');
 const logger = require('../utils/logger');
 
 const MAX_OTP_ATTEMPTS = 5;
@@ -33,7 +34,7 @@ const requestOtp = asyncHandler(async (req, res) => {
   await Otp.deleteMany({ phone: normalized });
   await Otp.create({ phone: normalized, codeHash, expiresAt });
 
-  logger.info(`[auth] OTP requested for ${normalized}`);
+  logger.info(`[auth] OTP requested for ${maskPhone(normalized)}`);
   const result = await sendSms(
     normalized,
     `Your GrowWithMe verification code is ${code}. It expires in ${env.otpTtlMinutes} minutes.`
@@ -43,7 +44,7 @@ const requestOtp = asyncHandler(async (req, res) => {
     // credit: with OTP_DEBUG=true the code is written to the server logs so
     // login still works. NEVER enable in real production.
     if (env.otpDebug) {
-      logger.warn(`[auth] OTP_DEBUG: SMS failed (${result.error}) — code for ${normalized} is ${code}`);
+      logger.warn(`[auth] OTP_DEBUG: SMS failed (${result.error}) — code for ${maskPhone(normalized)} is ${code}`);
       return res.json({
         success: true,
         message: 'SMS could not be sent — code available in server logs (OTP_DEBUG)',
@@ -98,7 +99,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  logger.info(`[auth] ${isNew ? 'new user registered' : 'login'}: ${normalized} role=${user.role}`);
+  logger.info(`[auth] ${isNew ? 'new user registered' : 'login'}: ${maskPhone(normalized)} role=${user.role}`);
   res.json({ success: true, isNewUser: isNew, user, tokens: issueTokens(user) });
 });
 

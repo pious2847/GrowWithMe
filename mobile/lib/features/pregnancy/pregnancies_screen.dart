@@ -15,18 +15,23 @@ class PregnanciesScreen extends ConsumerWidget {
   const PregnanciesScreen({super.key});
 
   Future<void> _delete(
-      BuildContext context, WidgetRef ref, PregnancyRow pregnancy) async {
+    BuildContext context,
+    WidgetRef ref,
+    PregnancyRow pregnancy,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove this pregnancy tracker?'),
         content: const Text(
-            'The tracker and its scheduled visits will be removed from your '
-            'calendar. Your check-in history stays in your records.'),
+          'The tracker and its scheduled visits will be removed from your '
+          'calendar. Your check-in history stays in your records.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Keep it')),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Keep it'),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -40,26 +45,31 @@ class PregnanciesScreen extends ConsumerWidget {
     final db = ref.read(dbProvider);
     final now = DateTime.now().millisecondsSinceEpoch;
     await db.transaction(() async {
-      await (db.update(db.pregnancies)
-            ..where((t) => t.id.equals(pregnancy.id)))
-          .write(PregnanciesCompanion(
-        deleted: const Value(true),
-        clientUpdatedAt: Value(now),
-        synced: const Value(false),
-      ));
+      await (db.update(
+        db.pregnancies,
+      )..where((t) => t.id.equals(pregnancy.id))).write(
+        PregnanciesCompanion(
+          deleted: const Value(true),
+          clientUpdatedAt: Value(now),
+          synced: const Value(false),
+        ),
+      );
       // Its visits leave the calendar too.
-      await (db.update(db.reminders)
-            ..where((t) => t.pregnancyId.equals(pregnancy.id)))
-          .write(RemindersCompanion(
-        deleted: const Value(true),
-        clientUpdatedAt: Value(now),
-        synced: const Value(false),
-      ));
+      await (db.update(
+        db.reminders,
+      )..where((t) => t.pregnancyId.equals(pregnancy.id))).write(
+        RemindersCompanion(
+          deleted: const Value(true),
+          clientUpdatedAt: Value(now),
+          synced: const Value(false),
+        ),
+      );
     });
     ref.read(syncControllerProvider.notifier).sync();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pregnancy tracker removed')));
+        const SnackBar(content: Text('Pregnancy tracker removed')),
+      );
     }
   }
 
@@ -67,10 +77,8 @@ class PregnanciesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final pregnancies = ref.watch(pregnanciesProvider).value ?? const [];
-    final active =
-        pregnancies.where((p) => p.status == 'active').toList();
-    final past =
-        pregnancies.where((p) => p.status != 'active').toList();
+    final active = pregnancies.where((p) => p.status == 'active').toList();
+    final past = pregnancies.where((p) => p.status != 'active').toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('My pregnancies')),
@@ -78,8 +86,10 @@ class PregnanciesScreen extends ConsumerWidget {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text('No pregnancy trackers yet.',
-                    style: theme.textTheme.bodyLarge),
+                child: Text(
+                  'No pregnancy trackers yet.',
+                  style: theme.textTheme.bodyLarge,
+                ),
               ),
             )
           : ListView(
@@ -94,10 +104,15 @@ class PregnanciesScreen extends ConsumerWidget {
                       alignment: Alignment.centerRight,
                       child: TextButton.icon(
                         onPressed: () => _delete(context, ref, p),
-                        icon: const Icon(Icons.delete_outline,
-                            size: 18, color: Colors.red),
-                        label: const Text('Remove tracker',
-                            style: TextStyle(color: Colors.red)),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: Colors.red,
+                        ),
+                        label: const Text(
+                          'Remove tracker',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
                     ),
                   ],
@@ -110,17 +125,20 @@ class PregnanciesScreen extends ConsumerWidget {
                     Card(
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              theme.colorScheme.primaryContainer,
+                          backgroundColor: theme.colorScheme.primaryContainer,
                           child: Text(
-                              p.status == 'delivered' ? '👶' : '🤍',
-                              style: const TextStyle(fontSize: 20)),
+                            p.status == 'delivered' ? '👶' : '🤍',
+                            style: const TextStyle(fontSize: 20),
+                          ),
                         ),
-                        title: Text(p.status == 'delivered'
-                            ? 'Delivered ${p.deliveredAt != null ? DateFormat('d MMM yyyy').format(p.deliveredAt!) : ''}'
-                            : 'Ended'),
+                        title: Text(
+                          p.status == 'delivered'
+                              ? 'Delivered ${p.deliveredAt != null ? DateFormat('d MMM yyyy').format(p.deliveredAt!) : ''}'
+                              : 'Ended',
+                        ),
                         subtitle: Text(
-                            'Was due ${DateFormat('d MMM yyyy').format(p.expectedDueDate)}'),
+                          'Was due ${DateFormat('d MMM yyyy').format(p.expectedDueDate)}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -128,14 +146,19 @@ class PregnanciesScreen extends ConsumerWidget {
                               tooltip: 'Check-in records',
                               icon: const Icon(Icons.show_chart),
                               onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const PregnancyRecordsScreen())),
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const PregnancyRecordsScreen(),
+                                ),
+                              ),
                             ),
                             IconButton(
                               tooltip: 'Remove',
-                              icon: const Icon(Icons.delete_outline,
-                                  color: Colors.red, size: 20),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                                size: 20,
+                              ),
                               onPressed: () => _delete(context, ref, p),
                             ),
                           ],

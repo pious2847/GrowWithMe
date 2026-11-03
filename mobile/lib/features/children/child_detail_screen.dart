@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/config/regions.dart';
 import '../../core/providers.dart';
 import '../../data/db/app_database.dart';
 import '../../domain/growth_reference.dart';
@@ -38,8 +39,9 @@ class ChildDetailScreen extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () =>
                 Navigator.pop(dialogContext, double.tryParse(controller.text)),
@@ -51,39 +53,56 @@ class ChildDetailScreen extends ConsumerWidget {
     if (weight == null || weight <= 0 || weight > 40) return;
 
     final db = ref.read(dbProvider);
-    await db.into(db.growthRecords).insert(GrowthRecordsCompanion.insert(
-          id: const Uuid().v4(),
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          childId: child.id,
-          weightKg: weight,
-          measuredAt: DateTime.now(),
-        ));
+    await db
+        .into(db.growthRecords)
+        .insert(
+          GrowthRecordsCompanion.insert(
+            id: const Uuid().v4(),
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            childId: child.id,
+            weightKg: weight,
+            measuredAt: DateTime.now(),
+          ),
+        );
     ref.read(syncControllerProvider.notifier).sync();
 
     if (!context.mounted) return;
-    final result = assessWeight(weight, _ageMonthsAt(DateTime.now()), child.sex);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(result.message),
-      duration: const Duration(seconds: 6),
-      backgroundColor: switch (result.status) {
-        GrowthStatus.healthy => Colors.green.shade700,
-        GrowthStatus.underweight => Colors.orange.shade800,
-        GrowthStatus.severelyUnderweight => Colors.red.shade700,
-      },
-    ));
+    final result = assessWeight(
+      weight,
+      _ageMonthsAt(DateTime.now()),
+      child.sex,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        duration: const Duration(seconds: 6),
+        backgroundColor: switch (result.status) {
+          GrowthStatus.healthy => Colors.green.shade700,
+          GrowthStatus.underweight => Colors.orange.shade800,
+          GrowthStatus.severelyUnderweight => Colors.red.shade700,
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final records = ref.watch(growthRecordsProvider(child.id)).value ??
+    final records =
+        ref.watch(growthRecordsProvider(child.id)).value ??
         const <GrowthRecordRow>[];
     final ageMonths = _ageMonthsAt(DateTime.now());
+    final countryCode =
+        (ref.watch(regionProvider).value ?? RegionSettings.defaults)
+            .countryCode;
     final latest = records.isNotEmpty ? records.last : null;
     final latestAssessment = latest == null
         ? null
         : assessWeight(
-            latest.weightKg, _ageMonthsAt(latest.measuredAt), child.sex);
-    final tip = dailyChildTip(ageMonths.floor());
+            latest.weightKg,
+            _ageMonthsAt(latest.measuredAt),
+            child.sex,
+          );
+    final tip = dailyChildTip(ageMonths.floor(), countryCode: countryCode);
 
     return Scaffold(
       appBar: AppBar(title: Text(child.name)),
@@ -93,11 +112,16 @@ class ChildDetailScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(
-                  radius: 24, child: Text(child.name.characters.first)),
-              title: Text(child.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                radius: 24,
+                child: Text(child.name.characters.first),
+              ),
+              title: Text(
+                child.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               subtitle: Text(
-                  '${child.sex == 'female' ? 'Girl' : 'Boy'} · ${ageMonths.floor()} months · born ${DateFormat.yMMMd().format(child.dateOfBirth)}'),
+                '${child.sex == 'female' ? 'Girl' : 'Boy'} · ${ageMonths.floor()} months · born ${DateFormat.yMMMd().format(child.dateOfBirth)}',
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -134,7 +158,8 @@ class ChildDetailScreen extends ConsumerWidget {
                   },
                 ),
                 title: Text(
-                    'Last weight: ${latest!.weightKg.toStringAsFixed(1)} kg'),
+                  'Last weight: ${latest!.weightKg.toStringAsFixed(1)} kg',
+                ),
                 subtitle: Text(latestAssessment.message),
               ),
             ),
@@ -163,12 +188,15 @@ class ChildDetailScreen extends ConsumerWidget {
                 'Green band: healthy range (WHO). Below the orange line means '
                 'underweight — screening only, the clinic confirms.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           const SizedBox(height: 16),
-          Text('Today\'s feeding tip',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Today\'s feeding tip',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 4),
           Card(
             color: Theme.of(context).colorScheme.primaryContainer,
@@ -180,9 +208,12 @@ class ChildDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
                 builder: (_) =>
-                    AssessmentScreen(subjectType: 'child', childId: child.id))),
+                    AssessmentScreen(subjectType: 'child', childId: child.id),
+              ),
+            ),
             icon: const Icon(Icons.health_and_safety),
             label: Text('Check ${child.name}\'s symptoms'),
           ),
@@ -202,14 +233,15 @@ class _GrowthChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxAge = [
       12.0,
-      ...records.map((r) =>
-          r.measuredAt.difference(child.dateOfBirth).inDays / 30.44 + 2),
+      ...records.map(
+        (r) => r.measuredAt.difference(child.dateOfBirth).inDays / 30.44 + 2,
+      ),
     ].reduce((a, b) => a > b ? a : b).clamp(6.0, 60.0);
 
     List<FlSpot> curve(double Function(double age, String? sex) f) => [
-          for (double m = 0; m <= maxAge; m += maxAge / 24)
-            FlSpot(m, f(m, child.sex)),
-        ];
+      for (double m = 0; m <= maxAge; m += maxAge / 24)
+        FlSpot(m, f(m, child.sex)),
+    ];
 
     final points = [
       for (final r in records)
@@ -232,16 +264,20 @@ class _GrowthChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               interval: maxAge <= 15 ? 3 : 12,
-              getTitlesWidget: (v, meta) => Text(v.toInt().toString(),
-                  style: const TextStyle(fontSize: 10)),
+              getTitlesWidget: (v, meta) => Text(
+                v.toInt().toString(),
+                style: const TextStyle(fontSize: 10),
+              ),
             ),
           ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 28,
-              getTitlesWidget: (v, meta) => Text(v.toInt().toString(),
-                  style: const TextStyle(fontSize: 10)),
+              getTitlesWidget: (v, meta) => Text(
+                v.toInt().toString(),
+                style: const TextStyle(fontSize: 10),
+              ),
             ),
           ),
         ),

@@ -19,8 +19,10 @@ class AuthRepository {
   }
 
   Future<VerifyOtpResult> verifyOtp(String phone, String code) async {
-    final res = await _api.dio
-        .post('/auth/verify-otp', data: {'phone': phone, 'code': code});
+    final res = await _api.dio.post(
+      '/auth/verify-otp',
+      data: {'phone': phone, 'code': code},
+    );
     await _api.saveTokens(res.data['tokens'] as Map<String, dynamic>);
     final user = res.data['user'] as Map<String, dynamic>;
     final name = user['name'] as String?;

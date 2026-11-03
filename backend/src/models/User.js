@@ -17,7 +17,11 @@ const userSchema = new mongoose.Schema(
       enum: ['caregiver', 'volunteer', 'facility', 'admin'],
       default: 'caregiver',
     },
-    language: { type: String, enum: ['en', 'dagbani', 'twi', 'hausa', 'other'], default: 'en' },
+    language: {
+      type: String,
+      enum: ['en', 'dagbani', 'dag', 'twi', 'tw', 'hausa', 'ha', 'sw', 'lg', 'fr', 'other'],
+      default: 'en',
+    },
     region: { type: String, trim: true },
     district: { type: String, trim: true },
     community: { type: String, trim: true },

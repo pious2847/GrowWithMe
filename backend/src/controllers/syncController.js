@@ -12,6 +12,7 @@ const DailyTip = require('../models/DailyTip');
 const Alert = require('../models/Alert');
 const { raiseAlert } = require('../services/alertService');
 const logger = require('../utils/logger');
+const { userRef } = require('../utils/privacy');
 
 // Collections the device can push. Order matters: parents before dependents.
 const SYNCABLE = [
@@ -86,7 +87,7 @@ const sync = asyncHandler(async (req, res) => {
 
         if (key === 'assessments' && created.riskLevel === 'urgent' && !created.alert) {
           logger.warn(
-            `[sync] URGENT assessment ${created._id} from user=${req.user.phone} — raising alert`
+            `[sync] URGENT assessment ${created._id} from user=${userRef(req.user)} — raising alert`
           );
           try {
             const alert = await raiseAlert(created, req.user);
@@ -122,7 +123,7 @@ const sync = asyncHandler(async (req, res) => {
   const pullSummary = Object.entries(pull)
     .map(([k, v]) => `${k}:${v.length}`)
     .join(' ');
-  logger.info(`[sync] user=${req.user.phone} pushed {${pushSummary}} pulled {${pullSummary}}`);
+  logger.info(`[sync] user=${userRef(req.user)} pushed {${pushSummary}} pulled {${pullSummary}}`);
 
   res.json({ success: true, serverTime: Date.now(), applied, pull });
 });

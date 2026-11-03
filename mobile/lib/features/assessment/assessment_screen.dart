@@ -45,10 +45,9 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
   int _index = 0;
   bool _finishing = false;
 
-  List<TriageQuestion> get _visible =>
-      TriageEngine.questionsFor(widget.subjectType)
-          .where((q) => q.isVisible(_answers))
-          .toList();
+  List<TriageQuestion> get _visible => TriageEngine.questionsFor(
+    widget.subjectType,
+  ).where((q) => q.isVisible(_answers)).toList();
 
   @override
   void initState() {
@@ -103,9 +102,11 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
             permission == LocationPermission.whileInUse) {
           try {
             final pos = await Geolocator.getCurrentPosition(
-                locationSettings: const LocationSettings(
-                    accuracy: LocationAccuracy.medium,
-                    timeLimit: Duration(seconds: 20)));
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.medium,
+                timeLimit: Duration(seconds: 20),
+              ),
+            );
             lng = pos.longitude;
             lat = pos.latitude;
           } catch (_) {}
@@ -126,30 +127,43 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
 
     final db = ref.read(dbProvider);
     final assessmentId = const Uuid().v4();
-    await db.into(db.assessments).insert(AssessmentsCompanion.insert(
-          id: assessmentId,
-          clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-          subjectType: widget.subjectType,
-          childId: Value(widget.childId),
-          answersJson: Value(jsonEncode([
-            for (final e in _answers.entries) {'questionId': e.key, 'answer': e.value}
-          ])),
-          dangerSignsJson: Value(jsonEncode(result.dangerSigns)),
-          riskLevel: result.riskLevel,
-          guidance: Value(result.guidance),
-          lng: Value(lng),
-          lat: Value(lat),
-          startedAt: Value(_startedAt),
-          completedAt: DateTime.now(),
-        ));
+    await db
+        .into(db.assessments)
+        .insert(
+          AssessmentsCompanion.insert(
+            id: assessmentId,
+            clientUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+            subjectType: widget.subjectType,
+            childId: Value(widget.childId),
+            answersJson: Value(
+              jsonEncode([
+                for (final e in _answers.entries)
+                  {'questionId': e.key, 'answer': e.value},
+              ]),
+            ),
+            dangerSignsJson: Value(jsonEncode(result.dangerSigns)),
+            riskLevel: result.riskLevel,
+            guidance: Value(result.guidance),
+            lng: Value(lng),
+            lat: Value(lat),
+            startedAt: Value(_startedAt),
+            completedAt: DateTime.now(),
+          ),
+        );
 
     // Urgent offline results fire the alert the moment this succeeds.
     final synced = await ref.read(syncControllerProvider.notifier).sync();
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
         builder: (_) => ResultScreen(
-            result: result, assessmentId: assessmentId, synced: synced)));
+          result: result,
+          assessmentId: assessmentId,
+          synced: synced,
+        ),
+      ),
+    );
   }
 
   @override
@@ -163,9 +177,11 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.subjectType == 'child'
-            ? 'Child health check'
-            : 'Pregnancy health check'),
+        title: Text(
+          widget.subjectType == 'child'
+              ? 'Child health check'
+              : 'Pregnancy health check',
+        ),
         actions: [
           IconButton(
             tooltip: 'Read question aloud',
@@ -221,7 +237,9 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFD32F2F),
                   textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () => _answer(true),
                 icon: const Icon(Icons.check_circle, size: 30),
@@ -236,7 +254,9 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () => _answer(false),
                 icon: const Icon(Icons.cancel, size: 30),
@@ -252,7 +272,9 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
               controller: _numberController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                  border: OutlineInputBorder(), labelText: 'Number of days'),
+                border: OutlineInputBorder(),
+                labelText: 'Number of days',
+              ),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -319,8 +341,9 @@ class _MultiSelectState extends State<_MultiSelect> {
         SizedBox(
           width: double.infinity,
           child: FilledButton(
-            onPressed:
-                _selected.isEmpty ? null : () => widget.onDone(_selected.toList()),
+            onPressed: _selected.isEmpty
+                ? null
+                : () => widget.onDone(_selected.toList()),
             child: const Text('Next'),
           ),
         ),

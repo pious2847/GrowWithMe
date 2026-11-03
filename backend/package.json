@@ -1,13 +1,14 @@
 {
   "name": "growwithme-backend",
   "version": "0.1.0",
-  "description": "GrowWithMe (CareCompanion) backend - care reminders, triage sync, and referral alerts for maternal & under-five health in Northern Ghana",
+  "description": "GrowWithMe (CareCompanion) backend - care reminders, triage sync, referral alerts and an on-device action-model training feed for maternal and under-five health, starting in Ghana and ready for any country",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "seed": "node src/scripts/seed.js"
+    "seed": "node src/scripts/seed.js",
+    "smoke": "node scripts/smoke_backend.js"
   },
   "engines": {
     "node": ">=20"

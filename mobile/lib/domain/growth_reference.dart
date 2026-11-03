@@ -44,8 +44,11 @@ const _girls = <GrowthPoint>[
 
 List<GrowthPoint> _table(String? sex) => sex == 'female' ? _girls : _boys;
 
-double _interp(double ageMonths, List<GrowthPoint> table,
-    double Function(GrowthPoint) pick) {
+double _interp(
+  double ageMonths,
+  List<GrowthPoint> table,
+  double Function(GrowthPoint) pick,
+) {
   if (ageMonths <= table.first.month) return pick(table.first);
   if (ageMonths >= table.last.month) return pick(table.last);
   for (var i = 0; i < table.length - 1; i++) {

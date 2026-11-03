@@ -17,3 +17,6 @@ timestamp,id,org,to,status,detail
 2026-10-25T06:16:30,16,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,sent,
 2026-10-25T06:13:14,15,MTN Ghana Foundation,mtnghanafoundation@mtn.com,bounced,550 5.7.133 SenderNotAuthenticatedForGroup — Microsoft 365 group rejects external senders; reroute via sponsorship form mtn.com.gh/foundation/sponsorship-form
 2026-10-25T05:37:17,4,UNDP Ghana Accelerator Lab,fatima.farouta@undp.org,bounced,550 5.4.1 Recipient address rejected — mailbox no longer exists (Cc only; To: allen.anie and Cc: seth.akumani delivered)
+2026-10-25T07:03:00,16,UNICEF Startup Lab (Ghana),info@unicefstartuplab.org,temp-deferred,4xx connection refused — Gmail auto-retrying up to 47h (until ~Oct 27); reroute only if permanent-failure notice arrives
+2026-10-27T05:43:26,GLOBAL-Medic (Commu,Medic (Community Health Toolkit),hello@medic.org,sent,
+2026-10-27T05:43:54,GLOBAL-Dimagi (Comm,Dimagi (CommCare),info@dimagi.com,sent,

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/ui/app_widgets.dart';
 import 'profile_screen.dart';
 
-/// Onboarding: how her data is protected, in plain spoken-friendly language,
-/// BEFORE she is asked to consent on the profile screen. A "Listen" button
-/// reads it aloud for caregivers who cannot read.
+/// Onboarding: how data is protected, in plain spoken-friendly language,
+/// BEFORE consent is requested. A "Listen" button reads it aloud.
 class PrivacyScreen extends ConsumerStatefulWidget {
   const PrivacyScreen({super.key});
 
@@ -36,89 +37,128 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     super.dispose();
   }
 
+  void _continue() {
+    ref.read(ttsProvider).stop();
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const ProfileScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Your data is protected')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.shield, size: 40, color: theme.colorScheme.primary),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Your health information belongs to YOU.',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold)),
+      backgroundColor: AppColors.cream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(22, 14, 22, 8),
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.limeSoft,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Icon(
+                          Icons.shield_rounded,
+                          color: AppColors.forest,
+                          size: 24,
+                        ),
+                      ),
+                      const Spacer(),
+                      const ProgressDotBar(count: 3, index: 2, activeWidth: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    'Your data is\nprotected',
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      color: AppColors.forestDeep,
+                      height: 1.05,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () => ref.read(ttsProvider).speak(_spoken),
-                  icon: const Icon(Icons.volume_up),
-                  label: const Text('Listen to this page'),
-                ),
-                const SizedBox(height: 16),
-                const _Point(
-                  icon: Icons.folder_shared,
-                  title: 'What we keep',
-                  text: 'Your name and phone number, your children and '
-                      'pregnancy records, and your health check answers — so '
-                      'the app can care for your family.',
-                ),
-                const _Point(
-                  icon: Icons.location_on,
-                  title: 'Your location',
-                  text: 'Shared ONLY during an emergency, so a nurse or '
-                      'volunteer can find you quickly — and only if you '
-                      'allow it on the next page.',
-                ),
-                const _Point(
-                  icon: Icons.visibility,
-                  title: 'Who can see your information',
-                  text: 'Only you — and, in an emergency, the health worker '
-                      'coming to help you. We never sell your information or '
-                      'give it to anyone else.',
-                ),
-                const _Point(
-                  icon: Icons.pan_tool,
-                  title: 'Your rights',
-                  text: 'You can look at your information, correct it, or ask '
-                      'us to delete everything — at any time, no questions '
-                      'asked.',
-                ),
-                const _Point(
-                  icon: Icons.lock,
-                  title: 'How it is protected',
-                  text: 'Your data is locked with encryption and handled '
-                      'under Ghana\'s Data Protection Act, 2012 (Act 843), '
-                      'with the same care hospitals give medical records.',
-                ),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16)),
-                onPressed: () {
-                  ref.read(ttsProvider).stop();
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()));
-                },
-                child: const Text('I understand — continue'),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Your health information belongs to YOU. Here is exactly '
+                    'what we keep and who can see it.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.muted,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => ref.read(ttsProvider).speak(_spoken),
+                      icon: const Icon(Icons.volume_up_rounded, size: 19),
+                      label: const Text('Listen to this page'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const _Point(
+                    icon: Icons.folder_shared_rounded,
+                    title: 'What we keep',
+                    text:
+                        'Your name and phone number, your children and '
+                        'pregnancy records, and your health check answers — so '
+                        'the app can care for your family.',
+                  ),
+                  const _Point(
+                    icon: Icons.location_on_rounded,
+                    title: 'Your location',
+                    text:
+                        'Shared ONLY during an emergency, so a nurse or '
+                        'volunteer can find you quickly — and only if you '
+                        'allow it on the next page.',
+                  ),
+                  const _Point(
+                    icon: Icons.visibility_rounded,
+                    title: 'Who can see it',
+                    text:
+                        'Only you — and, in an emergency, the health worker '
+                        'coming to help you. We never sell your information or '
+                        'give it to anyone else.',
+                  ),
+                  const _Point(
+                    icon: Icons.pan_tool_rounded,
+                    title: 'Your rights',
+                    text:
+                        'You can look at your information, correct it, or ask '
+                        'us to delete everything — at any time, no questions '
+                        'asked.',
+                  ),
+                  const _Point(
+                    icon: Icons.lock_rounded,
+                    title: 'How it is protected',
+                    text:
+                        'Your data is encrypted and handled under Ghana\'s '
+                        'Data Protection Act, 2012 (Act 843), with the same '
+                        'care hospitals give medical records.',
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
+                child: LimeButton(
+                  label: 'I understand — continue',
+                  onPressed: _continue,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -135,25 +175,34 @@ class _Point extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Icon(icon, size: 17, color: AppColors.forest),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(title, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 2),
-                Text(text, style: const TextStyle(height: 1.35)),
+                Text(
+                  text,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.muted,
+                    height: 1.42,
+                  ),
+                ),
               ],
             ),
           ),

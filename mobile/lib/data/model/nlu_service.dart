@@ -34,7 +34,8 @@ class NluService {
   bool get ready => _model.ready;
   int? get version => _model.version;
   int? get sizeBytes => _model.sizeBytes;
-  Future<bool> ensureLatest({bool throwOnError = false}) => _model.ensureLatest(throwOnError: throwOnError);
+  Future<bool> ensureLatest({bool throwOnError = false}) =>
+      _model.ensureLatest(throwOnError: throwOnError);
 
   /// Public for the contract test in test/nlu_featurizer_test.dart, which
   /// pins these against the numbers the training notebook prints.
@@ -94,11 +95,12 @@ class NluService {
     final subjects = (meta['subjects'] as List?)?.cast<String>();
     final buckets = (meta['buckets'] as num?)?.toInt();
     if (intents == null || subjects == null || buckets == null) return null;
-    final minConfidence =
-        (meta['minConfidence'] as num?)?.toDouble() ?? 0.5;
+    final minConfidence = (meta['minConfidence'] as num?)?.toDouble() ?? 0.5;
 
-    final out =
-        _model.run(featurize(text, buckets), intents.length + subjects.length);
+    final out = _model.run(
+      featurize(text, buckets),
+      intents.length + subjects.length,
+    );
     var bi = 0;
     for (var i = 1; i < intents.length; i++) {
       if (out[i] > out[bi]) bi = i;

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/config/regions.dart';
 import '../../domain/motivation.dart';
 import '../../domain/nutrition_tips.dart';
 import '../db/app_database.dart';
@@ -21,27 +22,35 @@ class WidgetService {
       final now = DateTime.now();
       final weekAhead = now.add(const Duration(days: 7));
 
-      final reminders = await (_db.select(_db.reminders)
-            ..where((t) =>
-                t.deleted.equals(false) & t.status.isIn(['upcoming', 'snoozed']))
-            ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
-            ..limit(10))
-          .get();
-      final children = await (_db.select(_db.children)
-            ..where((t) => t.deleted.equals(false)))
-          .get();
-      final pregnancies = await (_db.select(_db.pregnancies)
-            ..where((t) => t.deleted.equals(false) & t.status.equals('active')))
-          .get();
+      final reminders =
+          await (_db.select(_db.reminders)
+                ..where(
+                  (t) =>
+                      t.deleted.equals(false) &
+                      t.status.isIn(['upcoming', 'snoozed']),
+                )
+                ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
+                ..limit(10))
+              .get();
+      final children = await (_db.select(
+        _db.children,
+      )..where((t) => t.deleted.equals(false))).get();
+      final pregnancies =
+          await (_db.select(_db.pregnancies)..where(
+                (t) => t.deleted.equals(false) & t.status.equals('active'),
+              ))
+              .get();
 
       // ---- Countdown: delivery first, else youngest child's age ----
       String big;
       String small;
       if (pregnancies.isNotEmpty) {
         pregnancies.sort(
-            (a, b) => a.expectedDueDate.compareTo(b.expectedDueDate));
-        final daysLeft =
-            pregnancies.first.expectedDueDate.difference(now).inDays;
+          (a, b) => a.expectedDueDate.compareTo(b.expectedDueDate),
+        );
+        final daysLeft = pregnancies.first.expectedDueDate
+            .difference(now)
+            .inDays;
         if (daysLeft > 0) {
           big = '$daysLeft day${daysLeft == 1 ? '' : 's'}';
           small = 'to delivery 🍼';
@@ -75,20 +84,26 @@ class WidgetService {
       // Raw values so the widget recomputes the countdown and motivation at
       // every render — it stays correct daily even if the app never opens.
       await HomeWidget.saveWidgetData<String>(
-          'edd_millis',
-          pregnancies.isNotEmpty
-              ? pregnancies.first.expectedDueDate.millisecondsSinceEpoch
+        'edd_millis',
+        pregnancies.isNotEmpty
+            ? pregnancies.first.expectedDueDate.millisecondsSinceEpoch
                   .toString()
-              : '');
+            : '',
+      );
       await HomeWidget.saveWidgetData<String>(
-          'dob_millis',
-          children.isNotEmpty
-              ? children.first.dateOfBirth.millisecondsSinceEpoch.toString()
-              : '');
+        'dob_millis',
+        children.isNotEmpty
+            ? children.first.dateOfBirth.millisecondsSinceEpoch.toString()
+            : '',
+      );
       await HomeWidget.saveWidgetData<String>(
-          'child_name', children.isNotEmpty ? children.first.name : '');
+        'child_name',
+        children.isNotEmpty ? children.first.name : '',
+      );
       await HomeWidget.saveWidgetData<String>(
-          'motivations', motivationLines.join('|'));
+        'motivations',
+        motivationLines.join('|'),
+      );
       for (var i = 0; i < 3; i++) {
         await HomeWidget.saveWidgetData<String>(
           'check${i + 1}',
@@ -97,21 +112,21 @@ class WidgetService {
               : (i == 0 ? 'No visits this week — on track! 🎉' : ''),
         );
       }
-      await HomeWidget.saveWidgetData<String>(
-          'motivation', dailyMotivation());
+      await HomeWidget.saveWidgetData<String>('motivation', dailyMotivation());
       await HomeWidget.updateWidget(
         name: 'ReminderWidgetProvider',
         androidName: 'ReminderWidgetProvider',
       );
 
       // ---- Nana widget: next visit + daily tip ----
+      final countryCode = await savedCountryCode();
       String tip;
       if (pregnancies.isNotEmpty) {
-        final t = dailyPregnancyTip();
+        final t = dailyPregnancyTip(countryCode: countryCode);
         tip = '${t.title}: ${t.body}';
       } else if (children.isNotEmpty) {
         final months = now.difference(children.first.dateOfBirth).inDays ~/ 30;
-        final t = dailyChildTip(months);
+        final t = dailyChildTip(months, countryCode: countryCode);
         tip = '${t.title}: ${t.body}';
       } else {
         tip = 'Add a child or pregnancy in the app to get daily feeding tips.';
@@ -120,14 +135,17 @@ class WidgetService {
           ? ''
           : '${DateFormat('EEE d MMM').format(reminders.first.dueDate)}: ${reminders.first.title}. ';
       await HomeWidget.saveWidgetData<String>(
-          'nana_date', DateFormat('EEE d MMM').format(now));
+        'nana_date',
+        DateFormat('EEE d MMM').format(now),
+      );
       await HomeWidget.saveWidgetData<String>('nana_message', '$nextLine$tip');
       // The sleek strip widget shows just one short line.
       await HomeWidget.saveWidgetData<String>(
-          'nana_short',
-          nextLine.isNotEmpty
-              ? nextLine.trim().replaceAll(RegExp(r'\.\s*$'), '')
-              : tip.split(':').first);
+        'nana_short',
+        nextLine.isNotEmpty
+            ? nextLine.trim().replaceAll(RegExp(r'\.\s*$'), '')
+            : tip.split(':').first,
+      );
       await HomeWidget.updateWidget(
         name: 'NanaWidgetProvider',
         androidName: 'NanaWidgetProvider',
