@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/api_client.dart';
 import '../../core/model_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_motion.dart';
+import '../../core/ui/app_widgets.dart';
 
 /// Offline vitals assessment: the responder measures the patient and gets an
 /// AI risk estimate with zero connectivity — the model already lives on the
@@ -21,11 +25,14 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
   final Map<String, TextEditingController> _controllers = {};
   RiskAssessment? _result;
   String? _error;
+  bool _loggedToCase = false;
 
   List<String> get _features =>
       (ModelService.I.meta['features'] as List).cast<String>();
   List<String> get _labels =>
       (ModelService.I.meta['featureLabels'] as List).cast<String>();
+  Map<String, dynamic> get _ranges =>
+      (ModelService.I.meta['validRanges'] as Map<String, dynamic>?) ?? {};
 
   @override
   void initState() {
@@ -43,8 +50,21 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
     super.dispose();
   }
 
+  void _clear() {
+    for (final c in _controllers.values) {
+      c.clear();
+    }
+    setState(() {
+      _result = null;
+      _error = null;
+      _loggedToCase = false;
+    });
+    FocusScope.of(context).unfocus();
+  }
+
   void _assess() {
-    final ranges = (ModelService.I.meta['validRanges'] as Map<String, dynamic>);
+    FocusScope.of(context).unfocus();
+    final ranges = _ranges;
     final values = <String, double?>{};
     for (var i = 0; i < _features.length; i++) {
       final f = _features[i];
@@ -54,12 +74,16 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
         continue;
       }
       final v = double.tryParse(raw);
-      final range = (ranges[f] as List).map((e) => (e as num).toDouble()).toList();
-      if (v == null || v < range[0] || v > range[1]) {
+      final range = (ranges[f] as List?)
+          ?.map((e) => (e as num).toDouble())
+          .toList();
+      if (v == null || range == null || v < range[0] || v > range[1]) {
         setState(() {
           _result = null;
-          _error =
-              '${_labels[i]} looks wrong — expected ${range[0].toStringAsFixed(0)}–${range[1].toStringAsFixed(0)}.';
+          _error = range == null
+              ? '${_labels[i]} is not a number.'
+              : '${_labels[i]} looks wrong — expected '
+                  '${_trim(range[0])}–${_trim(range[1])}.';
         });
         return;
       }
@@ -73,14 +97,19 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
               'plus one more (4 total) for a reliable estimate.'
           : null;
       _result = result;
+      _loggedToCase = false;
     });
     if (result != null) _shadowLog(values, result);
   }
 
+  String _trim(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toString();
+
   /// Shadow-mode data flywheel: de-identified vitals + prediction go to the
   /// backend so the model can later be fine-tuned on local cases. Best-effort
   /// only — offline or failed sends are silently dropped.
-  Future<void> _shadowLog(Map<String, double?> values, RiskAssessment result) async {
+  Future<void> _shadowLog(
+      Map<String, double?> values, RiskAssessment result) async {
     try {
       await Api.I.dio.post('/models/maternal-risk/log', data: {
         'source': 'responder',
@@ -90,135 +119,410 @@ class _AssessVitalsScreenState extends State<AssessVitalsScreen> {
         'prediction': {'label': result.label, 'probs': result.probs},
         if (widget.alertId != null) 'alertId': widget.alertId,
       });
+      if (mounted && widget.alertId != null) {
+        setState(() => _loggedToCase = true);
+      }
     } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Assess vitals (offline AI)')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            widget.patientName == null
-                ? 'Enter the measurements you took. Leave unknown ones empty.'
-                : 'Measurements for ${widget.patientName}. Leave unknown ones empty.',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      backgroundColor: AppColors.cream,
+      appBar: AppBar(
+        title: const Text('Assess vitals'),
+        actions: [
+          TextButton(
+            onPressed: _result == null ? null : _clear,
+            child: const Text('Clear'),
           ),
-          const SizedBox(height: 16),
-          for (var i = 0; i < _features.length; i++) ...[
-            TextField(
-              controller: _controllers[_features[i]],
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: _labels[i],
-                border: const OutlineInputBorder(),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: AmbientBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(18, 6, 18, 24),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: AppColors.heroGradient,
+                borderRadius: BorderRadius.circular(AppRadii.xl),
+                border: Border.all(color: AppColors.forestDeep),
+                boxShadow: AppShadows.raised,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Pill(
+                        label: 'OFFLINE AI',
+                        icon: Icons.offline_bolt_rounded,
+                        foreground: AppColors.limeInk,
+                        background: AppColors.lime,
+                        dense: true,
+                      ),
+                      const Spacer(),
+                      Text(
+                        'v${ModelService.I.version ?? '—'} · on this phone',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.cream.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    widget.patientName == null
+                        ? 'Measure, then decide.'
+                        : 'Measurements for\n${widget.patientName}.',
+                    style: const TextStyle(
+                      fontFamily: 'Fraunces',
+                      fontSize: 25,
+                      height: 1.08,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.cream,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Enter what you measured and leave the rest empty. The '
+                    'model works with partial data, fully offline.',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 12,
+                      height: 1.45,
+                      color: AppColors.cream.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            const SectionHeader(
+              title: 'Measurements',
+              subtitle: 'Tap a field and enter the reading',
+            ),
+            SurfaceCard(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = (constraints.maxWidth - 12) / 2;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (var i = 0; i < _features.length; i++)
+                        SizedBox(
+                          width: width,
+                          child: _MeasurementField(
+                            controller: _controllers[_features[i]]!,
+                            label: _labels[i],
+                            range: (_ranges[_features[i]] as List?)
+                                ?.map((e) => _trim((e as num).toDouble()))
+                                .join('–'),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.privacy_tip_outlined,
+                    size: 15, color: AppColors.muted),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    'Measurements are de-identified. Only numbers and the '
+                    'estimate may be sent to improve the model — never names '
+                    'or phone numbers.',
+                    style: t.bodySmall?.copyWith(
+                      color: AppColors.faint,
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 14),
+              NoticeBanner(
+                icon: Icons.error_outline_rounded,
+                message: _error!,
+                color: const Color(0xFF9A1B08),
+                background: AppColors.coralSoft,
+              ),
+            ],
+            if (_result != null) ...[
+              const SizedBox(height: 18),
+              _ResultCard(
+                result: _result!,
+                loggedToCase: _loggedToCase,
+                hasCase: widget.alertId != null,
+              ),
+            ],
+            const SizedBox(height: 90),
           ],
-          const SizedBox(height: 4),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16)),
-            onPressed: _assess,
-            icon: const Icon(Icons.monitor_heart),
-            label: const Text('Assess risk'),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.cream,
+          border: Border(top: BorderSide(color: AppColors.line)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+            child: LimeButton(
+              label: _result == null ? 'Assess risk' : 'Re-assess risk',
+              icon: Icons.monitor_heart_rounded,
+              onPressed: _assess,
+            ),
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 16),
-            Text(_error!,
-                style: TextStyle(color: theme.colorScheme.error, height: 1.4)),
-          ],
-          if (_result != null) ...[
-            const SizedBox(height: 20),
-            _ResultCard(result: _result!),
-          ],
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeasurementField extends StatelessWidget {
+  const _MeasurementField({
+    required this.controller,
+    required this.label,
+    required this.range,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String? range;
+
+  @override
+  Widget build(BuildContext context) {
+    // "Systolic BP (mmHg)" as a floating label truncates in a two-column
+    // grid; the measurement name sits in the label, the unit becomes a hint.
+    var short = label.split('(').first.trim();
+    if (short.toLowerCase().startsWith('body temperature')) {
+      short = 'Body temp';
+    }
+    final unit = RegExp(r'\(([^)]*)\)').firstMatch(label)?.group(1);
+    return TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
+      style: const TextStyle(
+        fontFamily: 'Manrope',
+        fontSize: 17,
+        fontWeight: FontWeight.w800,
+        color: AppColors.ink,
+      ),
+      decoration: InputDecoration(
+        labelText: short,
+        hintText: unit,
+        labelStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+        ),
+        helperText: range == null
+            ? null
+            : 'Normal $range${unit == null ? '' : ' $unit'}',
+        helperStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 9.5,
+          color: AppColors.faint,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),
     );
   }
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.result});
+  const _ResultCard({
+    required this.result,
+    required this.loggedToCase,
+    required this.hasCase,
+  });
 
   final RiskAssessment result;
+  final bool loggedToCase;
+  final bool hasCase;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = Theme.of(context).textTheme;
     final color = switch (result.label) {
-      'high risk' => Colors.red.shade700,
-      'mid risk' => Colors.orange.shade700,
-      _ => Colors.green.shade700,
+      'high risk' => AppColors.coral,
+      'mid risk' => AppColors.amber,
+      _ => AppColors.teal,
     };
-    return Card(
-      elevation: 0,
-      color: color.withValues(alpha: 0.08),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.analytics, color: color),
-                const SizedBox(width: 8),
-                Text(result.label.toUpperCase(),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                        color: color, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                Text('${(result.confidence * 100).round()}%',
-                    style: theme.textTheme.titleMedium?.copyWith(color: color)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            for (var i = 0; i < result.classes.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+    final background = switch (result.label) {
+      'high risk' => AppColors.coralSoft,
+      'mid risk' => AppColors.amberSoft,
+      _ => AppColors.tealSoft,
+    };
+    return SurfaceCard(
+      padding: const EdgeInsets.all(18),
+      borderColor: color.withValues(alpha: 0.4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
-                        width: 76,
-                        child: Text(result.classes[i],
-                            style: theme.textTheme.bodySmall)),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: result.probs[i],
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
+                    Icon(Icons.auto_awesome_rounded, size: 13, color: color),
+                    const SizedBox(width: 5),
+                    Text(
+                      'AI ESTIMATE',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.1,
+                        color: color,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text('${(result.probs[i] * 100).round()}%',
-                        style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
-            Text(
-              'Based on ${result.usedInputs} of ${result.totalInputs} measurements.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              const Spacer(),
+              if (hasCase)
+                Pill(
+                  label: loggedToCase ? 'LOGGED TO CASE' : 'SAVED LOCALLY',
+                  foreground:
+                      loggedToCase ? AppColors.teal : AppColors.muted,
+                  background:
+                      loggedToCase ? AppColors.tealSoft : AppColors.creamDeep,
+                  dense: true,
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            result.label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'Fraunces',
+              fontSize: 32,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
-            const SizedBox(height: 8),
-            Text(
-              '⚠ AI estimate — it can be wrong. Use your clinical judgement '
-              'and the danger-sign protocol; this never replaces them.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant, height: 1.4),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${(result.confidence * 100).round()}% confidence · based on '
+            '${result.usedInputs} of ${result.totalInputs} measurements',
+            style: t.bodySmall?.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: 16),
+          for (var i = 0; i < result.classes.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 9),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 84,
+                    child: Text(
+                      result.classes[i].toUpperCase(),
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: result.probs[i]),
+                        duration: AppMotion.slow,
+                        curve: AppMotion.enter,
+                        builder: (context, value, _) => LinearProgressIndicator(
+                          value: value,
+                          minHeight: 7,
+                          backgroundColor: AppColors.creamDeep,
+                          valueColor: AlwaysStoppedAnimation(
+                            result.classes[i] == result.label
+                                ? color
+                                : AppColors.lineStrong,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 34,
+                    child: Text(
+                      '${(result.probs[i] * 100).round()}%',
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.cream,
+              borderRadius: BorderRadius.circular(AppRadii.md),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.warning_amber_rounded,
+                    size: 17, color: AppColors.amber),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'AI estimate — it can be wrong. Use your clinical '
+                    'judgement and the danger-sign protocol; this never '
+                    'replaces them.',
+                    style: t.bodySmall?.copyWith(
+                      color: AppColors.inkSoft,
+                      fontSize: 11,
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

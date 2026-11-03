@@ -17,6 +17,9 @@ final List<String> kApiBaseCandidates = kReleaseMode
 const kAccessTokenKey = 'accessToken';
 const kRefreshTokenKey = 'refreshToken';
 
+/// Keep in step with `version:` in pubspec.yaml.
+const kAppVersion = '1.1.0';
+
 const kTiers = {
   'volunteer': 'Community volunteer',
   'chw': 'Community health worker',
@@ -24,3 +27,22 @@ const kTiers = {
   'midwife': 'Midwife',
   'doctor': 'Doctor',
 };
+
+const kGhanaRegions = [
+  'Ahafo',
+  'Ashanti',
+  'Bono',
+  'Bono East',
+  'Central',
+  'Eastern',
+  'Greater Accra',
+  'North East',
+  'Northern',
+  'Oti',
+  'Savannah',
+  'Upper East',
+  'Upper West',
+  'Volta',
+  'Western',
+  'Western North',
+];
