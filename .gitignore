@@ -1,3 +1,6 @@
 demo-video/
 build_apk.ps1.tmp.ps1
 .shots
+launch-video/
+
+.workbuddy-ai/
